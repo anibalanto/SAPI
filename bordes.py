@@ -48,9 +48,11 @@ class Algoritmo(object):
 
 class AlgoritmoRuido(Algoritmo):
   def aplicar_en_pixel(self, x, y, img, ret, filtro):
+    """
     Aplica el filtro en el pixel dado por img(x,y)
     devuelve la imagen ret con el pixel x,y modificado
     total = filtro.ancho * filtro.ancho
+    """
     sumar = 0.0
     sumag = 0.0
     sumab = 0.0
@@ -60,7 +62,6 @@ class AlgoritmoRuido(Algoritmo):
       sumag += valor * g
       sumab += valor * b
     ret.putpixel((x, y), (int(sumar/total), int(sumag/total),int(sumab/total)))
-    return ret
 
 class AlgoritmoConvulsion(Algoritmo):
   def __init__(self, filtro):
@@ -86,24 +87,12 @@ class AlgoritmoConvulsion(Algoritmo):
       sumar += valor * r
       sumag += valor * g
       sumab += valor * b
-
-    """
-    aux = (sumar + 256) / total
-    if aux > 1:
-      raise Exception
-    p = (r,g,b)
-    if aux >= 0.7:
-      p = (0,0,255)
-    ret.putpixel((x, y), p)
-    """
-    #TODO: probar este metodo con un treshold
     value = (
         int(((sumar + minimo) / total) * 256),
         int(((sumag + minimo) / total) * 256),
         int(((sumab + minimo) / total) * 256),
     )
     ret.putpixel((x, y), value)
-    return ret
 
 class AlgoritmoRoberts(Algoritmo):
   """
@@ -120,7 +109,40 @@ class AlgoritmoRoberts(Algoritmo):
     c = math.sqrt(a + b) / maximo
     value = int(c * 255) 
     ret.putpixel((x,y), (value, value, value))
-    return ret
+
+class AlgoritmoMultiplesFiltros(Algoritmo):
+  """
+  Este algoritmo admite una serie de filtros que luego aplica.
+  """
+
+  def __init__(self, filtros_list):
+    """
+    filtros_list: lista de filtros a aplicar
+    """
+    self.filtros_list = filtros_list
+    maximo = 0
+    minimo = 0
+    for filtro in self.filtros_list:
+      maximo += filtro.get_maximo() 
+      minimo += filtro.get_minimo()
+    self.intervalo = maximo #- minimo + 1
+
+  def aplicar_en_pixel(self, x, y, img, ret):
+    """
+    Aplica cada uno de los filtros. Luego suma el resultado de aplicar cada uno, lo normaliza y lo utiliza como
+    valor de gris en la imagen de destino.
+    """
+    gradiente = 0
+
+    for filtro in self.filtros_list:
+      gr = 0
+      for col, fil, val in filtro:
+        gr += img.get_red_pixel((x+col, y+fil)) * val
+      gradiente += abs(gr)
+
+    #value = int((gradiente / self.intervalo ) * 255)
+    value = int((gradiente / (8*5*255) ) * 255)
+    ret.putpixel((x,y), (value,value,value))
 
 class AlgoritmoGradiente(Algoritmo):
 
@@ -143,20 +165,16 @@ class AlgoritmoGradiente(Algoritmo):
     value = math.sqrt(math.pow(gx, 2) + math.pow(gy, 2))
     value = int((value / maximo) * 255) 
     ret.putpixel((x,y), (value,value,value))
-    return ret
 
 if __name__ == "__main__":
 
   img = cargar(sys.argv[1])
-  img.show()
-  #filtro = Filtro(SOBEL2, 3)
-  #algo = AlgoritmoConvulsion(filtro)
-  #algo = AlgoritmoRoberts()
-  #"""
-  filtrox = Filtro(SOBELX, 3)
-  filtroy = Filtro(SOBELY, 3)
-  algo = AlgoritmoSobel(filtrox, filtroy)
-  #"""
+  #img.show()
+  lista_filtros = []
+  for i in PREWITT_LIST:
+    lista_filtros.append(Filtro(i, 3))
+  algo = AlgoritmoMultiplesFiltros(lista_filtros)
   trans = Transformador()
   img2 = trans.aplicar(algo, img)
-  img2.show()
+  #img2.show()
+  img2.save("salida.bmp")

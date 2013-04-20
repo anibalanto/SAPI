@@ -119,3 +119,62 @@ SOBELY = [
     -2,  0, +2,
     -1,  0, +1,
 ]
+
+PREWWIT_E =  [
+    1,1,-1, 
+    1,-2,-1, 
+    1,1,-1
+]
+
+PREWWIT_NE = [
+    1,-1,-1,
+    1,-2,-1,
+    1,1,1
+]
+
+PREWWIT_N = [
+    1,-1,1,
+    -1,-2,-1,
+    1,1,1
+]
+
+PREWWIT_NW = [
+    -1,-1,1,
+    -1,-2,1,
+    1,1,1
+]
+
+PREWWIT_W =  [
+    -1,1,1,
+    -1,-2,1,
+    -1,1,1
+]
+
+PREWWIT_SW = [
+    1,1,1,
+    -1,-2,1,
+    -1,-1,1
+]
+
+PREWWIT_S = [
+    1,1,1,
+    1,-2,1,
+    -1,-1,-1
+]
+
+PREWWIT_SE = [
+    1,1,1,
+    1,-2,-1,
+    1,-1,-1
+]
+
+PREWITT_LIST = [
+PREWWIT_E,
+PREWWIT_NE,
+PREWWIT_N,
+PREWWIT_NW,
+PREWWIT_W,
+PREWWIT_SW,
+PREWWIT_S,
+PREWWIT_SE,
+]

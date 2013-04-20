@@ -17,6 +17,9 @@ class Imagen(object):
   def getpixel(self, xy):
     return self.pix[xy[0],xy[1]]
 
+  def get_red_pixel(self, xy):
+    return self.pix[xy[0],xy[1]][0]
+
   def putpixel(self, xy, value):
     for i in value:
       if not 0 <= i <=255:
@@ -25,6 +28,9 @@ class Imagen(object):
 
   def show(self):
     self.img.show()
+
+  def save(self, path):
+    self.img.save(path)
 
 class ImagenArchivo(Imagen):
 
