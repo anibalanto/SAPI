@@ -139,7 +139,6 @@ class AlgoritmoCompass(Algoritmo):
       for col, fil, val in filtro:
         gr += img.get_red_pixel((x+col, y+fil)) * val
       gradientes.append(abs(gr) / filtro.get_maximo())
-      #gradiente += abs(gr)
 
     value = int(max(gradientes) * 255)
     #value = int((gradiente / self.intervalo) * 255)
@@ -175,8 +174,8 @@ if __name__ == "__main__":
 
   img = cargar(sys.argv[1])
   #algo = AlgoritmoCompass([Filtro(i,3) for i in PREWITT_LIST])
-  #algo = AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
-  algo = AlgoritmoRoberts()
+  algo = AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
+  #algo = AlgoritmoRoberts()
   trans = Transformador()
   img2 = trans.aplicar(algo, img)
-  img2.save("output_roberts.bmp")
+  img2.save("out.bmp")
