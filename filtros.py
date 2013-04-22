@@ -120,61 +120,61 @@ SOBELY = [
     -1,  0, +1,
 ]
 
-PREWWIT_E =  [
+PREWITT_E =  [
     1,1,-1, 
     1,-2,-1, 
     1,1,-1
 ]
 
-PREWWIT_NE = [
+PREWITT_NE = [
     1,-1,-1,
     1,-2,-1,
     1,1,1
 ]
 
-PREWWIT_N = [
+PREWITT_N = [
     1,-1,1,
     -1,-2,-1,
     1,1,1
 ]
 
-PREWWIT_NW = [
+PREWITT_NW = [
     -1,-1,1,
     -1,-2,1,
     1,1,1
 ]
 
-PREWWIT_W =  [
+PREWITT_W =  [
     -1,1,1,
     -1,-2,1,
     -1,1,1
 ]
 
-PREWWIT_SW = [
+PREWITT_SW = [
     1,1,1,
     -1,-2,1,
     -1,-1,1
 ]
 
-PREWWIT_S = [
+PREWITT_S = [
     1,1,1,
     1,-2,1,
     -1,-1,-1
 ]
 
-PREWWIT_SE = [
+PREWITT_SE = [
     1,1,1,
     1,-2,-1,
     1,-1,-1
 ]
 
 PREWITT_LIST = [
-PREWWIT_E,
-PREWWIT_NE,
-PREWWIT_N,
-PREWWIT_NW,
-PREWWIT_W,
-PREWWIT_SW,
-PREWWIT_S,
-PREWWIT_SE,
+PREWITT_E,
+PREWITT_NE,
+PREWITT_N,
+PREWITT_NW,
+PREWITT_W,
+PREWITT_SW,
+PREWITT_S,
+PREWITT_SE,
 ]

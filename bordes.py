@@ -88,9 +88,9 @@ class AlgoritmoConvulsion(Algoritmo):
       sumag += valor * g
       sumab += valor * b
     value = (
-        int(((sumar + minimo) / total) * 256),
+        int(((sumar + minimo) / total) * 255),
         int(((sumag + minimo) / total) * 256),
-        int(((sumab + minimo) / total) * 256),
+        int(((sumab + minimo) / total) * 255),
     )
     ret.putpixel((x, y), value)
 
@@ -110,9 +110,10 @@ class AlgoritmoRoberts(Algoritmo):
     value = int(c * 255) 
     ret.putpixel((x,y), (value, value, value))
 
-class AlgoritmoMultiplesFiltros(Algoritmo):
+class AlgoritmoCompass(Algoritmo):
   """
   Este algoritmo admite una serie de filtros que luego aplica.
+  Se utiliza con los filtros de prewitt.
   """
 
   def __init__(self, filtros_list):
@@ -121,30 +122,34 @@ class AlgoritmoMultiplesFiltros(Algoritmo):
     """
     self.filtros_list = filtros_list
     maximo = 0
-    minimo = 0
     for filtro in self.filtros_list:
       maximo += filtro.get_maximo() 
-      minimo += filtro.get_minimo()
-    self.intervalo = maximo #- minimo + 1
+    self.intervalo = maximo
 
   def aplicar_en_pixel(self, x, y, img, ret):
     """
-    Aplica cada uno de los filtros. Luego suma el resultado de aplicar cada uno, lo normaliza y lo utiliza como
-    valor de gris en la imagen de destino.
+    Aplica cada uno de los filtros.
+    De todos los gradientes, nos quedamos con el maximo normalizado.
     """
-    gradiente = 0
+    #gradiente = 0
+    gradientes = list()
 
     for filtro in self.filtros_list:
       gr = 0
       for col, fil, val in filtro:
         gr += img.get_red_pixel((x+col, y+fil)) * val
-      gradiente += abs(gr)
+      gradientes.append(abs(gr) / filtro.get_maximo())
+      #gradiente += abs(gr)
 
-    #value = int((gradiente / self.intervalo ) * 255)
-    value = int((gradiente / (8*5*255) ) * 255)
+    value = int(max(gradientes) * 255)
+    #value = int((gradiente / self.intervalo) * 255)
     ret.putpixel((x,y), (value,value,value))
 
 class AlgoritmoGradiente(Algoritmo):
+  """
+  Este algoritmo es apto para utilizarlo con 2 filtros.
+  Se puede probar con los filtros de sobel.
+  """
 
   def __init__(self, filtrox, filtroy):
     self.filtrox = filtrox
@@ -169,12 +174,9 @@ class AlgoritmoGradiente(Algoritmo):
 if __name__ == "__main__":
 
   img = cargar(sys.argv[1])
-  #img.show()
-  lista_filtros = []
-  for i in PREWITT_LIST:
-    lista_filtros.append(Filtro(i, 3))
-  algo = AlgoritmoMultiplesFiltros(lista_filtros)
+  #algo = AlgoritmoCompass([Filtro(i,3) for i in PREWITT_LIST])
+  #algo = AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
+  algo = AlgoritmoRoberts()
   trans = Transformador()
   img2 = trans.aplicar(algo, img)
-  #img2.show()
-  img2.save("salida.bmp")
+  img2.save("output_roberts.bmp")
