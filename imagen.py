@@ -24,7 +24,11 @@ class Imagen(object):
     for i in value:
       if not 0 <= i <=255:
         raise MyException(xy, value)
-    self.pix[xy[0],xy[1]] = value
+    try:
+      self.pix[xy[0],xy[1]] = value
+    except:
+      print "Fuera de rango? %s" % str(xy)
+      raise
 
   def show(self):
     self.img.show()
