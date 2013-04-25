@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 from __future__ import division
 from imagen import Imagen, ImagenArchivo, ImagenVacia
+import ImageDraw
+from collections import namedtuple
 import sys
 
 def cargar(filename):
@@ -9,25 +11,29 @@ def cargar(filename):
   print "size: %s" % str(img.size)
   return img
 
+Point = namedtuple('Point', ["x", "y"])
+
 class Transformador(object):
 
-  def recorrer_imagen(self, ancho, alto):
+  def recorrer_imagen(self, desde, hasta):
     """
     genera tuplas (x,y) entre 0..ancho y 0..alto
+    desde y hasta son instancias de Point
     """
-    for x in range(ancho):
-      for y in range(alto):
+    for x in range(desde.x, hasta.x):
+      for y in range(desde.y, hasta.y):
         yield (x,y)
 
   def es_borde(self, x, y, ancho, alto):
     return not ((0 < x < ancho-1) and (0 < y < alto-1))
 
-  def aplicar(self, algoritmo, img_origen, img_destino):
+  def aplicar(self, algoritmo, desde, hasta, img_origen, img_destino):
     """
     Aplica el filtro a la imagen
+    desde y hasta instancias de Point definen el cuadrado sobre el cual se va a aplicar el algoritmo
     """
     ancho, alto = img_origen.size
-    for x,y in self.recorrer_imagen(ancho, alto):
+    for x,y in self.recorrer_imagen(desde, hasta):
       algoritmo.aplicar_en_pixel(x, y, img_origen, img_destino)
 
 class Algoritmo(object):
@@ -35,11 +41,11 @@ class Algoritmo(object):
     raise NotImplementedError
 
 class TransElastica(Algoritmo):
-  def __init__(self, o1, o2, o3, o4, d1, d2, d3, d4):
-    xA, yA = o1
-    xB, yB = o2
-    xC, yC = o3
-    xD, yD = o4
+  def __init__(self, desde, hasta, d1, d2, d3, d4):
+    xA, yA = desde.x, desde.y
+    xB, yB = hasta.x, desde.y 
+    xC, yC = hasta.x, hasta.y
+    xD, yD = desde.x, hasta.y
 
     xDestA, yDestA = d1
     xDestB, yDestB = d2
@@ -69,22 +75,39 @@ class TransElastica(Algoritmo):
     y_dest = self.C5 + self.C6 * x + self.C7 * y + self.C8 * x * y
     destino.putpixel((int(x_dest), int(y_dest)), origen.getpixel((x, y)))
 
+
 if __name__ == "__main__":
   origen = cargar(sys.argv[1])
+  ancho, alto = origen.size
   destino = ImagenVacia("RGB", (600, 600))
+  draw = ImageDraw.Draw(destino.get_img())
+  """
+  imagen origen
+  desde ---- 
+  |        |
+  |        |
+  |        |
+  -------- hasta
 
-  o1 = (0.0,0.0)
-  o2 = (200.0, 0.0)
-  o3 = (200.0, 200.0)
-  o4 = (0.0,200.0)
+  imagen destino
+  d1 ----- d2
+  |        |
+  |        |
+  |        |
+  d4 ----- d3
+  """
+  desde = Point(0,0)
+  hasta = Point(ancho, alto)
 
-  d1 = (50.0, 20.0)
-  d2 = (470.0, 10.0)
-  d3 = (480.0, 200.0)
-  d4 = (40.0, 400.0)
+  d1 = Point(599, 599)
+  d2 = Point(0, 599)
+  d3 = Point(0, 0)
+  d4 = Point(599, 0)
 
-  algo = TransElastica(o1, o2, o3, o4, d1, d2, d3, d4)
+  algo = TransElastica(desde, hasta, d1, d2, d3, d4)
 
   trans = Transformador()
-  trans.aplicar(algo, origen, destino)
+  trans.aplicar(algo, desde, hasta, origen, destino)
+  draw.polygon([d1, d2, d3, d4], outline=(0,0,255))
+
   destino.show()

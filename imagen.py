@@ -36,6 +36,9 @@ class Imagen(object):
   def save(self, path):
     self.img.save(path)
 
+  def get_img(self):
+    return self.img
+
 class ImagenArchivo(Imagen):
 
   def __init__(self, filename):
