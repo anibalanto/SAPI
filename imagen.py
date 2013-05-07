@@ -1,4 +1,6 @@
 import Image
+import tempfile
+
 class MyException(Exception):
   def __init__(self, xy, pix_val):
     self.pix_val = pix_val
@@ -33,8 +35,13 @@ class Imagen(object):
   def show(self):
     self.img.show()
 
-  def save(self, path):
-    self.img.save(path)
+  def save(self, path, *args, **kwargs):
+    self.img.save(path, *args, **kwargs)
+
+  def save_temp(self, mode="bmp"):
+    filename = tempfile.mktemp()
+    self.img.save(filename, mode)
+    return filename
 
   def get_img(self):
     return self.img
