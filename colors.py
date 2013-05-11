@@ -6,9 +6,9 @@ import ImageDraw
 import sys
 import colorsys
 import histograma
+from transformador import Transformador
+from colores import *
 
-WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
 
 def cargar(filename):
   img = ImagenArchivo(filename)
@@ -16,28 +16,13 @@ def cargar(filename):
   print "size: %s" % str(img.size)
   return img
 
-class Transformador(object):
-
-  def recorrer_imagen(self, ancho, alto):
-    """
-    genera tuplas (x,y) entre 0..ancho y 0..alto
-    """
-    for x in range(1,ancho-1):
-      for y in range(1,alto-1):
-        yield (x,y)
-
-  def aplicar(self, algoritmo, img):
-    """
-    Aplica el filtro a la imagen
-    """
-    ret = ImagenVacia(img.mode, img.size)
-    ancho, alto = img.size
-    for x,y in self.recorrer_imagen(ancho, alto):
-        algoritmo.aplicar_en_pixel(x, y, img, ret)
-    return ret
-
 class Algoritmo(object):
   def aplicar_en_pixel(self, x, y, img, ret):
+    """
+    Llamado por Transformador.aplicar.
+    Debe devolver una tupla con los valores de r, g y b
+    ej: return (34, 233, 10)
+    """
     raise NotImplementedError
 
 class AlgoritmoRojisidad(Algoritmo):
@@ -52,9 +37,13 @@ class AlgoritmoRojisidad(Algoritmo):
     Devuelve el nivel de rojo que tiene cada pixel
     """
     (r,g,b,i) = img.getpixel((x, y))
-    ret.putpixel((x, y), (self.rojisidad(r,g,b), self.rojisidad(r,g,b), self.rojisidad(r,g,b)))
+    return (self.rojisidad(r,g,b), self.rojisidad(r,g,b), self.rojisidad(r,g,b))
 
 class AlgoritmoUmbralHSV(Algoritmo):
+  """
+  Crea una imagen binaria donde los pixels que caen dentro del intervalo indicado en el constructor,
+  se muestran como blancos y el resto como negros.
+  """
 
   def __init__(self, h_h, h_l, v_h, v_l, s_h, s_l):
     self.hh = h_h
@@ -63,6 +52,14 @@ class AlgoritmoUmbralHSV(Algoritmo):
     self.vl = v_l
     self.sh = s_h
     self.sl = s_l
+
+  def en_intervalo_hue(self, h, hl, hh):
+    #Existen casos en los que h low es menor que h high. Esto se puede dar cuando queremos
+    #un intervalo de hue que cae sobre el comienzo de la rueda.
+    if (hh < hl):
+      return not (hh <= h <= hl)
+    else:
+      return (hl <= h <= hh)
 
   def aplicar_en_pixel(self, x, y, img, ret):
     """
@@ -74,32 +71,39 @@ class AlgoritmoUmbralHSV(Algoritmo):
     s = s * 100
     v = v * 100
 
-    val = 0
-    if (((0 <= h <= self.hh) or (self.hl <= h <= 359)) and (self.vl <= v <= self.vh) and (self.sl <= s <= self.sh)):
-      val = 255
+    col = BLACK
+    if (self.en_intervalo_hue(h, self.hl, self.hh) and (self.vl <= v <= self.vh) and (self.sl <= s <= self.sh)):
+      col = WHITE
 
-    ret.putpixel((x, y), (val, val, val))
+    return col
 
 class AlgoritmoCombinar(Algoritmo):
+  """
+  Aplica algo similar al operador and entre original y la imagen a la que se le aplica el algoritmo.
+  """
   def __init__(self, original):
     self.original = original
 
   def aplicar_en_pixel(self, x, y, img, ret):
     if (img.getpixel((x, y)) == WHITE):
-      ret.putpixel((x, y), BLUE)
+      return BLUE
     else:
-      ret.putpixel((x, y), self.original.getpixel((x, y)))
+      return self.original.getpixel((x, y))
 
 class AlgoritmoRotacion(Algoritmo):
+  """
+  Rota los colores de hue de la imagen tantos grados como se indica en el constructor.
+  """
   def __init__(self, grados):
     self.offset = grados / 360
+    print self.offset
 
   def aplicar_en_pixel(self, x, y, img, ret):
     r, g, b = img.getpixel((x, y))
     h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
-    h = h + self.offset % 359
+    h = (h + self.offset) % 1.0
     r, g, b = colorsys.hsv_to_rgb(h, s, v)
-    ret.putpixel((x, y), (int(r * 255), int(g * 255), int(b * 255)))
+    return (int(r * 255), int(g * 255), int(b * 255))
 
 if __name__ == "__main__":
   origen = cargar(sys.argv[1])
@@ -112,4 +116,4 @@ if __name__ == "__main__":
   destino = trans.aplicar(algoritmo, origen)
   destino.show()
 
-  histograma.crear_histograma(destino)
+  #histograma.crear_histograma(destino)
