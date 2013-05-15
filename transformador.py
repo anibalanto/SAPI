@@ -19,6 +19,6 @@ class Transformador(object):
     for x,y in self.recorrer_imagen(ancho, alto):
         ret.putpixel(
             (x, y),
-            algoritmo.aplicar_en_pixel(x, y, img, ret)
+            algoritmo.aplicar_en_pixel(x, y, img)
         )
     return ret

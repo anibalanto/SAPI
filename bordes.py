@@ -9,6 +9,8 @@ import sys
 import math
 from filtros import  *
 from imagen import ImagenArchivo, ImagenVacia
+from colores import *
+from transformador import Transformador
 
 
 def cargar(filename):
@@ -16,31 +18,6 @@ def cargar(filename):
   print "mode: %s" % img.mode
   print "size: %s" % str(img.size)
   return img
-
-class Transformador(object):
-
-  def recorrer_imagen(self, ancho, alto):
-    """
-    genera tuplas (x,y) entre 0..ancho y 0..alto
-    """
-    for x in range(ancho):
-      for y in range(alto):
-        yield (x,y)
-
-  def es_borde(self, x, y, ancho, alto):
-    return not ((0 < x < ancho-1) and (0 < y < alto-1))
-
-  def aplicar(self, algoritmo, img):
-    """
-    Aplica el filtro a la imagen
-    """
-    ret = ImagenVacia(img.mode, img.size)
-    ancho, alto = img.size
-    for x,y in self.recorrer_imagen(ancho, alto):
-      if not self.es_borde(x, y, ancho, alto):
-        algoritmo.aplicar_en_pixel(x, y, img, ret)
-    return ret
-
 
 class Algoritmo(object):
   def aplicar_en_pixel(self, x, y, img, ret):
@@ -125,13 +102,13 @@ class AlgoritmoCompass(Algoritmo):
     for filtro in self.filtros_list:
       maximo += filtro.get_maximo() 
     self.intervalo = maximo
+    self.maxborde = 0
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     """
     Aplica cada uno de los filtros.
     De todos los gradientes, nos quedamos con el maximo normalizado.
     """
-    #gradiente = 0
     gradientes = list()
 
     for filtro in self.filtros_list:
@@ -141,8 +118,10 @@ class AlgoritmoCompass(Algoritmo):
       gradientes.append(abs(gr) / filtro.get_maximo())
 
     value = int(max(gradientes) * 255)
-    #value = int((gradiente / self.intervalo) * 255)
-    ret.putpixel((x,y), (value,value,value))
+    if value > self.maxborde: self.maxborde = value
+    #ret.putpixel((x,y), (value,value,value))
+    #ret.putpixel((x,y), color)
+    return (value,value,value)
 
 class AlgoritmoGradiente(Algoritmo):
   """
@@ -173,9 +152,10 @@ class AlgoritmoGradiente(Algoritmo):
 if __name__ == "__main__":
 
   img = cargar(sys.argv[1])
-  #algo = AlgoritmoCompass([Filtro(i,3) for i in PREWITT_LIST])
-  algo = AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
+  algo = AlgoritmoCompass([Filtro(i,3) for i in PREWITT_LIST])
+  #algo = AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
   #algo = AlgoritmoRoberts()
   trans = Transformador()
   img2 = trans.aplicar(algo, img)
+  print "el maxborde es: %s" % algo.maxborde
   img2.save("out.bmp")

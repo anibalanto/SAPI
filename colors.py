@@ -9,7 +9,6 @@ import histograma
 from transformador import Transformador
 from colores import *
 
-
 def cargar(filename):
   img = ImagenArchivo(filename)
   print "mode: %s" % img.mode
@@ -17,7 +16,7 @@ def cargar(filename):
   return img
 
 class Algoritmo(object):
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     """
     Llamado por Transformador.aplicar.
     Debe devolver una tupla con los valores de r, g y b
@@ -32,7 +31,7 @@ class AlgoritmoRojisidad(Algoritmo):
       return 0
     return res
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     """
     Devuelve el nivel de rojo que tiene cada pixel
     """
@@ -61,7 +60,7 @@ class AlgoritmoUmbralHSV(Algoritmo):
     else:
       return (hl <= h <= hh)
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     """
     Devuelve blanco si esta por arriba del umbral y negro si esta por debajo
     """
@@ -84,7 +83,7 @@ class AlgoritmoCombinar(Algoritmo):
   def __init__(self, original):
     self.original = original
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     if (img.getpixel((x, y)) == WHITE):
       return BLUE
     else:
@@ -98,12 +97,40 @@ class AlgoritmoRotacion(Algoritmo):
     self.offset = grados / 360
     print self.offset
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     r, g, b = img.getpixel((x, y))
     h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
     h = (h + self.offset) % 1.0
     r, g, b = colorsys.hsv_to_rgb(h, s, v)
     return (int(r * 255), int(g * 255), int(b * 255))
+
+class AlgoritmoHSVtoGrayscale(Algoritmo):
+  """
+  Convierte una imagen a escala de grises. Los valores de h mas cercanos al, hmax pasado al contructor,
+  se mapean a la intensidad 255. Cuanto mas lejos del hmax, los valores de h se traducen en intensidades
+  cercanas al 0.
+  """
+
+  def __init__(self, centro):
+    """
+    El centro indica el valor de h que queremos mapear a la intensidad maxima de gris.
+    0.0 <= centro <= 1.0
+    """
+    self.centro = centro
+    self.centro2 = centro + 1.0
+
+  def calc_distancia(self, h, centro, seg_centro):
+    return min(abs(centro - h), abs(seg_centro - h))
+
+  def aplicar_en_pixel(self, x, y, img):
+    #TODO: agregar filtro por s y v
+    r, g, b = img.getpixel((x, y))
+    h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+    intensidad = 255
+    if (s > 0.4 and v > 0.4):
+      distancia = self.calc_distancia(h, self.centro, self.centro2)
+      intensidad = int(distancia * 255)
+    return (intensidad,intensidad,intensidad)
 
 if __name__ == "__main__":
   origen = cargar(sys.argv[1])
@@ -112,8 +139,10 @@ if __name__ == "__main__":
   trans = Transformador()
 
   #algoritmo = AlgoritmoUmbral(0.17)
-  algoritmo = AlgoritmoRotacion(40)
+  #algoritmo = AlgoritmoRotacion(40)
+  algoritmo = AlgoritmoHSVtoGrayscale(0.194)
   destino = trans.aplicar(algoritmo, origen)
+  #destino.save("sapo_rotado2.bmp")
   destino.show()
 
   #histograma.crear_histograma(destino)

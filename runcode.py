@@ -109,18 +109,23 @@ def run_codes(img):
   return segmentos
 
 if __name__ == '__main__':
-  img = cargar(sys.argv[1])
-  s = img.size
-  segmentos = run_codes(img)
-  print "hay {0} segmentos".format(len(segmentos.segmentos))
+  if len(sys.argv) <= 1:
+    print "Uso:"
+    print "%s entrada.bmp salida.bmp" % sys.argv[0]
+  else:
+    img_in = sys.argv[1]
+    img_out = sys.argv[2]
 
-  img = ImagenVacia("RGB", s)
+    img = cargar(img_in)
+    s = img.size
+    segmentos = run_codes(img)
+    print "hay {0} segmentos".format(len(segmentos.segmentos))
 
-  for seg in segmentos.segmentos:
-  #  print seg
-    col = (int(random.random() * 255),int(random.random() * 255),int(random.random() * 255))
-    for e in seg.elementos:
-      img.putpixel(e, col)
-  img.show()
-  img.save("salida.bmp")
-  #"""
+    img = ImagenVacia("RGB", s)
+
+    for seg in segmentos.segmentos:
+      col = (int(random.random() * 255),int(random.random() * 255),int(random.random() * 255))
+      for e in seg.elementos:
+        img.putpixel(e, col)
+    img.show()
+    img.save(img_out)
