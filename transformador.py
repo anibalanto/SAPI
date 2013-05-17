@@ -1,8 +1,9 @@
 from imagen import Imagen, ImagenArchivo, ImagenVacia
 
 class Transformador(object):
-
-  def recorrer_imagen(self, ancho, alto):
+  
+  @staticmethod
+  def recorrer_imagen(ancho, alto):
     """
     genera tuplas (x,y) entre 0..ancho y 0..alto
     """
@@ -10,15 +11,20 @@ class Transformador(object):
       for y in range(1,alto-1):
         yield (x,y)
 
-  def aplicar(self, algoritmo, img):
+  @staticmethod
+  def aplicar(algoritmos, img):
     """
-    Aplica el filtro a la imagen
+    Aplica los algoritmos indicados en algoritmos a la imagen img.
     """
-    ret = ImagenVacia(img.mode, img.size)
     ancho, alto = img.size
-    for x,y in self.recorrer_imagen(ancho, alto):
-        ret.putpixel(
-            (x, y),
-            algoritmo.aplicar_en_pixel(x, y, img)
-        )
+    ret = ImagenVacia(img.mode, img.size)
+    for algoritmo in algoritmos:
+      for x,y in Transformador.recorrer_imagen(ancho, alto):
+          ret.putpixel(
+              (x, y),
+              algoritmo.aplicar_en_pixel(x, y, img)
+          )
+      img = ret
+      ret = ImagenVacia(img.mode, img.size)
+      img.show()
     return ret

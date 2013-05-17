@@ -8,21 +8,7 @@ import colorsys
 import histograma
 from transformador import Transformador
 from colores import *
-
-def cargar(filename):
-  img = ImagenArchivo(filename)
-  print "mode: %s" % img.mode
-  print "size: %s" % str(img.size)
-  return img
-
-class Algoritmo(object):
-  def aplicar_en_pixel(self, x, y, img):
-    """
-    Llamado por Transformador.aplicar.
-    Debe devolver una tupla con los valores de r, g y b
-    ej: return (34, 233, 10)
-    """
-    raise NotImplementedError
+from algoritmo import Algoritmo
 
 class AlgoritmoRojisidad(Algoritmo):
   def rojisidad (self, r, g, b):
@@ -132,12 +118,17 @@ class AlgoritmoHSVtoGrayscale(Algoritmo):
       intensidad = int(distancia * 255)
     return (intensidad,intensidad,intensidad)
 
+class AlgoritmoValueToGrayscale(Algoritmo):
+  def aplicar_en_pixel(self, x, y, img):
+    r, g, b = img.getpixel((x, y))
+    h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+    value = int(v * 255)
+    return (value,value,value,)
+
 if __name__ == "__main__":
   origen = cargar(sys.argv[1])
   origen.show()
-
   trans = Transformador()
-
   #algoritmo = AlgoritmoUmbral(0.17)
   #algoritmo = AlgoritmoRotacion(40)
   algoritmo = AlgoritmoHSVtoGrayscale(0.194)

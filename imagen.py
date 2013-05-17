@@ -17,7 +17,13 @@ class Imagen(object):
     self.pix = None
 
   def getpixel(self, xy):
-    return self.pix[xy[0],xy[1]]
+    """
+    xy: tupla (x, y)
+    Retorna el color del pixel en xy. Ignora el canal alpha.
+    Solo retornamos r, g y b. Si el modo de la imagen es RGBA, la matriz tiene
+    tuplas del tipo (r, g, b, a)
+    """
+    return self.pix[xy[0],xy[1]][0:3]
 
   def get_red_pixel(self, xy):
     return self.pix[xy[0],xy[1]][0]

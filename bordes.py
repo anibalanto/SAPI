@@ -11,20 +11,14 @@ from filtros import  *
 from imagen import ImagenArchivo, ImagenVacia
 from colores import *
 from transformador import Transformador
-
-
-def cargar(filename):
-  img = ImagenArchivo(filename)
-  print "mode: %s" % img.mode
-  print "size: %s" % str(img.size)
-  return img
-
-class Algoritmo(object):
-  def aplicar_en_pixel(self, x, y, img, ret):
-    raise NotImplementedError
+from algoritmo import Algoritmo
 
 class AlgoritmoRuido(Algoritmo):
-  def aplicar_en_pixel(self, x, y, img, ret, filtro):
+
+  def __init__(self, filtro):
+    self.filtro = filtro
+
+  def aplicar_en_pixel(self, x, y, img):
     """
     Aplica el filtro en el pixel dado por img(x,y)
     devuelve la imagen ret con el pixel x,y modificado
@@ -33,18 +27,18 @@ class AlgoritmoRuido(Algoritmo):
     sumar = 0.0
     sumag = 0.0
     sumab = 0.0
-    for columna, fila, valor in filtro:
+    for columna, fila, valor in self.filtro:
       r, g, b = img.getpixel((x+columna, y+fila))
       sumar += valor * r
       sumag += valor * g
       sumab += valor * b
-    ret.putpixel((x, y), (int(sumar/total), int(sumag/total),int(sumab/total)))
+    return (int(sumar/total), int(sumag/total),int(sumab/total))
 
 class AlgoritmoConvulsion(Algoritmo):
   def __init__(self, filtro):
     self.filtro = filtro
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     """
     Devuelve la imagen ret con el pixel x,y modificado. Usa el filtro con la imagen de origen img.
     ret(x,y) = f(filtro, img)
@@ -69,7 +63,7 @@ class AlgoritmoConvulsion(Algoritmo):
         int(((sumag + minimo) / total) * 256),
         int(((sumab + minimo) / total) * 255),
     )
-    ret.putpixel((x, y), value)
+    return value
 
 class AlgoritmoRoberts(Algoritmo):
   """
@@ -77,7 +71,7 @@ class AlgoritmoRoberts(Algoritmo):
   ver tp3 ejercicio 1
   usamos solo el canal R. Asumimos que la img esta en escala de grises.
   """
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
 
     #maximo es sqrt(255**2 + 255 ** 2)
     maximo = 360.62445840513925
@@ -85,7 +79,7 @@ class AlgoritmoRoberts(Algoritmo):
     b = math.pow(img.getpixel((x,y+1))[0] - img.getpixel((x+1,y))[0], 2)
     c = math.sqrt(a + b) / maximo
     value = int(c * 255) 
-    ret.putpixel((x,y), (value, value, value))
+    return (value, value, value)
 
 class AlgoritmoCompass(Algoritmo):
   """
@@ -133,7 +127,7 @@ class AlgoritmoGradiente(Algoritmo):
     self.filtrox = filtrox
     self.filtroy = filtroy
 
-  def aplicar_en_pixel(self, x, y, img, ret):
+  def aplicar_en_pixel(self, x, y, img):
     gx = 0.0
     gy = 0.0
     maximo = math.sqrt(2 * math.pow(4 * 255, 2))
@@ -147,15 +141,7 @@ class AlgoritmoGradiente(Algoritmo):
 
     value = math.sqrt(math.pow(gx, 2) + math.pow(gy, 2))
     value = int((value / maximo) * 255) 
-    ret.putpixel((x,y), (value,value,value))
+    return (value,value,value)
 
 if __name__ == "__main__":
-
-  img = cargar(sys.argv[1])
-  algo = AlgoritmoCompass([Filtro(i,3) for i in PREWITT_LIST])
-  #algo = AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
-  #algo = AlgoritmoRoberts()
-  trans = Transformador()
-  img2 = trans.aplicar(algo, img)
-  print "el maxborde es: %s" % algo.maxborde
-  img2.save("out.bmp")
+  pass
