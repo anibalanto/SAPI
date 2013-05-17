@@ -126,14 +126,4 @@ class AlgoritmoValueToGrayscale(Algoritmo):
     return (value,value,value,)
 
 if __name__ == "__main__":
-  origen = cargar(sys.argv[1])
-  origen.show()
-  trans = Transformador()
-  #algoritmo = AlgoritmoUmbral(0.17)
-  #algoritmo = AlgoritmoRotacion(40)
-  algoritmo = AlgoritmoHSVtoGrayscale(0.194)
-  destino = trans.aplicar(algoritmo, origen)
-  #destino.save("sapo_rotado2.bmp")
-  destino.show()
-
-  #histograma.crear_histograma(destino)
+  pass

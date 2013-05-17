@@ -114,8 +114,4 @@ class AlgoritmoMedianaPromedio(AlgoritmoRuido):
     return (r[int(len(r)/2)], g[int(len(g)/2)],b[int(len(b)/2)]) 
 
 if __name__ == "__main__":
-  img = cargar(sys.argv[1])
-  img.show()
-  img = transformar(promedio_simple, img)
-  #img = transformar(promedio_simple, img)
-  img.show()
+  pass
