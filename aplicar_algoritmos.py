@@ -6,6 +6,7 @@ from bordes import *
 from filtros import *
 from ruido import *
 from transformador import Transformador
+from histograma import crear_histograma_grayscale, crear_histograma_no_normalizado
 
 def cargar(filename):
   img = ImagenArchivo(filename)
@@ -13,16 +14,16 @@ def cargar(filename):
   print "size: %s" % str(img.size)
   return img
 
+def mostrar_histo(imagen):
+  crear_histograma_grayscale(imagen)
+
 if __name__ == "__main__":
   if len(sys.argv) <= 1:
     print "Uso:"
     print "%s imagen_entrada" % sys.argv[0]
   else:
-    img = cargar(sys.argv[1])
-    lista_algos = [
-        #AlgoritmoMedianaPromedio(img.size[0], img.size[1]),
-        #AlgoritmoCompass([Filtro(i,3) for i in PREWITT_LIST]),
-        AlgoritmoValueToGrayscale(),
-        AlgoritmoGradiente(Filtro(SOBELX, 3), Filtro(SOBELY, 3))
-    ]
-    im = Transformador.aplicar(lista_algos, img)
+    original = cargar(sys.argv[1])
+    im = Transformador.aplicar([AlgoritmoValueToGrayscale(),], original)
+    histograma = crear_histograma_no_normalizado(im)
+    umbralada = Transformador.aplicar([AlgortimoUmbralAutomatico(histograma, im.size[0], im.size[1])], original)
+    Transformador.aplicar([AlgoritmoAplicarMascara(original, umbralada)], ImagenVacia("RGBA", original.size))

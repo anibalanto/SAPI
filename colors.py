@@ -9,6 +9,7 @@ import histograma
 from transformador import Transformador
 from colores import *
 from algoritmo import Algoritmo
+import math
 
 class AlgoritmoRojisidad(Algoritmo):
   def rojisidad (self, r, g, b):
@@ -75,6 +76,21 @@ class AlgoritmoCombinar(Algoritmo):
     else:
       return self.original.getpixel((x, y))
 
+class AlgoritmoAplicarMascara(Algoritmo):
+  """
+  Aplica la mascara a la imagen original
+  La mascara debe ser una imagen binaria blanco y negro.
+  """
+  def __init__(self, original, mascara):
+    self.original = original
+    self.mascara = mascara
+
+  def aplicar_en_pixel(self, x, y, img):
+    if (self.mascara.getpixel((x, y)) != WHITE):
+      return self.original.getpixel((x, y))
+    else:
+      return (42, 183, 242)
+
 class AlgoritmoRotacion(Algoritmo):
   """
   Rota los colores de hue de la imagen tantos grados como se indica en el constructor.
@@ -124,6 +140,63 @@ class AlgoritmoValueToGrayscale(Algoritmo):
     h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
     value = int(v * 255)
     return (value,value,value,)
+
+class AlgortimoUmbralAutomatico(Algoritmo):
+  """
+  Encuentra el threshold de una imagen en escala de grises, utilizando
+  el método de Otsu.
+  Ver: 
+    http://en.wikipedia.org/wiki/Otsu%27s_method
+    http://www.labbookpages.co.uk/software/imgProc/otsuThreshold.html
+  """
+  def __init__(self, histo, ancho, alto):
+    self.histo = histo
+    self.umbral = self.get_umbral(histo, ancho, alto)
+    print self.umbral
+
+  def get_umbral(self, histo, ancho, alto):
+    total = ancho * alto 
+    suma = float()
+    for i in range(0,256):
+      suma += (i * histo[i])
+
+    suma_b = float()
+    w_b = int()
+    w_f = int()
+    var_max = float()
+    threshold = 0
+
+    for t in range(0, 256):
+      w_b += histo[t] #weight background
+      if (w_b == 0): continue
+
+      w_f = total - w_b #weight foreground
+      if(w_f == 0): break
+
+      suma_b += float(t * histo[t])
+
+      m_b = float() #mean background
+      m_f = float() #mean foreground
+
+      m_b = suma_b / w_b
+      m_f = (suma - suma_b) / w_f
+
+      var_between = float()
+      var_between = float(w_b) * float(w_f) * (m_b - m_f) * (m_b - m_f)
+
+      if (var_between > var_max):
+        var_max = var_between
+        threshold = t
+
+    return threshold
+
+
+  def aplicar_en_pixel(self, x, y, img):
+    r, g, b = img.getpixel((x, y))
+    if (r < self.umbral):
+      return BLACK
+    else:
+      return WHITE
 
 if __name__ == "__main__":
   pass

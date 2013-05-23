@@ -17,14 +17,17 @@ class Transformador(object):
     Aplica los algoritmos indicados en algoritmos a la imagen img.
     """
     ancho, alto = img.size
-    ret = ImagenVacia(img.mode, img.size)
     for algoritmo in algoritmos:
+      ret = ImagenVacia(img.mode, img.size)
       for x,y in Transformador.recorrer_imagen(ancho, alto):
           ret.putpixel(
               (x, y),
               algoritmo.aplicar_en_pixel(x, y, img)
           )
+      ret.show()
+      """
       img = ret
       ret = ImagenVacia(img.mode, img.size)
       img.show()
-    return ret
+      """
+    return ret 
