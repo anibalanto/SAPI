@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """
 Implementacion de deteccion de bordes
@@ -46,7 +47,7 @@ class AlgoritmoConvulsion(Algoritmo):
     maximo: el maximo valor posible de la convulsion
     Tenemos que dividir por maximo * minimo y luego multiplicar por 255
     """
-    minimo = abs(self.filtro.get_minimo()) 
+    minimo = abs(self.filtro.get_minimo())
     maximo = abs(self.filtro.get_maximo())
     total = minimo + maximo
     sumar = 0.0
@@ -78,7 +79,7 @@ class AlgoritmoRoberts(Algoritmo):
     a = math.pow(img.getpixel((x,y))[0] - img.getpixel((x+1,y+1))[0], 2)
     b = math.pow(img.getpixel((x,y+1))[0] - img.getpixel((x+1,y))[0], 2)
     c = math.sqrt(a + b) / maximo
-    value = int(c * 255) 
+    value = int(c * 255)
     return (value, value, value)
 
 class AlgoritmoCompass(Algoritmo):
@@ -94,7 +95,7 @@ class AlgoritmoCompass(Algoritmo):
     self.filtros_list = filtros_list
     maximo = 0
     for filtro in self.filtros_list:
-      maximo += filtro.get_maximo() 
+      maximo += filtro.get_maximo()
     self.intervalo = maximo
     self.maxborde = 0
 
@@ -140,7 +141,7 @@ class AlgoritmoGradiente(Algoritmo):
       gy += img.getpixel((x+col, y+fil))[0] * val
 
     value = math.sqrt(math.pow(gx, 2) + math.pow(gy, 2))
-    value = int((value / maximo) * 255) 
+    value = int((value / maximo) * 255)
     return (value,value,value)
 
 if __name__ == "__main__":

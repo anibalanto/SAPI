@@ -1,7 +1,9 @@
-from imagen import Imagen, ImagenArchivo, ImagenVacia
+# -*- coding: utf-8 -*-
+
+from imagen import ImagenVacia
 
 class Transformador(object):
-  
+
   @staticmethod
   def recorrer_imagen(ancho, alto):
     """
@@ -30,4 +32,4 @@ class Transformador(object):
       ret = ImagenVacia(img.mode, img.size)
       img.show()
       """
-    return ret 
+    return ret

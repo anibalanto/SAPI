@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from imagen import ImagenArchivo, ImagenVacia
 from colores import *
 import sys
@@ -36,7 +38,7 @@ class SegmentoManager(object):
       mayor = seg1
 
     for i in menor.elementos:
-      x, y = i 
+      x, y = i
       mayor.add(x, y)
       self.mat[x][y] = mayor
 
@@ -49,7 +51,7 @@ class SegmentoManager(object):
     o uno nuevo.
     Para decidir que hacer, analizamos la matriz de segmentos en las casillas que se indican
     con @. El pixel x, y se indica con #.
-    @ @ @ 
+    @ @ @
     @ #
     """
     seg = None

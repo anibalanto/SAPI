@@ -1,20 +1,15 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import division
-from imagen import Imagen, ImagenArchivo, ImagenVacia
-import ImageDraw
-import sys
 import colorsys
-import histograma
-from transformador import Transformador
 from colores import *
 from algoritmo import Algoritmo
-import math
 
 class AlgoritmoRojisidad(Algoritmo):
   def rojisidad (self, r, g, b):
     res = int(r-(g + b)/2)
-    if (res < 0): 
+    if (res < 0):
       return 0
     return res
 
@@ -145,7 +140,7 @@ class AlgortimoUmbralAutomatico(Algoritmo):
   """
   Encuentra el threshold de una imagen en escala de grises, utilizando
   el método de Otsu.
-  Ver: 
+  Ver:
     http://en.wikipedia.org/wiki/Otsu%27s_method
     http://www.labbookpages.co.uk/software/imgProc/otsuThreshold.html
   """
@@ -155,7 +150,7 @@ class AlgortimoUmbralAutomatico(Algoritmo):
     print self.umbral
 
   def get_umbral(self, histo, ancho, alto):
-    total = ancho * alto 
+    total = ancho * alto
     suma = float()
     for i in range(0,256):
       suma += (i * histo[i])
@@ -167,7 +162,7 @@ class AlgortimoUmbralAutomatico(Algoritmo):
     threshold = 0
 
     for t in range(0, 256):
-      w_b += histo[t] #weight background
+      w_b += histo[t] # weight background
       if (w_b == 0): continue
 
       w_f = total - w_b #weight foreground
