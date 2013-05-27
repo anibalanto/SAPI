@@ -98,17 +98,32 @@ def es_borde(x, y, ancho, alto):
 
 def run_codes(img):
   """
+  Genera un conjunto de segmentos a partir de una imagen binaria.
   """
   ancho, alto = img.size
   segmentos = SegmentoManager(ancho, alto)
   for y in range(alto):
     x = 0
     while x < ancho:
-      if not es_borde(x, y, ancho, alto) and img.getpixel((x, y)) == WHITE:#el pixel es objeto
+      #el pixel no es borde y es objeto
+      if not es_borde(x, y, ancho, alto) and img.getpixel((x, y)) == WHITE:
         segmentos.add_pixel(x, y)
       x += 1
 
   return segmentos
+
+def mostrar_segmentos(segmentos, size):
+  """
+  Muestra los segmentos pasados como parametro en una imagen. Cada segmento se muestra con un
+  color elegido al azar.
+  """
+  print "hay {0} segmentos".format(len(segmentos.segmentos))
+  img = ImagenVacia("RGB", size)
+  for seg in segmentos.segmentos:
+    col = (int(random.random() * 255),int(random.random() * 255),int(random.random() * 255))
+    for e in seg.elementos:
+      img.putpixel(e, col)
+  img.show()
 
 if __name__ == '__main__':
   if len(sys.argv) <= 1:
@@ -117,17 +132,6 @@ if __name__ == '__main__':
   else:
     img_in = sys.argv[1]
     img_out = sys.argv[2]
-
     img = cargar(img_in)
-    s = img.size
     segmentos = run_codes(img)
-    print "hay {0} segmentos".format(len(segmentos.segmentos))
 
-    img = ImagenVacia("RGB", s)
-
-    for seg in segmentos.segmentos:
-      col = (int(random.random() * 255),int(random.random() * 255),int(random.random() * 255))
-      for e in seg.elementos:
-        img.putpixel(e, col)
-    img.show()
-    img.save(img_out)

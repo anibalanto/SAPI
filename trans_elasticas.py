@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 from __future__ import division
-from imagen import Imagen, ImagenArchivo, ImagenVacia
+from imagen import ImagenArchivo, ImagenVacia
 import ImageDraw
 from collections import namedtuple
 import sys
@@ -43,7 +43,7 @@ class Algoritmo(object):
 class TransElastica(Algoritmo):
   def __init__(self, desde, hasta, d1, d2, d3, d4):
     xA, yA = desde.x, desde.y
-    xB, yB = hasta.x, desde.y 
+    xB, yB = hasta.x, desde.y
     xC, yC = hasta.x, hasta.y
     xD, yD = desde.x, hasta.y
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
   draw = ImageDraw.Draw(destino.get_img())
   """
   imagen origen
-  desde ---- 
+  desde ----
   |        |
   |        |
   |        |
