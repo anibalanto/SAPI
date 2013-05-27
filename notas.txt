@@ -6,6 +6,7 @@ Algoritmos a probar para segmentar:
   Opencv: mostrar hsv. Ver la conversion rara que hace.
   Probar "tograyscale" con h, con s y con v. Probar en imageshow.exe.
   Otsu
+  otsu - local
 
 Vector Caracteristico
   Cantidad de segmentos

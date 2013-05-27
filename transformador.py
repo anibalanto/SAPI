@@ -27,9 +27,7 @@ class Transformador(object):
               algoritmo.aplicar_en_pixel(x, y, img)
           )
       ret.show()
-      """
       img = ret
-      ret = ImagenVacia(img.mode, img.size)
-      img.show()
-      """
+      #ret = ImagenVacia(img.mode, img.size)
+      #img.show()
     return ret

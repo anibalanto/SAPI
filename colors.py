@@ -193,5 +193,60 @@ class AlgortimoUmbralAutomatico(Algoritmo):
     else:
       return WHITE
 
+class AlgoritmoErosion(Algoritmo):
+
+  def __init__(self, str_elem):
+    """
+    str_elem: Filtro para erosionar. Tambien se lo llama elemento estructurante.
+    """
+    self.str_elem = str_elem
+
+  def aplicar_en_pixel(self, x, y, img):
+    r, _, _ = img.getpixel((x, y))
+    #Si es fondo, lo dejamos como esta.
+    if (r == 0):
+        return BLACK
+    else:
+      #Si al menos uno de los pixels que rodean al x,y es fondo, el pixel en x,y es fondo.
+      for xx, yy, _ in self.str_elem:
+        if (img.get_red_pixel((x + xx, y + yy)) == 0):
+          return BLACK
+    return WHITE
+
+class AlgoritmoDilatacion(Algoritmo):
+
+  def __init__(self, str_elem):
+    """
+    str_elem: Filtro para erosionar. Tambien se lo llama elemento estructurante.
+    """
+    self.str_elem = str_elem
+
+  def aplicar_en_pixel(self, x, y, img):
+    r, _, _ = img.getpixel((x, y))
+    #Si es objeto, lo dejamos como esta.
+    if (r == 255):
+        return WHITE
+    else:
+      #Si al menos uno de los pixels que rodean al x,y es objeto, el pixel en x,y es objeto.
+      for xx, yy, _ in self.str_elem:
+        if (img.get_red_pixel((x + xx, y + yy)) == 255):
+          return WHITE
+    return BLACK
+
+class AlgoritmoResta(Algoritmo):
+  """
+  En cada pixel que es diferente entre original e img, se pone el de img.
+  Los pixeles que coinciden entre las dos imagenes, se pasan a negro.
+  """
+  def __init__(self, original):
+    self.original = original
+
+  def aplicar_en_pixel(self, x, y, img):
+    pix_otra = self.original.getpixel((x, y))
+    if (img.getpixel((x, y)) == pix_otra):
+      return BLACK
+    else:
+      return pix_otra
+
 if __name__ == "__main__":
   pass

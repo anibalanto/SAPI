@@ -27,10 +27,23 @@ if __name__ == "__main__":
     im = Transformador.aplicar([AlgoritmoValueToGrayscale(), ], original)
     histograma = crear_histograma_no_normalizado(im)
     umbralada = Transformador.aplicar(
-        [AlgortimoUmbralAutomatico(histograma, im.size[0], im.size[1])],
-        original
+        [
+          AlgortimoUmbralAutomatico(histograma, im.size[0], im.size[1]),
+        ],
+        im
     )
+    erosionada_dilatada = Transformador.aplicar(
+        [
+          AlgoritmoErosion(Filtro(UNOS, 3)),
+          AlgoritmoDilatacion(Filtro(UNOS, 3)),
+        ],
+        umbralada
+    )
+    final = Transformador.aplicar([AlgoritmoResta(umbralada)], erosionada_dilatada)
+    """
+    #umbralada.save("mascara.bmp")
     final = Transformador.aplicar(
         [AlgoritmoAplicarMascara(original, umbralada)],
         ImagenVacia("RGBA", original.size)
     )
+    """
