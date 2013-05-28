@@ -24,7 +24,7 @@ class Form(QDialog):
     self.img_origen = origen
 
     #Create widgets
-    self.widget_dict = dict()
+    """self.widget_dict = dict()
 
     self.widget_dict["h_h"] = MyQSpinBox(0, 359, 30)
     self.widget_dict["h_l"] = MyQSpinBox(0, 359, 350)
@@ -43,10 +43,10 @@ class Form(QDialog):
     layout.addWidget(self.button)
     # Set dialog layout
     self.setLayout(layout)
-    self.button.clicked.connect(self.action)
+    self.button.clicked.connect(self.action)"""
 
   def action(self):
-    values = {index:int(self.widget_dict[index].value()) for index in self.widget_dict}
+    """values = {index:int(self.widget_dict[index].value()) for index in self.widget_dict}
     print values
 
     algoritmo = colors.AlgoritmoUmbralHSV(**values)
@@ -59,7 +59,7 @@ class Form(QDialog):
     print filename
 
     umbralada.show()
-    combinada.show()
+    combinada.show()"""
 
 if __name__ == '__main__':
   # Create the Qt Application
