@@ -16,6 +16,7 @@ class Segmento(object):
   def __str__(self):
     return "segmento: elementos: {0}".format(self.elementos)
 
+
 class SegmentoManager(object):
   def __init__(self, ancho, alto):
     self.ancho = ancho
@@ -112,26 +113,23 @@ def run_codes(img):
 
   return segmentos
 
-def mostrar_segmentos(segmentos, size):
+def mostrar_segmentos(segmentos_manager, size):
   """
-  Muestra los segmentos pasados como parametro en una imagen. Cada segmento se muestra con un
+  Muestra los segmentos, del SegmentosManager pasado como parametro, en una imagen. Cada segmento se muestra con un
   color elegido al azar.
   """
-  print "hay {0} segmentos".format(len(segmentos.segmentos))
+  print "hay {0} segmentos".format(len(segmentos_manager.segmentos))
   img = ImagenVacia("RGB", size)
-  for seg in segmentos.segmentos:
+  for seg in segmentos_manager.segmentos:
     col = (int(random.random() * 255),int(random.random() * 255),int(random.random() * 255))
     for e in seg.elementos:
       img.putpixel(e, col)
   img.show()
 
 if __name__ == '__main__':
-  if len(sys.argv) <= 1:
-    print "Uso:"
-    print "%s entrada.bmp salida.bmp" % sys.argv[0]
-  else:
-    img_in = sys.argv[1]
-    img_out = sys.argv[2]
-    img = cargar(img_in)
-    segmentos = run_codes(img)
+  img_in = sys.argv[1]
+  img = cargar(img_in)
+  smanager = run_codes(img)
+  for s in smanager.segmentos:
+    print s.get_area()
 
