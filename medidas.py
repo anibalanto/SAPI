@@ -124,12 +124,22 @@ def ModaHSV(vals):
   return Moda("Moda de hue, saturation, value.", vals)
 
 class MedidaSegmento(object):
-  def __init__(self, elementos):
-    self.elementos = elementos
+  def __init__(self, segmento):
+    self.segmento = segmento
 
 class AreaSegmento(MedidaSegmento):
   """
-  Retorna el numero de pixels que componen el segmento
+  Retorna el numero de pixels que componen el segmento.
   """
   def get_valor(self):
-    return len(self.elementos)
+    return len(self.segmento.elementos)
+
+class PerimetroSegmento(MedidaSegmento):
+  def __init__(self, segmento, img_binaria):
+    super(PerimetroSegmento, self).__init__(segmento)
+    self.imagen = img_binaria
+
+  def get_valor(self):
+    erosionada = self.erosionar(self.segmento, self.imagen)
+    return self.calcular_perimetro(erosionada)
+

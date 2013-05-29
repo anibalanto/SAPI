@@ -83,7 +83,7 @@ def segmentar(img_original, mostrar_dif):
         AlgoritmoDilatacion(Filtro(UNOS, 3)),
       ],
       umbralada,
-      False
+      True
   )
   diferencia = Transformador.aplicar([AlgoritmoResta(umbralada)], opening, False)
   if mostrar_dif:
@@ -106,5 +106,5 @@ if __name__ == "__main__":
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
     #generar_csv(original, "salida.csv")
-    #segmentada = segmentar(original, True)
+    segmentada = segmentar(original, False)
     #ver_segmentos(segmentada)
