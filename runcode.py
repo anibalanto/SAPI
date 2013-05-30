@@ -54,6 +54,9 @@ class SegmentoManager(object):
     self.mat = [[None for i in range(alto)] for j in range(ancho)]
     self.segmentos = []
 
+  def get_segmentos(self):
+    return self.segmentos
+
   def unir(self, seg1, seg2):
     """
     Unimos dos segmentos en uno.
@@ -175,9 +178,9 @@ def get_img_perimetros(binaria):
         AlgoritmoErosion(Filtro(UNOS, 3)),
       ],
       binaria,
-      True
+      False
   )
-  diferencia = Transformador.aplicar([AlgoritmoResta(binaria)], erosionada, True)
+  diferencia = Transformador.aplicar([AlgoritmoResta(binaria)], erosionada, False)
   return diferencia
 
 if __name__ == '__main__':

@@ -3,22 +3,20 @@ from __future__ import division
 import colorsys
 from collections import Counter
 
-class GenMedidasImagen(object):
-  @staticmethod
-  def generar(img):
+class GeneradorMedidas(object):
+  def generar(self, img, gen_xy):
     valoresr, valoresg, valoresb = [], [], []
     valoresh, valoress, valoresv = [], [], []
     ancho, alto = img.size
-    for x in range(ancho):
-      for y in range(alto):
-        r, g, b = img.getpixel((x, y))
-        valoresr.append(r)
-        valoresg.append(g)
-        valoresb.append(b)
-        h, s, v = rgb_to_hsv((r, g, b))
-        valoresh.append(h)
-        valoress.append(s)
-        valoresv.append(v)
+    for x,y in gen_xy:
+      r, g, b = img.getpixel((x, y))
+      valoresr.append(r)
+      valoresg.append(g)
+      valoresb.append(b)
+      h, s, v = rgb_to_hsv((r, g, b))
+      valoresh.append(h)
+      valoress.append(s)
+      valoresv.append(v)
     return {
         "r": valoresr,
         "g": valoresg,
@@ -27,6 +25,20 @@ class GenMedidasImagen(object):
         "s": valoress,
         "v": valoresv,
         }
+
+class GenMedidasImagen(GeneradorMedidas):
+  def get_valor(self, img):
+    a = self.gen_xy(img.size)
+    return super(GenMedidasImagen, self).generar(img, a)
+
+  def gen_xy(self, (ancho, alto)):
+    for x in range(ancho):
+      for y in range(alto):
+        yield (x, y)
+
+class GenMedidasSegmento(GeneradorMedidas):
+  def get_valor(self, img, segmento):
+    return super(GenMedidasSegmento, self).generar(img, segmento.get_elementos_enteros())
 
 class Medida(object):
   def __init__(self, nombre, valores):
@@ -129,17 +141,16 @@ class MedidaSegmento(object):
 
 class AreaSegmento(MedidaSegmento):
   """
-  Retorna el numero de pixels que componen el segmento.
+  Retorna el numero de pixels que componen el area. Incluye todos los pixels que componen
+  el segmento.
   """
   def get_valor(self):
-    return len(self.segmento.elementos)
+    return len(self.segmento.get_elementos_enteros())
 
 class PerimetroSegmento(MedidaSegmento):
-  def __init__(self, segmento, img_binaria):
-    super(PerimetroSegmento, self).__init__(segmento)
-    self.imagen = img_binaria
-
+  """
+  Retorna el numero de pixels que componen el perimetro.
+  """
   def get_valor(self):
-    erosionada = self.erosionar(self.segmento, self.imagen)
-    return self.calcular_perimetro(erosionada)
+    return len(self.segmento.get_elementos_perimetro())
 

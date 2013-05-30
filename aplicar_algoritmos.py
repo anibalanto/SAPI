@@ -21,12 +21,8 @@ def cargar(filename):
 def mostrar_histo(imagen):
   crear_histograma_grayscale(imagen)
 
-def generar_csv(img, filename):
+def cargar_medidas(rgb, hsv):
   medidas = dict()
-  vectores = GenMedidasImagen.generar(img)
-
-  hsv = (vectores["h"], vectores["s"], vectores["v"])
-  rgb = (vectores["r"], vectores["g"], vectores["b"])
 
   medidas["media_rgb"] = MediaRGB(rgb)
   medidas["media_hsv"] = MediaHSV(hsv)
@@ -38,12 +34,18 @@ def generar_csv(img, filename):
   medidas["var_rgb"] = VarianzaRGB(rgb, medidas["media_rgb"].get_valor())
   medidas["var_hsv"] = VarianzaHSV(hsv, medidas["media_hsv"].get_valor())
 
+  return medidas
+
+def generar_csv_imagen(img, filename):
+  vectores = GenMedidasImagen().get_valor(img)
+  hsv = (vectores["h"], vectores["s"], vectores["v"])
+  rgb = (vectores["r"], vectores["g"], vectores["b"])
+  medidas = cargar_medidas(rgb, hsv)
+
   fields = medidas.keys()
   fields.sort()
 
   salida = dict((k,v.get_valor()) for k,v in medidas.iteritems())
-
-  #dicc_segmentos = get_dicc_segmentos(img)
 
   f = open(filename, "w")
   cdw = csv.DictWriter(f, fields)
@@ -51,8 +53,32 @@ def generar_csv(img, filename):
   cdw.writerow(salida)
   f.close()
 
-def get_dicc_segmentos(img):
-  pass
+def generar_csv_segmentos(original, filename):
+  img_binaria = segmentar(original, False)
+  img_perimetros = get_img_perimetros(img_binaria)
+  segman = run_codes(img_binaria, img_perimetros)
+
+  f = open(filename, "w")
+  cdw = csv.DictWriter(f, ["media_hsv","media_rgb", "mediana_hsv", "media_rgb",  "moda_hsv","moda_rgb", "var_hsv", "var_rgb"])
+  cdw.writeheader()
+
+  for pos, segmento in enumerate(segman.get_segmentos()):
+
+    vectores = GenMedidasSegmento().get_valor(original, segmento)
+    hsv = (vectores["h"], vectores["s"], vectores["v"])
+    rgb = (vectores["r"], vectores["g"], vectores["b"])
+    medidas = cargar_medidas(rgb, hsv)
+    #print "Segmento #%s. Medidas \n%s" % (pos, medidas)
+
+    fields = medidas.keys()
+    fields.sort()
+
+    cdw.writerow({fields[0]: "segmento #%s" % (pos,)})
+
+    salida = dict((k,v.get_valor()) for k,v in medidas.iteritems())
+    cdw.writerow(salida)
+
+  f.close()
 
 def probar_perimetro(img):
   erosionada = Transformador.aplicar([AlgoritmoErosion(Filtro(UNOS, 3)),], img, True)
@@ -83,7 +109,7 @@ def segmentar(img_original, mostrar_dif):
         AlgoritmoDilatacion(Filtro(UNOS, 3)),
       ],
       umbralada,
-      True
+      False
   )
   diferencia = Transformador.aplicar([AlgoritmoResta(umbralada)], opening, False)
   if mostrar_dif:
@@ -91,11 +117,11 @@ def segmentar(img_original, mostrar_dif):
 
   return opening
 
-def ver_segmentos(img_segmentada):
+def ver_segmentos(img_segmentada, img_perimetros):
   """
   Muestra los diferentes segmentos de la imagen binaria pasada como parametro
   """
-  segman = run_codes(img_segmentada)
+  segman = run_codes(img_segmentada, img_perimetros)
   mostrar_segmentos(segman)
 
 if __name__ == "__main__":
@@ -105,6 +131,7 @@ if __name__ == "__main__":
   else:
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
-    #generar_csv(original, "salida.csv")
-    segmentada = segmentar(original, False)
+    #generar_csv_imagen(original, "salida.csv")
+    generar_csv_segmentos(original, "salida.csv")
+    #segmentada = segmentar(original, False)
     #ver_segmentos(segmentada)
