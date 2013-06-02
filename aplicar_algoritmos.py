@@ -36,8 +36,12 @@ def cargar_medidas(rgb, hsv):
 
   return medidas
 
-def generar_csv_imagen(img, filename):
-  vectores = GenMedidasImagen().get_valor(img)
+def generar_csv_imagen(original, filename):
+  img_binaria = segmentar(original, False)
+  img_perimetros = get_img_perimetros(img_binaria)
+  segman = run_codes(img_binaria, img_perimetros)
+
+  vectores = GenMedidasImagen().get_valor(original)
   hsv = (vectores["h"], vectores["s"], vectores["v"])
   rgb = (vectores["r"], vectores["g"], vectores["b"])
   medidas = cargar_medidas(rgb, hsv)
@@ -46,6 +50,9 @@ def generar_csv_imagen(img, filename):
   fields.sort()
 
   salida = dict((k,v.get_valor()) for k,v in medidas.iteritems())
+
+  fields.append("cant_segmentos")
+  salida["cant_segmentos"] = segman.get_cant_segmentos()
 
   f = open(filename, "w")
   cdw = csv.DictWriter(f, fields)
@@ -59,7 +66,7 @@ def generar_csv_segmentos(original, filename):
   segman = run_codes(img_binaria, img_perimetros)
 
   f = open(filename, "w")
-  cdw = csv.DictWriter(f, ["media_hsv","media_rgb", "mediana_hsv", "media_rgb",  "moda_hsv","moda_rgb", "var_hsv", "var_rgb"])
+  cdw = csv.DictWriter(f, ["media_hsv","media_rgb", "mediana_hsv", "mediana_rgb", "moda_hsv","moda_rgb", "var_hsv", "var_rgb"])
   cdw.writeheader()
 
   for pos, segmento in enumerate(segman.get_segmentos()):
@@ -68,7 +75,6 @@ def generar_csv_segmentos(original, filename):
     hsv = (vectores["h"], vectores["s"], vectores["v"])
     rgb = (vectores["r"], vectores["g"], vectores["b"])
     medidas = cargar_medidas(rgb, hsv)
-    #print "Segmento #%s. Medidas \n%s" % (pos, medidas)
 
     fields = medidas.keys()
     fields.sort()
@@ -131,7 +137,7 @@ if __name__ == "__main__":
   else:
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
-    #generar_csv_imagen(original, "salida.csv")
-    generar_csv_segmentos(original, "salida.csv")
+    generar_csv_imagen(original, sys.argv[1] + "medidas_imagen.csv")
+    generar_csv_segmentos(original, sys.argv[1] + "medidas_segmento.csv")
     #segmentada = segmentar(original, False)
     #ver_segmentos(segmentada)

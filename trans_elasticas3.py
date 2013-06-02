@@ -96,10 +96,13 @@ class TransElastica(Algoritmo):
   def aplicar_en_pixel(self, x, y, origen, destino):
     x_dest = (self.inversa[0,0] * x + self.inversa[0,1] * y + self.inversa[0,2])/(self.inversa[2,0] * x + self.inversa[2,1] * y + self.inversa[2,2])
     y_dest = (self.inversa[1,0] * x + self.inversa[1,1] * y + self.inversa[1,2])/(self.inversa[2,0] * x + self.inversa[2,1] * y + self.inversa[2,2])
+    destino.putpixel((x, y), origen.getpixel((int(x_dest), int(y_dest))))
+    """
     try:
       destino.putpixel((int(x), int(y)), origen.getpixel((int(x_dest), int(y_dest))))
     except:
       pass
+    """
 
 if __name__ == "__main__":
   """
@@ -134,6 +137,6 @@ if __name__ == "__main__":
   algo = TransElastica(o1, o2, o3, o4, d1, d2, d3, d4)
 
   trans = Transformador()
-  trans.aplicar(algo, d1, d2, d3, d4, origen, destino)
+  trans.aplicar(algo, origen, destino)
 
   destino.show()

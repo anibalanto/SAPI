@@ -57,6 +57,9 @@ class SegmentoManager(object):
   def get_segmentos(self):
     return self.segmentos
 
+  def get_cant_segmentos(self):
+    return len(self.segmentos)
+
   def unir(self, seg1, seg2):
     """
     Unimos dos segmentos en uno.
