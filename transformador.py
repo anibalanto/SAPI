@@ -14,7 +14,7 @@ class Transformador(object):
         yield (x,y)
 
   @staticmethod
-  def aplicar(algoritmos, img):
+  def aplicar(algoritmos, img, show=True):
     """
     Aplica los algoritmos indicados en algoritmos a la imagen img.
     """
@@ -26,8 +26,6 @@ class Transformador(object):
               (x, y),
               algoritmo.aplicar_en_pixel(x, y, img)
           )
-      ret.show()
+      show and ret.show()
       img = ret
-      #ret = ImagenVacia(img.mode, img.size)
-      #img.show()
     return ret

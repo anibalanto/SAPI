@@ -236,6 +236,7 @@ class AlgoritmoDilatacion(Algoritmo):
 class AlgoritmoResta(Algoritmo):
   """
   En cada pixel que es diferente entre original e img, se pone el de img.
+  La operacion es img - original.
   Los pixeles que coinciden entre las dos imagenes, se pasan a negro.
   """
   def __init__(self, original):
