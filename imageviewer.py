@@ -25,105 +25,12 @@
 
 from PySide import QtCore, QtGui
 from collections import namedtuple
-from transformacionElastica import *
-from imagen import Imagen, ImagenArchivo, ImagenVacia
+from transformedWidget import *
 
-Point = namedtuple('Point', ["x", "y"])
-
-class TransformedWindow(QtGui.QWidget):
-
-    def __init__(self,image):
-        super(TransformedWindow, self).__init__()
-	
-        self.printer = QtGui.QPrinter()
-        self.scaleFactor = 1.0
-
-        self.imageLabel = QtGui.QLabel()
-        self.imageLabel.setBackgroundRole(QtGui.QPalette.Base)
-        self.imageLabel.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                QtGui.QSizePolicy.Ignored)
-        self.imageLabel.setScaledContents(True)
-
-        self.setWindowTitle("Image Transformed")
-        self.resize(600, 600)
-
-        self.createActions()
-
-	if 'image' in locals():
-            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image))
-            self.scaleFactor = 1.0
-
-            self.printAct.setEnabled(True)
-            self.fitToWindowAct.setEnabled(True)
-            self.updateActions()
-
-            if not self.fitToWindowAct.isChecked():
-                self.imageLabel.adjustSize()
-
-        self.printAct.setEnabled(True)
-        self.fitToWindowAct.setEnabled(True)
-        self.updateActions()
-
-    def print_(self):
-        dialog = QtGui.QPrintDialog(self.printer, self)
-        if dialog.exec_():
-	    print "aquit tamnbien print"
-            painter = QtGui.QPainter(self.printer)
-            rect = painter.viewport()
-            size = self.imageLabel.pixmap().size()
-            size.scale(rect.size(), QtCore.Qt.KeepAspectRatio)
-            painter.setViewport(rect.x(), rect.y(), size.width(), size.height())
-            painter.setWindow(self.imageLabel.pixmap().rect())
-            painter.drawPixmap(0, 0, self.imageLabel.pixmap())
-
-    def zoomIn(self):
-        self.scaleImage(1.25)
-
-    def zoomOut(self):
-        self.scaleImage(0.8)
-
-    def normalSize(self):
-        self.imageLabel.adjustSize()
-        self.scaleFactor = 1.0
-
-    def fitToWindow(self):
-        fitToWindow = self.fitToWindowAct.isChecked()
-        if not fitToWindow:
-            self.normalSize()
-
-        self.updateActions()
-
-    def createActions(self):
-        self.printAct = QtGui.QAction("&Print...", self, shortcut="Ctrl+P",
-                enabled=False, triggered=self.print_)
-
-        self.zoomInAct = QtGui.QAction("Zoom &In (25%)", self,
-                shortcut="Ctrl++", enabled=False, triggered=self.zoomIn)
-
-        self.zoomOutAct = QtGui.QAction("Zoom &Out (25%)", self,
-                shortcut="Ctrl+-", enabled=False, triggered=self.zoomOut)
-
-        self.normalSizeAct = QtGui.QAction("&Normal Size", self,
-                shortcut="Ctrl+S", enabled=False, triggered=self.normalSize)
-
-        self.fitToWindowAct = QtGui.QAction("&Fit to Window", self,
-                enabled=False, checkable=True, shortcut="Ctrl+F",
-                triggered=self.fitToWindow)
-
-    def updateActions(self):
-        self.zoomInAct.setEnabled(not self.fitToWindowAct.isChecked())
-        self.zoomOutAct.setEnabled(not self.fitToWindowAct.isChecked())
-        self.normalSizeAct.setEnabled(not self.fitToWindowAct.isChecked())
-
-    def scaleImage(self, factor):
-        self.scaleFactor *= factor
-        self.imageLabel.resize(self.scaleFactor * self.imageLabel.pixmap().size())
-
-        self.adjustScrollBar(self.scrollArea.horizontalScrollBar(), factor)
-        self.adjustScrollBar(self.scrollArea.verticalScrollBar(), factor)
-
-        self.zoomInAct.setEnabled(self.scaleFactor < 3.0)
-        self.zoomOutAct.setEnabled(self.scaleFactor > 0.333)
+import sys
+import cv2 as cv
+import numpy
+import warp_image as wi
 
 
 class Communicate(QtCore.QObject):
@@ -131,21 +38,24 @@ class Communicate(QtCore.QObject):
     mouseClick = QtCore.Signal()
 
 class ImageViewer(QtGui.QMainWindow):
-    points = {} 
+    WIDHT_DEST = 600
+    HEIGHT_DEST = 600
+    points = {}
+    points_dest = {0: (0,0), 1: (WIDHT_DEST,0), 2: (WIDHT_DEST,HEIGHT_DEST), 3: (0,HEIGHT_DEST)} 
     i = 0
-
-    def __init__(self, image):
+    def __init__(self, filename):
         super(ImageViewer, self).__init__()
 
         self.printer = QtGui.QPrinter()
         self.scaleFactor = 1.0
 
-        self.imageLabel = QtGui.QLabel()
+        self.imageLabel = LabelImage()
         self.imageLabel.setBackgroundRole(QtGui.QPalette.Base)
         self.imageLabel.setSizePolicy(QtGui.QSizePolicy.Ignored,
                 QtGui.QSizePolicy.Ignored)
         self.imageLabel.setScaledContents(True)
 
+        self.imageLabel.imageClicked.connect(self.clickLabel)
 
         self.scrollArea = QtGui.QScrollArea()
         self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
@@ -158,8 +68,9 @@ class ImageViewer(QtGui.QMainWindow):
         self.createActions()
         self.createMenus()
 
-	if 'image' in locals():
-            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image))
+        if filename:
+            self.loadImage(filename)
+            
             self.scaleFactor = 1.0
 
             self.printAct.setEnabled(True)
@@ -172,33 +83,38 @@ class ImageViewer(QtGui.QMainWindow):
         self.printAct.setEnabled(True)
         self.fitToWindowAct.setEnabled(True)
         self.updateActions()
-	#self.c = Communicate()
-	#self.c.mouseClick.connect(self.paintEvent)
 
-    def open(self):
-        fileName,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
-                QtCore.QDir.currentPath())
-        if fileName:
-            image = QtGui.QImage(fileName)
-            if image.isNull():
+    def loadImage(self, filename):
+        if filename:
+            img_cv = cv.imread(filename)
+            if not(img_cv.size):
                 QtGui.QMessageBox.information(self, "Image Viewer",
-                        "Cannot load %s." % fileName)
+                        "Cannot load %s." % filename)
                 return
 
-            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image))
-            self.scaleFactor = 1.0
+        self.cv_img = img_cv
+        self.img = QtGui.QImage(filename)
+        qim = self.openCVtoQImage(self.cv_img)
+        self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(qim))
 
-            self.printAct.setEnabled(True)
-            self.fitToWindowAct.setEnabled(True)
-            self.updateActions()
+    def open(self):
+        filename,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
+                QtCore.QDir.currentPath())
 
-            if not self.fitToWindowAct.isChecked():
-                self.imageLabel.adjustSize()
+        self.loadImage(filename)
+
+        self.scaleFactor = 1.0
+
+        self.printAct.setEnabled(True)
+        self.fitToWindowAct.setEnabled(True)
+        self.updateActions()
+
+        if not self.fitToWindowAct.isChecked():
+            self.imageLabel.adjustSize()
 
     def print_(self):
         dialog = QtGui.QPrintDialog(self.printer, self)
         if dialog.exec_():
-	    print "aqui print"
             painter = QtGui.QPainter(self.printer)
             rect = painter.viewport()
             size = self.imageLabel.pixmap().size()
@@ -222,7 +138,6 @@ class ImageViewer(QtGui.QMainWindow):
         self.scrollArea.setWidgetResizable(fitToWindow)
         if not fitToWindow:
             self.normalSize()
-
         self.updateActions()
 
     def about(self):
@@ -242,19 +157,17 @@ class ImageViewer(QtGui.QMainWindow):
                 "print an image.</p>")
 
     def transform(self):
-	origen = self.imageLabel.pixmap().toImage()
-	destino = QtGui.QImage(600, 600, QtGui.QImage.Format_RGB32)
-	destino.fill(QtGui.QColor(50,50,50))
-	#destino = ImagenVacia("RGB", (600, 600))
+        cv_dest = wi.warpImage(self.cv_img, self.dictToList(self.points), self.dictToList(self.points_dest), self.WIDHT_DEST, self.HEIGHT_DEST) 
 
-	algo = TransElastica(self.points[0], self.points[1], self.points[2], self.points[3], Point(0,0), Point(0,599), Point(599,599), Point(599,0))
-
-	trans = Transformador()
-	trans.aplicar(algo, Point(0,0), Point(origen.width(),origen.height()), origen, destino)
-	#self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(destino))
-	self.transImageWin = TransformedWindow(destino)
-	self.transImageWin.show()
-	self.imageLabel.setPixmap(self.transImageWin.imageLabel.pixmap())
+        if hasattr(self,'transWidget'):
+            self.transObjet.setImage(self.openCVtoQImage(cv_dest))
+            self.transWidget.show()
+        else:
+            self.transWidget = QtGui.QWidget()
+            self.transObjet = Ui_Form()
+            self.transObjet.setupUi(self.transWidget, self.WIDHT_DEST, self.HEIGHT_DEST)
+            self.transObjet.setImage(self.openCVtoQImage(cv_dest))
+            self.transWidget.show()
 
     def createActions(self):
         self.openAct = QtGui.QAction("&Open...", self, shortcut="Ctrl+O",
@@ -284,8 +197,14 @@ class ImageViewer(QtGui.QMainWindow):
         self.aboutQtAct = QtGui.QAction("About &Qt", self,
                 triggered=QtGui.qApp.aboutQt)
 
-	self.transformAct = QtGui.QAction("&Transform", self,
-                shortcut="Ctrl+T", enabled=True, triggered=self.transform)
+        self.transformAct = QtGui.QAction("&Transform", self,
+                shortcut="Ctrl+T", enabled=False, triggered=self.transform)
+
+    def dictToList(self, mydict):
+        mylist = []
+        for i in range(0,4):
+            mylist.append(mydict[i])
+        return mylist
 
     def createMenus(self):
         self.fileMenu = QtGui.QMenu("&File", self)
@@ -305,13 +224,13 @@ class ImageViewer(QtGui.QMainWindow):
         self.helpMenu.addAction(self.aboutAct)
         self.helpMenu.addAction(self.aboutQtAct)
 
-	self.transformMenu = QtGui.QMenu("&Transform", self)
-	self.transformMenu.addAction(self.transformAct)
+        self.transformMenu = QtGui.QMenu("&Transform", self)
+        self.transformMenu.addAction(self.transformAct)
 
         self.menuBar().addMenu(self.fileMenu)
         self.menuBar().addMenu(self.viewMenu)
         self.menuBar().addMenu(self.helpMenu)
-	self.menuBar().addMenu(self.transformMenu)
+        self.menuBar().addMenu(self.transformMenu)
 
     def updateActions(self):
         self.zoomInAct.setEnabled(not self.fitToWindowAct.isChecked())
@@ -332,18 +251,61 @@ class ImageViewer(QtGui.QMainWindow):
         scrollBar.setValue(int(factor * scrollBar.value()
                                 + ((factor - 1) * scrollBar.pageStep()/2)))
 
+    def clickLabel(self, x, y):
+        if self.i == 4:
+            self.points = {}
+            self.i = 0
+            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.img))
+
+        self.points[self.i] = (x,y)
+
+        if self.i != 0:
+            self.update()
+
+        self.i += 1
+	
+        self.transformAct.setEnabled(self.i == 4)
+
+
+    def paintEvent(self, event):
+        if self.i != 0:
+            painter = QtGui.QPainter()
+            pen = QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.SolidLine)
+            painter.begin(self.imageLabel.pixmap())
+            painter.setPen(pen)
+            painter.drawLine(self.points[self.i-2][0], self.points[self.i-2][1], self.points[self.i-1][0], self.points[self.i-1][1])
+            if self.i == 4:
+                painter.drawLine(self.points[self.i-1][0], self.points[self.i-1][1], self.points[0][0], self.points[0][1])
+            painter.end()
+            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.imageLabel.pixmap().toImage()))
+
+
+    def openCVtoQImage(self, img_cv):
+
+        dst = cv.cvtColor(img_cv, cv.COLOR_BGR2RGB)
+        h = dst.shape[0]
+        w = dst.shape[1]
+        qim = QtGui.QImage(dst.data, w, h, dst.strides[0], QtGui.QImage.Format_RGB888)
+        return qim.copy()
+
+
+class LabelImage(QtGui.QLabel):
+
+    imageClicked = QtCore.Signal(int,int)
+
+    def __init__(self):
+        super(LabelImage, self).__init__()
+
     def mousePressEvent(self, event):
-	self.points[self.i] = Point(event.x(),event.y())
-        print self.points
-	self.i = (self.i + 1) % 4
-	#self.c.mouseClick.emit()
+	self.imageClicked.emit(event.x(),event.y())
 
 if __name__ == '__main__':
 
-    import sys
-
     app = QtGui.QApplication(sys.argv)
-    image = QtGui.QImage("panzas/IMG_0233.JPG")
-    imageViewer = ImageViewer(image)
+
+    if len(sys.argv) == 2:
+        imageViewer = ImageViewer(sys.argv[1])
+    else:
+        imageViewer = ImageViewer(None)
     imageViewer.show()
     sys.exit(app.exec_())
