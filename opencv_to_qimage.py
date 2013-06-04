@@ -1,6 +1,6 @@
 import sys
 import cv2
-from PySide.QtGui import QImage
+from PySide.QtGui import QImage, QPixmap
 
 
 img_cv = cv2.imread(sys.argv[1])
@@ -19,5 +19,7 @@ print "Destination data type %s" % dst.dtype
 h = dst.shape[0]
 w = dst.shape[1]
 qim = QImage(dst.data, w, h, dst.strides[0], QImage.Format_RGB888)
+
+qpm = QPixmap.fromImage(qim)
 
 qim.save("out.jpg")
