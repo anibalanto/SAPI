@@ -37,6 +37,9 @@ def cargar_medidas(rgb, hsv):
   return medidas
 
 def generar_csv_imagen(original, filename):
+  """
+  Genera un csv con las diferentes medidas de la imagen.
+  """
   img_binaria = segmentar(original, False)
   img_perimetros = get_img_perimetros(img_binaria)
   segman = run_codes(img_binaria, img_perimetros)
@@ -141,3 +144,4 @@ if __name__ == "__main__":
     generar_csv_segmentos(original, sys.argv[1] + "medidas_segmento.csv")
     #segmentada = segmentar(original, False)
     #ver_segmentos(segmentada)
+
