@@ -30,11 +30,11 @@ class Ui_Form(object):
       self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image))
 
     def on_save_button_clicked(self, *args, **kwargs):
-      print self.img_filename
       split = re.split(r'\.', self.img_filename)
-      split[-1] = "transformada." + split[-1]
+      split[-1] = "transformada.bmp"# + split[-1]
       path = ".".join(split)
       print "Guardando en: %s" % path
+      print "Se guardo bien?"
       print self.img.save(path, format="BMP", quality=100)
 
 
