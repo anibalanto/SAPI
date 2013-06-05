@@ -163,7 +163,7 @@ def mostrar_segmentos(segmentos_manager, size):
   color elegido al azar.
   """
   print "hay {0} segmentos".format(len(segmentos_manager.segmentos))
-  img = ImagenVacia("RGB", size)
+  img = ImagenVacia(size)
   for seg in segmentos_manager.segmentos:
 
     col = (int(random.random() * 255),int(random.random() * 255),int(random.random() * 255))

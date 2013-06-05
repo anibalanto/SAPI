@@ -20,7 +20,7 @@ class Transformador(object):
     """
     ancho, alto = img.size
     for algoritmo in algoritmos:
-      ret = ImagenVacia(img.mode, img.size)
+      ret = ImagenVacia(img.size)
       for x,y in Transformador.recorrer_imagen(ancho, alto):
           ret.putpixel(
               (x, y),

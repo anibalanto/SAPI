@@ -136,6 +136,16 @@ class AlgoritmoValueToGrayscale(Algoritmo):
     value = int(v * 255)
     return (value,value,value,)
 
+class AlgoritmoValueToGrayscaleIgnoreBlue(Algoritmo):
+  def aplicar_en_pixel(self, x, y, img):
+    r, g, b = img.getpixel((x, y))
+    h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+    if (0.5 < h < 0.8):
+      return BLACK
+    else:
+      value = int(v * 255)
+      return (value,value,value,)
+
 class AlgortimoUmbralAutomatico(Algoritmo):
   """
   Encuentra el threshold de una imagen en escala de grises, utilizando
@@ -209,7 +219,7 @@ class AlgoritmoErosion(Algoritmo):
     else:
       #Si al menos uno de los pixels que rodean al x,y es fondo, el pixel en x,y es fondo.
       for xx, yy, _ in self.str_elem:
-        if (img.get_red_pixel((x + xx, y + yy)) == 0):
+        if (img.getpixel((x + xx, y + yy))[0] == 0):
           return BLACK
     return WHITE
 
@@ -229,7 +239,7 @@ class AlgoritmoDilatacion(Algoritmo):
     else:
       #Si al menos uno de los pixels que rodean al x,y es objeto, el pixel en x,y es objeto.
       for xx, yy, _ in self.str_elem:
-        if (img.get_red_pixel((x + xx, y + yy)) == 255):
+        if (img.getpixel((x + xx, y + yy))[0] == 255):
           return WHITE
     return BLACK
 

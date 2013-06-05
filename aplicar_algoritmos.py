@@ -9,6 +9,7 @@ from transformador import Transformador
 from runcode import *
 from histograma import crear_histograma_grayscale, crear_histograma_no_normalizado
 from medidas import *
+from imagen import ImagenArchivo, ImagenQImage
 import csv
 
 
@@ -40,11 +41,11 @@ def generar_csv_imagen(original, filename):
   """
   Genera un csv con las diferentes medidas de la imagen.
   """
-  img_binaria = segmentar(original, False)
+  img_binaria = segmentar(original, True)
   img_perimetros = get_img_perimetros(img_binaria)
   segman = run_codes(img_binaria, img_perimetros)
 
-  vectores = GenMedidasImagen().get_valor(original)
+  vectores = GenMedidasImagen().get_valor(original, no_azul)
   hsv = (vectores["h"], vectores["s"], vectores["v"])
   rgb = (vectores["r"], vectores["g"], vectores["b"])
   medidas = cargar_medidas(rgb, hsv)
@@ -64,7 +65,7 @@ def generar_csv_imagen(original, filename):
   f.close()
 
 def generar_csv_segmentos(original, filename):
-  img_binaria = segmentar(original, False)
+  img_binaria = segmentar(original, True)
   img_perimetros = get_img_perimetros(img_binaria)
   segman = run_codes(img_binaria, img_perimetros)
 
@@ -74,7 +75,7 @@ def generar_csv_segmentos(original, filename):
 
   for pos, segmento in enumerate(segman.get_segmentos()):
 
-    vectores = GenMedidasSegmento().get_valor(original, segmento)
+    vectores = GenMedidasSegmento().get_valor(original, segmento, no_azul)
     hsv = (vectores["h"], vectores["s"], vectores["v"])
     rgb = (vectores["r"], vectores["g"], vectores["b"])
     medidas = cargar_medidas(rgb, hsv)
@@ -108,19 +109,19 @@ def segmentar(img_original, mostrar_dif):
     5 - Se muestra la diferencia entre la imagen binaria de 3 y la imagen luego del opening. De esta
     forma se ve que se removio cuando se realizo el opening.
   """
-  grayscale = Transformador.aplicar([AlgoritmoValueToGrayscale(), ], img_original, False)
-  histograma = crear_histograma_no_normalizado(img_original)
+  grayscale = Transformador.aplicar([AlgoritmoValueToGrayscaleIgnoreBlue(), ], img_original, True)
+  histograma = crear_histograma_no_normalizado(grayscale)
   umbralada = Transformador.aplicar([AlgortimoUmbralAutomatico(histograma, grayscale.size[0], grayscale.size[1]),],
-      grayscale, False)
+      grayscale, True)
   opening = Transformador.aplicar(
       [
         AlgoritmoErosion(Filtro(UNOS, 3)),
         AlgoritmoDilatacion(Filtro(UNOS, 3)),
       ],
       umbralada,
-      False
+      True
   )
-  diferencia = Transformador.aplicar([AlgoritmoResta(umbralada)], opening, False)
+  diferencia = Transformador.aplicar([AlgoritmoResta(umbralada)], opening, True)
   if mostrar_dif:
     diferencia.show()
 
@@ -131,7 +132,7 @@ def ver_segmentos(img_segmentada, img_perimetros):
   Muestra los diferentes segmentos de la imagen binaria pasada como parametro
   """
   segman = run_codes(img_segmentada, img_perimetros)
-  mostrar_segmentos(segman)
+  mostrar_segmentos(segman, img_segmentada.size)
 
 if __name__ == "__main__":
   if len(sys.argv) <= 1:
@@ -142,6 +143,6 @@ if __name__ == "__main__":
     #probar_perimetro(original)
     generar_csv_imagen(original, sys.argv[1] + "medidas_imagen.csv")
     generar_csv_segmentos(original, sys.argv[1] + "medidas_segmento.csv")
-    #segmentada = segmentar(original, False)
-    #ver_segmentos(segmentada)
+    #segmentada = segmentar(original, True)
+    #ver_segmentos(segmentada, get_img_perimetros(segmentada))
 

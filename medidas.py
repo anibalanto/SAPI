@@ -3,20 +3,29 @@ from __future__ import division
 import colorsys
 from collections import Counter
 
+def no_azul(r, g, b, h, s, v):
+  return not (0.5 < h < 0.8)
+
+def cualquier_color(*args):
+  return True
+
 class GeneradorMedidas(object):
-  def generar(self, img, gen_xy):
+  def generar(self, img, gen_xy, chequeo_color):
     valoresr, valoresg, valoresb = [], [], []
     valoresh, valoress, valoresv = [], [], []
     ancho, alto = img.size
     for x,y in gen_xy:
       r, g, b = img.getpixel((x, y))
-      valoresr.append(r)
-      valoresg.append(g)
-      valoresb.append(b)
       h, s, v = rgb_to_hsv((r, g, b))
-      valoresh.append(h)
-      valoress.append(s)
-      valoresv.append(v)
+      if chequeo_color(r,g,b,h,s,v):
+
+        valoresr.append(r)
+        valoresg.append(g)
+        valoresb.append(b)
+
+        valoresh.append(h)
+        valoress.append(s)
+        valoresv.append(v)
     return {
         "r": valoresr,
         "g": valoresg,
@@ -27,9 +36,9 @@ class GeneradorMedidas(object):
         }
 
 class GenMedidasImagen(GeneradorMedidas):
-  def get_valor(self, img):
+  def get_valor(self, img, chequeo_color):
     a = self.gen_xy(img.size)
-    return super(GenMedidasImagen, self).generar(img, a)
+    return super(GenMedidasImagen, self).generar(img, a, chequeo_color)
 
   def gen_xy(self, (ancho, alto)):
     for x in range(ancho):
@@ -37,8 +46,8 @@ class GenMedidasImagen(GeneradorMedidas):
         yield (x, y)
 
 class GenMedidasSegmento(GeneradorMedidas):
-  def get_valor(self, img, segmento):
-    return super(GenMedidasSegmento, self).generar(img, segmento.get_elementos_enteros())
+  def get_valor(self, img, segmento, chequeo_color):
+    return super(GenMedidasSegmento, self).generar(img, segmento.get_elementos_enteros(), chequeo_color)
 
 class Medida(object):
   def __init__(self, nombre, valores):
