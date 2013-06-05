@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import division
 from PySide import QtCore, QtGui
 from collections import namedtuple
 from transformedWidget import *
@@ -47,9 +48,8 @@ class ImageViewer(QtGui.QMainWindow):
             self.loadImage(filename)
             self.img_filename = filename
 
-            self.scaleFactor = 1.0
-
             self.fitToWindowAct.setEnabled(True)
+            #self.fitToWindowAct.setChecked(True)
             self.updateActions()
 
             if not self.fitToWindowAct.isChecked():
@@ -68,6 +68,8 @@ class ImageViewer(QtGui.QMainWindow):
         self.img_filename = filename
         qim = self.openCVtoQImage(self.cv_img)
         self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(qim))
+        self.scaleImage(self.size().width()/self.img.size().width())
+        print "en loadImage:", self.imageLabel.size()
 
     def open(self):
         filename,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
@@ -75,7 +77,6 @@ class ImageViewer(QtGui.QMainWindow):
 
         self.loadImage(filename)
 
-        self.scaleFactor = 1.0
 
         self.fitToWindowAct.setEnabled(True)
         self.updateActions()
@@ -90,8 +91,9 @@ class ImageViewer(QtGui.QMainWindow):
         self.scaleImage(0.8)
 
     def normalSize(self):
-        self.imageLabel.adjustSize()
         self.scaleFactor = 1.0
+        self.scaleImage(self.size().width()/self.img.size().width())
+        #self.imageLabel.adjustSize()
 
     def fitToWindow(self):
         fitToWindow = self.fitToWindowAct.isChecked()
@@ -169,13 +171,15 @@ class ImageViewer(QtGui.QMainWindow):
 
     def scaleImage(self, factor):
         self.scaleFactor *= factor
+        print self.scaleFactor
+        print self.scaleFactor * self.imageLabel.pixmap().size()
         self.imageLabel.resize(self.scaleFactor * self.imageLabel.pixmap().size())
 
         self.adjustScrollBar(self.scrollArea.horizontalScrollBar(), factor)
         self.adjustScrollBar(self.scrollArea.verticalScrollBar(), factor)
 
         self.zoomInAct.setEnabled(self.scaleFactor < 3.0)
-        self.zoomOutAct.setEnabled(self.scaleFactor > 0.333)
+        self.zoomOutAct.setEnabled(self.scaleFactor > 0.1)
 
     def adjustScrollBar(self, scrollBar, factor):
         scrollBar.setValue(int(factor * scrollBar.value()
@@ -207,10 +211,9 @@ class ImageViewer(QtGui.QMainWindow):
             if self.i == 4:
                 painter.drawLine(self.points[self.i-1][0], self.points[self.i-1][1], self.points[0][0], self.points[0][1])
             painter.end()
-            self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.imageLabel.pixmap().toImage()))
+            self.imageLabel.refresh()
 
     def openCVtoQImage(self, img_cv):
-
         dst = cv.cvtColor(img_cv, cv.COLOR_BGR2RGB)
         h = dst.shape[0]
         w = dst.shape[1]
@@ -227,6 +230,10 @@ class LabelImage(QtGui.QLabel):
 
     def mousePressEvent(self, event):
       self.imageClicked.emit(event.x(),event.y())
+
+    def refresh(self):
+        #print "refresh: ", self.pixmap().toImage().size()
+        self.setPixmap(QtGui.QPixmap.fromImage(self.pixmap().toImage()))
 
 if __name__ == '__main__':
 
