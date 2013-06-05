@@ -18,6 +18,10 @@ class ImageViewer(QtGui.QMainWindow):
     def __init__(self, filename):
         super(ImageViewer, self).__init__()
 
+
+        #El nombre de la imagen que tenemos abierta actualmente.
+        self.img_filename = None
+
         self.scaleFactor = 1.0
 
         self.imageLabel = LabelImage()
@@ -41,6 +45,7 @@ class ImageViewer(QtGui.QMainWindow):
 
         if filename:
             self.loadImage(filename)
+            self.img_filename = filename
 
             self.scaleFactor = 1.0
 
@@ -54,15 +59,13 @@ class ImageViewer(QtGui.QMainWindow):
         self.updateActions()
 
     def loadImage(self, filename):
-        if filename:
-            img_cv = cv.imread(filename)
-            if not(img_cv.size):
-                QtGui.QMessageBox.information(self, "Image Viewer",
-                        "Cannot load %s." % filename)
-                return
-
+        img_cv = cv.imread(filename)
+        if not(img_cv.size):
+            QtGui.QMessageBox.information(self, "Image Viewer", "Cannot load %s." % filename)
+            return
         self.cv_img = img_cv
         self.img = QtGui.QImage(filename)
+        self.img_filename = filename
         qim = self.openCVtoQImage(self.cv_img)
         self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(qim))
 
@@ -101,13 +104,13 @@ class ImageViewer(QtGui.QMainWindow):
         cv_dest = wi.warpImage(self.cv_img, self.dictToList(self.points), self.dictToList(self.points_dest), self.WIDHT_DEST, self.HEIGHT_DEST)
 
         if hasattr(self,'transWidget'):
-            self.transObjet.setImage(self.openCVtoQImage(cv_dest))
+            self.transObjet.setImage(self.openCVtoQImage(cv_dest), self.img_filename)
             self.transWidget.show()
         else:
             self.transWidget = QtGui.QWidget()
             self.transObjet = Ui_Form()
             self.transObjet.setupUi(self.transWidget, self.WIDHT_DEST, self.HEIGHT_DEST)
-            self.transObjet.setImage(self.openCVtoQImage(cv_dest))
+            self.transObjet.setImage(self.openCVtoQImage(cv_dest), self.img_filename)
             self.transWidget.show()
 
     def createActions(self):

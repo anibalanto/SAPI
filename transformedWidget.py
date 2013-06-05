@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PySide import QtCore, QtGui
+import re
 
 class Ui_Form(object):
     def setupUi(self, Form, width, height):
@@ -11,11 +12,29 @@ class Ui_Form(object):
         self.imageLabel.setText("")
         self.imageLabel.setObjectName("imageLabel")
 
-        #self.saveButton = QtGui.Button()
+        self.save_button = QtGui.QPushButton("Guardar imagen", Form)
+        self.save_button.clicked.connect(self.on_save_button_clicked)
 
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        #El nombre de archivo que vamos a usar para guardar la imagen transformada.
+        self.img_filename = None
+        #La imagen transformada.
+        self.img = None
 
-    def setImage(self, image):
-     self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image))
+        #Esta buena la idea de este metodo, pero parece no funcionar
+        #https://deptinfo-ensip.univ-poitiers.fr/ENS/pyside-docs/PySide/QtCore/QMetaObject.html#PySide.QtCore.PySide.QtCore.QMetaObject.connectSlotsByName
+        #QtCore.QMetaObject.connectSlotsByName(Form)
+
+    def setImage(self, image, filename):
+      self.img_filename = filename
+      self.img = image
+      self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image))
+
+    def on_save_button_clicked(self, *args, **kwargs):
+      print self.img_filename
+      split = re.split(r'\.', self.img_filename)
+      split[-1] = "transformada." + split[-1]
+      path = ".".join(split)
+      print "Guardando en: %s" % path
+      print self.img.save(path, format="BMP", quality=100)
 
 
