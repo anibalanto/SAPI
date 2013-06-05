@@ -187,8 +187,8 @@ class ImageViewer(QtGui.QMainWindow):
             self.i = 0
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.img))
 
-        self.points[self.i] = (x,y)
-
+        self.points[self.i] = (int(x/self.scaleFactor),int(y/self.scaleFactor))
+        print self.points
         if self.i != 0:
             self.update()
 
