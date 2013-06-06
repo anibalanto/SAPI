@@ -44,6 +44,7 @@ def generar_csv(img_original, filename, gen_csv_imagen, gen_csv_segmentos, mostr
   mostrar_proc: bool. Si es true, se muestran los pasos del procesamiento.
   Genera las imagenes segmentadas y de perimetros para luego llamar a generar los csv
   de imagen y de segmentos.
+  Por ultimo, guarda la imagen con los segmentos pintados.
   """
   img_segmentada = segmentar(original, mostrar_proc)
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
@@ -142,6 +143,8 @@ def segmentar(img_original, mostrar_pasos):
   opening = transformador.Transformador.aplicar(
       [
         colors.AlgoritmoErosion(Filtro(UNOS, 3)),
+        colors.AlgoritmoErosion(Filtro(UNOS, 3)),
+        colors.AlgoritmoDilatacion(Filtro(UNOS, 3)),
         colors.AlgoritmoDilatacion(Filtro(UNOS, 3)),
       ],
       umbralada,
@@ -165,7 +168,7 @@ if __name__ == "__main__":
   else:
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
-    generar_csv(original, sys.argv[1], True, True, True)
+    generar_csv(original, sys.argv[1], False, False, True)
     #segmentada = segmentar(original, True)
     #ver_segmentos(segmentada, runcode.get_img_perimetros(segmentada))
 
