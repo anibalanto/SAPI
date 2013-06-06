@@ -6,10 +6,10 @@ from bordes import *
 from filtros import *
 from ruido import *
 from transformador import Transformador
-from runcode import *
+from runcode import get_img_perimetros, run_codes, mostrar_segmentos
 from histograma import crear_histograma_grayscale, crear_histograma_no_normalizado
 from medidas import *
-from imagen import ImagenArchivo, ImagenQImage
+from imagen import ImagenArchivo
 import csv
 
 
@@ -23,6 +23,10 @@ def mostrar_histo(imagen):
   crear_histograma_grayscale(imagen)
 
 def cargar_medidas(rgb, hsv):
+  """
+  rgb: list. Lista con los valores rgb obtenidas de generar medidas.
+  hsv: list. Lista con los valores hsv obtenidas de generar medidas.
+  """
   medidas = dict()
 
   medidas["media_rgb"] = MediaRGB(rgb)
@@ -39,6 +43,8 @@ def cargar_medidas(rgb, hsv):
 
 def generar_csv_imagen(original, filename):
   """
+  original: Imagen. Imagen original a partir de la cual generar el csv.
+  filename: string. Nombre del archivo donde guardar el csv.
   Genera un csv con las diferentes medidas de la imagen.
   """
   img_binaria = segmentar(original, True)
@@ -65,6 +71,10 @@ def generar_csv_imagen(original, filename):
   f.close()
 
 def generar_csv_segmentos(original, filename):
+  """
+  original: Imagen. Imagen original a partir de la cual generar el csv.
+  filename: string. Nombre del archivo donde guardar el csv.
+  """
   img_binaria = segmentar(original, True)
   img_perimetros = get_img_perimetros(img_binaria)
   segman = run_codes(img_binaria, img_perimetros)
@@ -97,8 +107,11 @@ def probar_perimetro(img):
   for i in segman.segmentos:
     print AreaSegmento(i.elementos).get_valor()
 
-def segmentar(img_original, mostrar_dif):
+def segmentar(img_original, mostrar_pasos):
   """
+  img_original: Imagen. Imagen rgb a segmentar.
+  mostrar_pasos: bool. Si es true. se muestran todos los pasos de la segmentacion.
+
   Los pasos de la segmentacion son los siguientes:
     1 - Se transforma la imagen a escala de grises a partir del componente v, de hsv.
     2 - Se crea el histograma de intensidades de gris de la imagen 1.
@@ -109,21 +122,19 @@ def segmentar(img_original, mostrar_dif):
     5 - Se muestra la diferencia entre la imagen binaria de 3 y la imagen luego del opening. De esta
     forma se ve que se removio cuando se realizo el opening.
   """
-  grayscale = Transformador.aplicar([AlgoritmoValueToGrayscaleIgnoreBlue(), ], img_original, True)
+  grayscale = Transformador.aplicar([AlgoritmoValueToGrayscaleIgnoreBlue(), ], img_original, mostrar_pasos)
   histograma = crear_histograma_no_normalizado(grayscale)
   umbralada = Transformador.aplicar([AlgortimoUmbralAutomatico(histograma, grayscale.size[0], grayscale.size[1]),],
-      grayscale, True)
+      grayscale, mostrar_pasos)
   opening = Transformador.aplicar(
       [
         AlgoritmoErosion(Filtro(UNOS, 3)),
         AlgoritmoDilatacion(Filtro(UNOS, 3)),
       ],
       umbralada,
-      True
+      mostrar_pasos
   )
-  diferencia = Transformador.aplicar([AlgoritmoResta(umbralada)], opening, True)
-  if mostrar_dif:
-    diferencia.show()
+  Transformador.aplicar([AlgoritmoResta(umbralada)], opening, mostrar_pasos)
 
   return opening
 
