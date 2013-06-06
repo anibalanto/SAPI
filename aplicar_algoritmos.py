@@ -46,14 +46,14 @@ def generar_csv(img_original, filename, gen_csv_imagen, gen_csv_segmentos, mostr
   de imagen y de segmentos.
   Por ultimo, guarda la imagen con los segmentos pintados.
   """
-  img_segmentada = segmentar(original, mostrar_proc)
+  img_segmentada = segmentar(img_original, mostrar_proc)
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   segman.eliminar_extremos_verticales()
   if gen_csv_imagen:
     generar_csv_imagen(img_original, segman, filename + ".medidas_imagen.csv")
   if gen_csv_segmentos:
-    generar_csv_segmentos(img_segmentada, img_perimetros, segman, filename + ".medidas_segmento.csv")
+    generar_csv_segmentos(img_original, segman, filename + ".medidas_segmento.csv")
 
   img_segmentos_pintados = runcode.pintar_segmentos(segman, (600,600))
   img_segmentos_pintados.save(filename + ".segmentos.bmp")
@@ -85,31 +85,31 @@ def generar_csv_imagen(img_original, segman, filename):
   cdw.writerow(salida)
   f.close()
 
-def generar_csv_segmentos(img_segmentada, img_perimetros, segman, filename):
+def generar_csv_segmentos(img_original, segman, filename):
   """
-  img_segmentada: Imagen. Imagen segmentada.
-  img_perimetros: Imagen. Imagen con los perimetros de los segmentos.
+  img_original: Imagen. Imagen original.
   segman: SegmentoManager. SegmentoManager con los segmentos de la imagen segmentada.
   filename: string. Nombre del archivo donde guardar el csv.
   Genera un csv con las diferentes medidas de los segmentos.
   """
   f = open(filename, "w")
-  cdw = csv.DictWriter(f, ["media_hsv","media_rgb", "mediana_hsv", "mediana_rgb", "moda_hsv","moda_rgb", "var_hsv", "var_rgb"])
+  fields = ["area", "perimetro", "media_hsv","media_rgb", "mediana_hsv", "mediana_rgb", "moda_hsv","moda_rgb", "var_hsv", "var_rgb"]
+  cdw = csv.DictWriter(f, fields)
   cdw.writeheader()
 
   for pos, segmento in enumerate(segman.get_segmentos()):
 
-    vectores = medidas.GenMedidasSegmento().get_valor(original, segmento, medidas.no_azul)
+    vectores = medidas.GenMedidasSegmento().get_valor(img_original, segmento, medidas.no_azul)
     hsv = (vectores["h"], vectores["s"], vectores["v"])
     rgb = (vectores["r"], vectores["g"], vectores["b"])
     meds = cargar_medidas(rgb, hsv)
 
-    fields = meds.keys()
-    fields.sort()
-
     cdw.writerow({fields[0]: "segmento #%s" % (pos,)})
 
     salida = dict((k,v.get_valor()) for k,v in meds.iteritems())
+    salida["area"] = medidas.AreaSegmento(segmento).get_valor()
+    salida["perimetro"] = medidas.PerimetroSegmento(segmento).get_valor()
+
     cdw.writerow(salida)
 
   f.close()
@@ -150,7 +150,9 @@ def segmentar(img_original, mostrar_pasos):
       umbralada,
       mostrar_pasos
   )
-  transformador.Transformador.aplicar([colors.AlgoritmoResta(umbralada)], opening, mostrar_pasos)
+  if mostrar_pasos:
+    #mostramos la diferencia entre la umbralada y el opening
+    transformador.Transformador.aplicar([colors.AlgoritmoResta(umbralada)], opening, mostrar_pasos)
 
   return opening
 
@@ -161,14 +163,18 @@ def ver_segmentos(img_segmentada, img_perimetros):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   runcode.mostrar_segmentos(segman, img_segmentada.size)
 
-if __name__ == "__main__":
+
+def main():
   if len(sys.argv) <= 1:
     print "Uso:"
     print "%s imagen_entrada" % sys.argv[0]
   else:
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
-    generar_csv(original, sys.argv[1], False, False, True)
+    generar_csv(original, sys.argv[1], True, True, False)
     #segmentada = segmentar(original, True)
     #ver_segmentos(segmentada, runcode.get_img_perimetros(segmentada))
+
+if __name__ == "__main__":
+  main()
 

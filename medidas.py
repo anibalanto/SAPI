@@ -2,9 +2,15 @@
 from __future__ import division
 import colorsys
 from collections import Counter
+from colores import BLUE
 
 def no_azul(r, g, b, h, s, v):
-  return not (0.5 < h < 0.8)
+  """
+  h: 0 - 359
+  s: 0 - 100
+  v: 0 - 100
+  """
+  return not (r, g, b) == BLUE
 
 def cualquier_color(*args):
   return True
@@ -18,7 +24,6 @@ class GeneradorMedidas(object):
       r, g, b = img.getpixel((x, y))
       h, s, v = rgb_to_hsv((r, g, b))
       if chequeo_color(r,g,b,h,s,v):
-
         valoresr.append(r)
         valoresg.append(g)
         valoresb.append(b)
@@ -26,6 +31,7 @@ class GeneradorMedidas(object):
         valoresh.append(h)
         valoress.append(s)
         valoresv.append(v)
+
     return {
         "r": valoresr,
         "g": valoresg,
