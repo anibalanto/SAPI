@@ -168,5 +168,4 @@ if __name__ == "__main__":
     generar_csv(original, sys.argv[1], True, True, True)
     #segmentada = segmentar(original, True)
     #ver_segmentos(segmentada, runcode.get_img_perimetros(segmentada))
-    print "dobleop"
 
