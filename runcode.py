@@ -12,12 +12,6 @@ import aplicar_algoritmos
 from segmentos import SegmentoManager
 
 
-def cargar(filename):
-  img = ImagenArchivo(filename)
-  print "mode: %s" % img.mode
-  print "size: %s" % str(img.size)
-  return img
-
 def es_borde(x, y, ancho, alto):
   return not ((0 < x < ancho-1) and (0 < y < alto-1))
 
@@ -42,9 +36,9 @@ def run_codes(img_binaria, img_perimetros):
 
   return segman
 
-def mostrar_segmentos(segmentos_manager, size):
+def pintar_segmentos(segmentos_manager, size):
   """
-  Muestra los segmentos, del SegmentosManager pasado como parametro, en una imagen. Cada segmento se muestra con un
+  Muestra los segmentos, del SegmentoManager pasado como parametro, en una imagen. Cada segmento se muestra con un
   color elegido al azar.
   """
   print "hay {0} segmentos".format(len(segmentos_manager.segmentos))
@@ -58,7 +52,7 @@ def mostrar_segmentos(segmentos_manager, size):
     for e in seg.get_elementos_perimetro():
       img.putpixel(e, YELLOW)
 
-  img.show()
+  return img
 
 def get_img_perimetros(binaria):
   erosionada = Transformador.aplicar(
@@ -70,6 +64,12 @@ def get_img_perimetros(binaria):
   )
   diferencia = Transformador.aplicar([AlgoritmoResta(binaria)], erosionada, False)
   return diferencia
+
+def cargar(filename):
+  img = ImagenArchivo(filename)
+  print "mode: %s" % img.mode
+  print "size: %s" % str(img.size)
+  return img
 
 if __name__ == '__main__':
   img_in = sys.argv[1]
