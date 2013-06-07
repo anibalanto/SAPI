@@ -67,10 +67,11 @@ class BaseImagen(object):
 class ImagenQImage(BaseImagen):
   def __init__(self):
     super(ImagenQImage, self).__init__()
+    self.mode = "No implementado"
 
   @property
   def size(self):
-    return (self.img.width(), self.img.heigth())
+    return (self.img.width(), self.img.height())
 
   def fromfile(self, filename):
     self.img = QImage(filename)
@@ -147,13 +148,15 @@ class ImagenPIL(BaseImagen):
     self.size = size
     self.pix = self.img.load()
 
-def ImagenArchivo(_cls, filename):
-  ret = _cls()
+def ImagenArchivo(filename):
+  #ret = ImagenQImage()#_cls()
+  ret = ImagenPIL()
   ret.fromfile(filename)
   return ret
 
-def ImagenVacia(_cls, size):
-  ret = _cls()
+def ImagenVacia(size):
+  #ret = ImagenQImage()#_cls()
+  ret = ImagenPIL()
   ret.empty(size)
   return ret
 
@@ -164,7 +167,7 @@ def ImagenOpenCV(img_opencv):
 
 if __name__ == "__main__":
   #im = ImagenVacia(ImagenQImage, (720, 720))
-  im = ImagenVacia(ImagenPIL, (720, 720))
+  im = ImagenVacia((720, 720))
   s = set()
   ty = "tiff"
   for i in range(300,500):
@@ -173,7 +176,7 @@ if __name__ == "__main__":
 
   im.save("salidaqimage." + ty)
 
-  im = ImagenArchivo(ImagenQImage, "salidaqimage." + ty)
+  im = ImagenArchivo("salidaqimage." + ty)
   for i in range(300,500):
     for j in range(600,700):
       s.add(im.getpixel((i,j)))
