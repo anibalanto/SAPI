@@ -2,7 +2,9 @@
 
 class Segmento(object):
   def __init__(self):
+    #lista de tuplas (x,y)
     self.elementos_enteros = []
+    #lista de tuplas (x,y)
     self.elementos_perimetro = []
     self.cant = 0
     self.maxx = -9999
