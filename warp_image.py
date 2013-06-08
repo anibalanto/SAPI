@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import sys
+from PySide import QtGui
 
 def warpImage(image, corners, target, width, height):
     mat_trans = getMat(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
@@ -11,16 +12,22 @@ def getMat(corners, target):
     return cv2.getPerspectiveTransform(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
 
 
-def proyectPos(pos, mat):
-    x = pos.x()
-    y = pos.y()
-    pos.setX(proyectX(x, y, mat))
-    pos.setY(proyectY(x, y, mat))
+def proyectCoord(coord, mat):
+    x = proyectX(coord.x(), coord.y(), mat)
+    y = proyectY(coord.x(), coord.y(), mat)
+    print "proyectPos: %s ----> (%f, %f)"% (coord.toTuple(), x, y)
+    coord.setX(x)
+    coord.setY(y)
+    return coord
 
 def proyectPolygon(polygon, mat):
-    for coordinate in polygon.toList():
-        proyectPos(coordinate, mat)
-    
+    newPolygon = QtGui.QPolygonF()
+    for coord in polygon.toList():
+        newCoord = proyectCoord(coord, mat)
+        newPolygon.append(newCoord)
+    #print "newPolygon: ", newPolygon.toList()
+    return newPolygon
+   
 def proyectX(x, y, mat):
     return (mat[0,0] * x + mat[0,1] * y + mat[0,2])/(mat[2,0] * x + mat[2,1] * y + mat[2,2])
 

@@ -39,17 +39,23 @@ class Shape(QtGui.QGraphicsItem):
 
     Pi = math.pi
     Type = QtGui.QGraphicsItem.UserType + 3
-    def __init__(self, nodes = None, shapeDest = None):
+    def __init__(self, nodes = None, shapeDest = None, name = None):
+        self.name = name
         self.nodes = nodes
         self.shapeDest = shapeDest
         QtGui.QGraphicsItem.__init__(self)
 
         self.scale = 1.0
-        self.path =  QtGui.QPainterPath()
+        self.definePathShape()
         self.arrowSize = 10.0
         self.sourcePoint = QtCore.QPointF()
         self.destPoint = QtCore.QPointF()
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
+        if shapeDest:
+            self.points_dest = shapeDest.getListPointsNodes()
+            self.points_bound_dest = self.calculatePoints(shapeDest.boundingRect())
+            print "points_dest:", self.points_dest
+            print "points_bound_dest:", self.points_bound_dest
 
         self.nodesWeakRef = []
         for i in range(0,4):
@@ -60,7 +66,7 @@ class Shape(QtGui.QGraphicsItem):
 
     def calculatePoints(self, rect):
         coords = rect.getCoords()
-        points = [QtCore.QPointF(coords[0],coords[1]), QtCore.QPointF(coords[1],coords[2]), QtCore.QPointF(coords[2],coords[3]), QtCore.QPointF(coords[3],coords[1])]
+        points = [(coords[0],coords[1]), (coords[2],coords[1]), (coords[2],coords[3]), (coords[0],coords[3])]
         return points
 
     def containsPath(self, point):
@@ -79,13 +85,18 @@ class Shape(QtGui.QGraphicsItem):
         self.prepareGeometryChange()
 
     def boundingRect(self):
+        #print "Shape.boundingRect.%s rect: %s"% (self.name, self.path.boundingRect())
         return self.path.boundingRect()
 
     def boundingPolygon(self):
-        mat = wi.getMat(self.getListPointsNodes(),POINTS_DEST)
-        boundingPolygon = BoundPolygon(self.calculatePoints(self.shapeDest.boundingRect())) if self.shapeDest else self.boundingRect()
-        wi.proyectPolygon(boundingPolygon, np.linalg.inv(mat))
-        return boundingPolygon
+        print "  Shape.boundingPolygon.%s"% (self.name,)
+        mat = wi.getMat(self.getListPointsNodes(),self.points_dest)
+        boundingPolygon = BoundPolygon(self.points_bound_dest)# if self.shapeDest else self.boundingRect()
+        #print "       boundingPolygon:", boundingPolygon.toList()
+                #print "  Shape.boundingPolygon.%s"% (self.name,)
+        #print "       polygon:", boundingPolygon.toList()
+        boundingPolygon.close()
+        return wi.proyectPolygon(boundingPolygon, np.linalg.inv(mat))
 
     def proyect(self, mat):
         print "Shape.pryect", shape
@@ -111,8 +122,9 @@ class Shape(QtGui.QGraphicsItem):
             self.nodesBound[i].setPos(x, y)
             i +=1
         """
-        self.path.addPolygon(self.boundingPolygon())
-
+        bp = self.boundingPolygon()
+        self.path.addPolygon(bp)
+        #print "polygon: ", bp
         painter.setPen(QtGui.QPen(QtCore.Qt.blue, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawPath(self.path)
 
@@ -125,6 +137,7 @@ class Shape(QtGui.QGraphicsItem):
             nodeSource = self.nodes[i]
             nodeDest = self.nodes[(i + 1) % 4]
             self.path.cubicTo(nodeSource.getPosBezier(nodeDest), nodeDest.getPosBezier(nodeSource), nodeDest.pos())
+            #print "S.dPS.%s, bD: %s, bS: %s, (po: %s pD: %s)"% (self.name, nodeSource.getPosBezier(nodeDest).toTuple(), nodeDest.getPosBezier(nodeSource).toTuple(), nodeSource.pos().toTuple(), nodeDest.pos().toTuple())
 
     def getListPointsNodes(self):
         mylist = []
@@ -134,7 +147,7 @@ class Shape(QtGui.QGraphicsItem):
         return mylist
 
 	def __repr__(self):
-		return "<%f>" % (self.getListPointsNodes()) 
+		return "Shape.nodes: <%f>" % (self.getListPointsNodes()) 
 
 class BoundPolygon(QtGui.QPolygonF):
 
@@ -142,7 +155,11 @@ class BoundPolygon(QtGui.QPolygonF):
         QtGui.QPolygonF.__init__(self)
         
         for point in points:
-            self.append(point)
+            print "BoundPolygon.point", point
+            self.append(QtCore.QPointF(point[0],point[1]))
+ 
+    def close(self):
+        self.append(self.toList()[0])
 
 class Point(QtGui.QGraphicsItem):
     Type = QtGui.QGraphicsItem.UserType + 4
@@ -247,17 +264,17 @@ class Bezier(Point):
         #print "Bezier.mouseReleaseEvent"
         self.update()
         QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
-        print "Bezier%s.mouseReleaseEvent: %s"% (self.name, self.pos().toTuple())
+        #print "Bezier%s.mouseReleaseEvent: %s"% (self.name, self.pos().toTuple())
         self.setVector(self.pos() - self.node.pos())
 
     def setPos(self, pos):
-        print "Bezier%s.setPos: %s"% (self.name, pos.toTuple())
+        #print "Bezier%s.setPos: %s"% (self.name, pos.toTuple())
         super(Bezier, self).setPos(pos)
 
     def posDefault(self):
-        print "   Bezier%s.posDefault:"% (self.name,)
-        print "      node............:", self.node.pos().toTuple()
-        print "      nodeDest........:", self.nodeDest.pos().toTuple()
+        #print "   Bezier%s.posDefault:"% (self.name,)
+        #print "      node............:", self.node.pos().toTuple()
+        #print "      nodeDest........:", self.nodeDest.pos().toTuple()
         self.setVector(self.node.pos(), self.nodeDest.pos(), FACTOR_BEZIER)
         return self.vector.toPointF() 
 
@@ -306,13 +323,13 @@ class Bezier(Point):
 
         x_rot = self.x() * math.cos(rad) - self.y() * math.sin(rad)
         y_rot = self.x() * math.sin(rad) + self.y() * math.cos(rad)
-        print "Bezier%s.rotate: angle: %f, x: %f, y: %f, x_rot: %f, y_rot: %f"% (self.name, angle, self.x(), self.y(), x_rot, y_rot)
+        #print "Bezier%s.rotate: angle: %f, x: %f, y: %f, x_rot: %f, y_rot: %f"% (self.name, angle, self.x(), self.y(), x_rot, y_rot)
         self.setVector(QtCore.QPointF(x_rot,y_rot))
         self.setPos(self.vector.toPointF() + self.node.pos())
 
     def getLineToNode(self):
         line = QtCore.QLineF(self.pos(), self.node.pos())
-        print line.toTuple()
+        #print line.toTuple()
         return line 
 
     def paint(self, painter, option, widget):
@@ -503,8 +520,8 @@ class GraphWidget(QtGui.QGraphicsView):
         """
 
         nodes = [node1, node2, node3, node4]
-        shapeDest = Shape(nodes)
-        shape = Shape(nodes, shapeDest)
+        shapeDest = Shape(nodes, name="shDest")
+        shape = Shape(nodes, shapeDest, name="shEdit")
 
         #nodeTest = NodeTest(self, shape)
 
