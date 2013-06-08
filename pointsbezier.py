@@ -99,9 +99,9 @@ class Shape(QtGui.QGraphicsItem):
         return wi.proyectPolygon(boundingPolygon, np.linalg.inv(mat))
 
     def proyect(self, mat):
-        print "Shape.pryect", shape
+        print "Shape.pryect.shape.%s"% (self.name)
         for node in self.nodes:
-            print "Shape.proyect", node 
+            print "Shape.proyect.node.%s"% (node.name)
             node.proyect(mat)
 
     def paint(self, painter, option, widget):
@@ -180,7 +180,7 @@ class Point(QtGui.QGraphicsItem):
         self.pen = QtGui.QPen(self.color, 2 * self.scale, QtCore.Qt.SolidLine)
 
     def proyect(self, mat):
-        print "Point.proyect", self
+        print "Point.proyect.%s"% (self.name)
         wi.proyect(self.pos(),mat)
 
     def type(self):
@@ -385,7 +385,7 @@ class Node(Point):
         return self.vincules[node].pos()
 
     def proyect(self, mat):
-        print "Node.proyect", self
+        print "Node.proyect.%s"% (self.name)
         super(Node, self).proyect(mat)
         for bezier in self.vincules:
             bezier.poryect(mat)
