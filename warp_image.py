@@ -8,8 +8,24 @@ def warpImage(image, corners, target, width, height):
     return cv2.warpPerspective(image, M=mat_trans, dsize=size, flags=cv2.INTER_CUBIC)
 
 def getMat(corners, target):
-    return v2.getPerspectiveTransform(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
+    return cv2.getPerspectiveTransform(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
 
+
+def proyectPos(pos, mat):
+    x = pos.x()
+    y = pos.y()
+    pos.setX(proyectX(x, y, mat))
+    pos.setY(proyectY(x, y, mat))
+
+def proyectPolygon(polygon, mat):
+    for coordinate in polygon.toList():
+        proyectPos(coordinate, mat)
+    
+def proyectX(x, y, mat):
+    return (mat[0,0] * x + mat[0,1] * y + mat[0,2])/(mat[2,0] * x + mat[2,1] * y + mat[2,2])
+
+def proyectY(x, y, mat):
+    return (mat[1,0] * x + mat[1,1] * y + mat[1,2])/(mat[2,0] * x + mat[2,1] * y + mat[2,2])
 
 if __name__ == '__main__':
     """
