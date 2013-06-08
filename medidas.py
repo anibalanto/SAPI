@@ -169,3 +169,28 @@ class PerimetroSegmento(MedidaSegmento):
   def get_valor(self):
     return len(self.segmento.get_elementos_perimetro())
 
+class CentroDeMasa(MedidaSegmento):
+  """
+  El centro de masa se calcula así: (x, y) = (M10/M00, M01/M00)
+  donde Mpq es el momento de orden p+q.
+  El momento M00, es igual al area del segmento. Es decir la cantidad
+  de pixels que componen el area.
+  """
+  def __init__(self, segmento, momento_00):
+    super(CentroDeMasa, self).__init__(segmento)
+    self.momento_00 = momento_00
+
+  def get_momento_1(self, segmento, get_item):
+    """
+    El momento de orden 1, es
+    sum x sum y x^i * b(x,y)
+    o
+    sum x sum y y^i * b(x,y)
+    """
+    return sum(map(lambda x: x[get_item], segmento.get_elementos_enteros()))
+
+  def get_valor(self):
+    x_centro = self.get_momento_1(self.segmento, 0) / self.momento_00
+    y_centro = self.get_momento_1(self.segmento, 1) / self.momento_00
+    return (int(x_centro), int(y_centro))
+

@@ -8,6 +8,7 @@ import histograma
 import medidas
 from imagen import ImagenArchivo
 from filtros import UNOS, Filtro
+from colores import BLUE
 import csv
 import sys
 
@@ -163,6 +164,32 @@ def ver_segmentos(img_segmentada, img_perimetros):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   runcode.mostrar_segmentos(segman, img_segmentada.size)
 
+def probar_momentos(img_original):
+  img_segmentada = segmentar(img_original, False)
+  img_perimetros = runcode.get_img_perimetros(img_segmentada)
+  segman = runcode.run_codes(img_segmentada, img_perimetros)
+  segman.eliminar_extremos_verticales()
+  centros = []
+  for i in segman.get_segmentos():
+    area = medidas.AreaSegmento(i).get_valor()
+    centros.append(medidas.CentroDeMasa(i, area).get_valor())
+
+  for p in centros:
+    img_segmentada.putpixel(p,BLUE)
+    img_segmentada.putpixel(p + (-1,-1),BLUE)
+    img_segmentada.putpixel(p + (0,-1),BLUE)
+    img_segmentada.putpixel(p + (1,-1),BLUE)
+
+    img_segmentada.putpixel(p + (-1,1),BLUE)
+    img_segmentada.putpixel(p + (0,1),BLUE)
+    img_segmentada.putpixel(p + (1,1),BLUE)
+
+    img_segmentada.putpixel(p + (0,1),BLUE)
+    img_segmentada.putpixel(p + (0,-1),BLUE)
+
+  img_segmentada.show()
+
+
 
 def main():
   if len(sys.argv) <= 1:
@@ -171,7 +198,8 @@ def main():
   else:
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
-    generar_csv(original, sys.argv[1], True, True, False)
+    #generar_csv(original, sys.argv[1], True, True, False)
+    probar_momentos(original)
     #segmentada = segmentar(original, True)
     #ver_segmentos(segmentada, runcode.get_img_perimetros(segmentada))
 
