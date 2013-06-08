@@ -3,9 +3,13 @@ import numpy as np
 import sys
 
 def warpImage(image, corners, target, width, height):
-    mat_trans = cv2.getPerspectiveTransform(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
+    mat_trans = getMat(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
     size = (width, height)
     return cv2.warpPerspective(image, M=mat_trans, dsize=size, flags=cv2.INTER_CUBIC)
+
+def getMat(corners, target):
+    return v2.getPerspectiveTransform(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
+
 
 if __name__ == '__main__':
     """
