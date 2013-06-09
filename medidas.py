@@ -3,6 +3,7 @@ from __future__ import division
 import colorsys
 from collections import Counter
 from colores import BLUE
+import numpy as np
 
 def no_azul(r, g, b, h, s, v):
   """
@@ -179,23 +180,32 @@ class MomentosInvariantes(MedidaSegmento):
   """
   def __init__(self, segmento, momento_00):
     super(MomentosInvariantes, self).__init__(segmento)
+    #orden 0
     self.m00 = momento_00
+
+    #orden 1
     self.m10 = self.get_momento(self.segmento, lambda x: x[0])
     self.m01 = self.get_momento(self.segmento, lambda x: x[1])
-    self.x_centro = self.m10 / self.m00
-    self.y_centro = self.m01 / self.m00
-    self.m11 = self.get_momento(self.segmento, lambda x: x[0] * x[1])
 
+    #orden 2
+    self.m11 = self.get_momento(self.segmento, lambda x: x[0] * x[1])
     self.m20 = self.get_momento(self.segmento, lambda x: x[0] ** 2)
     self.m02 = self.get_momento(self.segmento, lambda x: x[1] ** 2)
 
+    #orden 3
     self.m12 = self.get_momento(self.segmento, lambda x: x[0] * (x[1] ** 2))
     self.m21 = self.get_momento(self.segmento, lambda x: (x[0] ** 2) * x[1])
-
     self.m30 = self.get_momento(self.segmento, lambda x: x[0] ** 3)
     self.m03 = self.get_momento(self.segmento, lambda x: x[1] ** 3)
 
-    self.invariantes = self.calc_invariantes()
+    self.x_centro = self.m10 / self.m00
+    self.y_centro = self.m01 / self.m00
+
+    self.u = self.calc_centrales()
+    self.n = self.normalizar(self.u)
+    self.invariantes = self.calc_invariantes(self.n)
+    self.angulo= self.calc_angulo(self.u)
+
 
   def get_momento(self, segmento, f):
     """
@@ -203,9 +213,9 @@ class MomentosInvariantes(MedidaSegmento):
     """
     return sum(map(f, segmento.get_elementos_enteros()))
 
-  def calc_invariantes(self):
-    #u11 = m11 - ymed * m10
-    u = {
+  def calc_centrales(self):
+    #calculamos los momentos centrales
+    return {
     "u00" : self.m00,
     "u10" : 0,
     "u01" : 0,
@@ -217,14 +227,15 @@ class MomentosInvariantes(MedidaSegmento):
     "u21" : self.m21 - 2 * self.x_centro * self.m11 - self.y_centro * self.m20 + 2 * (self.x_centro ** 2) * self.m01,
     "u12" : self.m12 - 2 * self.y_centro * self.m11 - self.x_centro * self.m02 + 2 * (self.y_centro ** 2) * self.m10,
     }
-    norm = self.normalizar(u)
-    return self.calc_desde_norm(norm)
 
   def normalizar(self, u):
+    """
+    Normalizamos los momentos centrales.
+    """
     u00 = u["u00"]
     gamma = lambda p, q: ((p + q) / 2) + 1
     norm = lambda x, y, z: x / (y ** z)
-    n = {
+    return {
         "n00" : norm(u["u00"], u00, gamma(0,0)),
         "n10" : norm(u["u10"], u00, gamma(1,0)),
         "n01" : norm(u["u01"], u00, gamma(0,1)),
@@ -236,15 +247,48 @@ class MomentosInvariantes(MedidaSegmento):
         "n30" : norm(u["u30"], u00, gamma(3,0)),
         "n03" : norm(u["u03"], u00, gamma(0,3)),
     }
-    return n
 
-  def calc_desde_norm(self, n):
-    ret = [
+  def calc_invariantes(self, n):
+    """
+    Calculamos los 7 momentos invariantes.
+    """
+    return [
         n["n20"] + n["n02"],
         (n["n20"] - n["n02"]) ** 2 + 4 * (n["n11"] ** 2),
         (n["n30"] - 3 * n["n12"]) ** 2 + (3 * n["n21"] - n["n03"]) ** 2
     ]
-    return ret
+
+  def calc_angulo(self, u):
+    """
+    Ver image moments en wikipedia.
+    """
+    up20 = u["u20"] / u["u00"]
+    up02 = u["u02"] / u["u00"]
+    up11 = u["u02"] / u["u00"]
+    return 0.5 * np.arctan((2 * up11) / (up20 - up02))
+
 
   def get_valor(self):
-    return [self.invariantes, (int(self.x_centro), int(self.y_centro))]
+    return {
+        "invariantes" : self.invariantes,
+        "centro" : (int(self.x_centro), int(self.y_centro)),
+        "angulo" : self.angulo,
+        "centrales" : self.u,
+        "normalizados" : self.n,
+        "momentos" : {
+          "m00" : self.m00,
+          "m01" : self.m01,
+          "m10" : self.m10,
+          "m11" : self.m11,
+          "m20" : self.m20,
+          "m02" : self.m20,
+          "m21" : self.m21,
+          "m12" : self.m12,
+          "m30" : self.m30,
+          "m03" : self.m03,
+          },
+        }
+
+
+
+

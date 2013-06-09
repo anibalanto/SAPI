@@ -11,6 +11,8 @@ from filtros import UNOS, Filtro
 from colores import BLUE
 import csv
 import sys
+import numpy as np
+import ImageDraw
 
 def cargar(filename):
   img = ImagenArchivo(filename)
@@ -170,14 +172,16 @@ def probar_momentos(img_original):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   segman.eliminar_extremos_verticales()
   centros = []
-  invars = []
+  momentos = []
   for i in segman.get_segmentos():
     area = medidas.AreaSegmento(i).get_valor()
     val = medidas.MomentosInvariantes(i, area).get_valor()
-    centros.append(val[1])
-    invars.append((val[0], area))
+    centros.append((val["centro"], val["angulo"], i.maxx))
+    momentos.append((val["centrales"], val["momentos"], val["normalizados"], area))
+    #momentos.append((val["centrales"], area))
 
-  for p in centros:
+  """
+  for p, ang, maxx in centros:
     img_segmentada.putpixel(p,BLUE)
     img_segmentada.putpixel(p + (-1,-1),BLUE)
     img_segmentada.putpixel(p + (0,-1),BLUE)
@@ -190,11 +194,20 @@ def probar_momentos(img_original):
     img_segmentada.putpixel(p + (0,1),BLUE)
     img_segmentada.putpixel(p + (0,-1),BLUE)
 
+
+    pendiente = np.tan(ang)
+    ordenada = p[1] - pendiente * p[0]
+    y = pendiente * maxx + ordenada
+
+    dr = ImageDraw.Draw(img_segmentada.get_img())
+    dr.line([p[0],p[1],maxx,y], fill=BLUE)
+    """
+
   img_segmentada.show()
 
   print "los momentos son: "
-  for i, j in sorted(invars, key=lambda x: x[1]):
-    print "{}\t{}\n".format(i,j)
+  for h, k, i, j in sorted(momentos, key=lambda x: x[3]):
+    print "centrales \n{}\n momentos \n{}\n normalizados \n{}\n{}\n".format(h,k,i,j)
 
 
 def main():
