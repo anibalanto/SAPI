@@ -170,9 +170,12 @@ def probar_momentos(img_original):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   segman.eliminar_extremos_verticales()
   centros = []
+  invars = []
   for i in segman.get_segmentos():
     area = medidas.AreaSegmento(i).get_valor()
-    centros.append(medidas.CentroDeMasa(i, area).get_valor())
+    val = medidas.MomentosInvariantes(i, area).get_valor()
+    centros.append(val[1])
+    invars.append((val[0], area))
 
   for p in centros:
     img_segmentada.putpixel(p,BLUE)
@@ -189,6 +192,9 @@ def probar_momentos(img_original):
 
   img_segmentada.show()
 
+  print "los momentos son: "
+  for i, j in sorted(invars, key=lambda x: x[1]):
+    print "{}\t{}\n".format(i,j)
 
 
 def main():

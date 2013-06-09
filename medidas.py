@@ -169,28 +169,82 @@ class PerimetroSegmento(MedidaSegmento):
   def get_valor(self):
     return len(self.segmento.get_elementos_perimetro())
 
-class CentroDeMasa(MedidaSegmento):
+class MomentosInvariantes(MedidaSegmento):
   """
+  Ver digital image processing pag. 700.
   El centro de masa se calcula así: (x, y) = (M10/M00, M01/M00)
   donde Mpq es el momento de orden p+q.
   El momento M00, es igual al area del segmento. Es decir la cantidad
   de pixels que componen el area.
   """
   def __init__(self, segmento, momento_00):
-    super(CentroDeMasa, self).__init__(segmento)
-    self.momento_00 = momento_00
+    super(MomentosInvariantes, self).__init__(segmento)
+    self.m00 = momento_00
+    self.m10 = self.get_momento(self.segmento, lambda x: x[0])
+    self.m01 = self.get_momento(self.segmento, lambda x: x[1])
+    self.x_centro = self.m10 / self.m00
+    self.y_centro = self.m01 / self.m00
+    self.m11 = self.get_momento(self.segmento, lambda x: x[0] * x[1])
 
-  def get_momento_1(self, segmento, get_item):
+    self.m20 = self.get_momento(self.segmento, lambda x: x[0] ** 2)
+    self.m02 = self.get_momento(self.segmento, lambda x: x[1] ** 2)
+
+    self.m12 = self.get_momento(self.segmento, lambda x: x[0] * (x[1] ** 2))
+    self.m21 = self.get_momento(self.segmento, lambda x: (x[0] ** 2) * x[1])
+
+    self.m30 = self.get_momento(self.segmento, lambda x: x[0] ** 3)
+    self.m03 = self.get_momento(self.segmento, lambda x: x[1] ** 3)
+
+    self.invariantes = self.calc_invariantes()
+
+  def get_momento(self, segmento, f):
     """
-    El momento de orden 1, es
-    sum x sum y x^i * b(x,y)
-    o
-    sum x sum y y^i * b(x,y)
+    sum x sum y x^p * y^q * b(x,y)
     """
-    return sum(map(lambda x: x[get_item], segmento.get_elementos_enteros()))
+    return sum(map(f, segmento.get_elementos_enteros()))
+
+  def calc_invariantes(self):
+    #u11 = m11 - ymed * m10
+    u = {
+    "u00" : self.m00,
+    "u10" : 0,
+    "u01" : 0,
+    "u11" : self.m11 - self.y_centro * self.m10,
+    "u20" : self.m20 - self.x_centro * self.m10,
+    "u02" : self.m02 - self.y_centro * self.m01,
+    "u30" : self.m30 - 3 * self.x_centro * self.m20 + 2 * (self.x_centro ** 2) * self.m10,
+    "u03" : self.m03 - 3 * self.y_centro * self.m02 + 2 * (self.y_centro ** 2) * self.m01,
+    "u21" : self.m21 - 2 * self.x_centro * self.m11 - self.y_centro * self.m20 + 2 * (self.x_centro ** 2) * self.m01,
+    "u12" : self.m12 - 2 * self.y_centro * self.m11 - self.x_centro * self.m02 + 2 * (self.y_centro ** 2) * self.m10,
+    }
+    norm = self.normalizar(u)
+    return self.calc_desde_norm(norm)
+
+  def normalizar(self, u):
+    u00 = u["u00"]
+    gamma = lambda p, q: ((p + q) / 2) + 1
+    norm = lambda x, y, z: x / (y ** z)
+    n = {
+        "n00" : norm(u["u00"], u00, gamma(0,0)),
+        "n10" : norm(u["u10"], u00, gamma(1,0)),
+        "n01" : norm(u["u01"], u00, gamma(0,1)),
+        "n11" : norm(u["u11"], u00, gamma(1,1)),
+        "n20" : norm(u["u20"], u00, gamma(2,0)),
+        "n02" : norm(u["u02"], u00, gamma(0,2)),
+        "n12" : norm(u["u12"], u00, gamma(1,2)),
+        "n21" : norm(u["u21"], u00, gamma(2,1)),
+        "n30" : norm(u["u30"], u00, gamma(3,0)),
+        "n03" : norm(u["u03"], u00, gamma(0,3)),
+    }
+    return n
+
+  def calc_desde_norm(self, n):
+    ret = [
+        n["n20"] + n["n02"],
+        (n["n20"] - n["n02"]) ** 2 + 4 * (n["n11"] ** 2),
+        (n["n30"] - 3 * n["n12"]) ** 2 + (3 * n["n21"] - n["n03"]) ** 2
+    ]
+    return ret
 
   def get_valor(self):
-    x_centro = self.get_momento_1(self.segmento, 0) / self.momento_00
-    y_centro = self.get_momento_1(self.segmento, 1) / self.momento_00
-    return (int(x_centro), int(y_centro))
-
+    return [self.invariantes, (int(self.x_centro), int(self.y_centro))]
