@@ -62,12 +62,36 @@ class Shape(QtGui.QGraphicsItem):
 
         self.adjust() 
 
+    def heightDest(self):
+        return self.shapeDest.boundingRect().height()
+
+    def widthDest(self):
+        return self.shapeDest.boundingRect().width()
+
+    def getPointsDest(self): 
+        rect = self.shapeDest.boundingRect()
+        coords = rect.getCoords()
+        return self.transformToListPoints(rect, -1 * coords[0], -1 * coords[1])
+
+    def getPoints(self):
+        points = []
+        for node in self.nodes:
+            points.append(node.pos().toTuple())
+        print "Shape.getPoints.%s: points: %s"% (self.name, points)
+        return points
+
     def getNodes(self):
         return self.nodes
 
-    def transformToListPoints(self, rect):
+    def transformToListPoints(self, rect, dx = None, dy = None):
+        if not dx or not dy:
+            dx = 0
+            dy = 0
         coords = rect.getCoords()
-        points = [(coords[0],coords[1]), (coords[2],coords[1]), (coords[2],coords[3]), (coords[0],coords[3])]
+        points = []
+        for i in [1,3]:
+            points.append((coords[i-1] + dx, coords[i] + dy))
+            points.append((coords[(i+1) % 4] + dx, coords[i] +dy))
         return points
 
     def containsPath(self, point):
@@ -460,15 +484,15 @@ class Node(Point):
         painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawEllipse(-10 * self.scale, -10 * self.scale, 20 * self.scale, 20 * self.scale)
 
-class GraphWidget(QtGui.QGraphicsView):
-    def __init__(self, filename):
-        QtGui.QGraphicsView.__init__(self)
+class SelectorWidget(QtGui.QGraphicsView):
+    def __init__(self, scroll, filename):
+        QtGui.QGraphicsView.__init__(self, scroll)
 
         scene = QtGui.QGraphicsScene(self)
         scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         scene.setSceneRect(0, 0, 600,600)
 
-        scene.addPixmap(QtGui.QPixmap.fromImage(QtGui.QImage(filename)))
+        #self.addImage(filename)
 
         self.setScene(scene)
         self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
@@ -494,6 +518,9 @@ class GraphWidget(QtGui.QGraphicsView):
 
         self.updateActions()
         """
+    def addImage(self, image):
+        imageItem = self.scene().addPixmap(QtGui.QPixmap.fromImage(image))
+        imageItem.setZValue(-1)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -511,6 +538,24 @@ class GraphWidget(QtGui.QGraphicsView):
         for item in self.items():
             print "setScale: ", 1.0/factor, factor
             item.setScale(1.0/factor)
+
+    def getPoints(self):
+        points = []
+        i = 0 
+        for coord in self.shape.boundingPolygon().toList():
+            if i != 4:
+                points.append(coord.toTuple())
+            i += 1
+        return points
+
+    def getPointsDest(self):
+        return self.shape.getPointsDest()
+
+    def getWidthDest(self):
+        return self.shape.widthDest()
+
+    def getHeightDest(self):
+        return self.shape.heightDest()
 
     """
     def loadImage(self, filename):
@@ -559,12 +604,12 @@ class GraphWidget(QtGui.QGraphicsView):
         bezier23, bezier32 = node2.vincule(node3,ANGLES[1][2],ANGLES[2][1],self)
         bezier34, bezier43 = node3.vincule(node4,ANGLES[2][3],ANGLES[3][2],self)
         bezier41, bezier14 = node4.vincule(node1,ANGLES[3][0],ANGLES[0][3],self)
-        
+        """
         node1.setZValue(10)
         node2.setZValue(10)
         node3.setZValue(10)
         node4.setZValue(10)
-
+        """
         nodes = [node1, node2, node3, node4]
         return Shape(nodes, name, shapeDest)
 
@@ -572,11 +617,11 @@ class GraphWidget(QtGui.QGraphicsView):
     def createItems(self):
 
         shapeDest = self.createShapeBase("shBase")
-        shape = self.createShapeBase("shEdit", shapeDest)
+        self.shape = self.createShapeBase("shEdit", shapeDest)
 
-        self.scene().addItem(shape)
+        self.scene().addItem(self.shape)
 
-        for node in shape.getNodes():
+        for node in self.shape.getNodes():
             self.scene().addItem(node)
             for bezier in node.getBeziers():
                 self.scene().addItem(bezier)

@@ -4,6 +4,7 @@ import sys
 from PySide import QtGui
 
 def warpImage(image, corners, target, width, height):
+    print "warpImage: corn: %s, tar: %s, (w: %s, h: %s)"% (corners, target, width, height)
     mat_trans = getMat(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
     size = (width, height)
     return cv2.warpPerspective(image, M=mat_trans, dsize=size, flags=cv2.INTER_CUBIC)
