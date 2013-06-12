@@ -180,7 +180,6 @@ def probar_momentos(img_original):
     momentos.append((val["centrales"], val["momentos"], val["normalizados"], area))
     #momentos.append((val["centrales"], area))
 
-  """
   for p, ang, maxx in centros:
     img_segmentada.putpixel(p,BLUE)
     img_segmentada.putpixel(p + (-1,-1),BLUE)
@@ -194,20 +193,20 @@ def probar_momentos(img_original):
     img_segmentada.putpixel(p + (0,1),BLUE)
     img_segmentada.putpixel(p + (0,-1),BLUE)
 
-
-    pendiente = np.tan(ang)
-    ordenada = p[1] - pendiente * p[0]
-    y = pendiente * maxx + ordenada
+    dx = 40 * np.cos(ang)
+    dy = 40 * np.sin(ang)
 
     dr = ImageDraw.Draw(img_segmentada.get_img())
-    dr.line([p[0],p[1],maxx,y], fill=BLUE)
-    """
+    #dr.line([p[0],p[1],maxx,y], fill=BLUE)
+    dr.line([p[0],p[1],p[0] + int(dx), p[1] - int(dy)], fill=BLUE)
 
   img_segmentada.show()
 
+  """
   print "los momentos son: "
   for h, k, i, j in sorted(momentos, key=lambda x: x[3]):
     print "centrales \n{}\n momentos \n{}\n normalizados \n{}\n{}\n".format(h,k,i,j)
+  """
 
 
 def main():
