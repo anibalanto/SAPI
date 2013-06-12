@@ -77,7 +77,7 @@ class Shape(QtGui.QGraphicsItem):
         points = []
         for node in self.nodes:
             points.append(node.pos().toTuple())
-        print "Shape.getPoints.%s: points: %s"% (self.name, points)
+        #print "Shape.getPoints.%s: points: %s"% (self.name, points)
         return points
 
     def getNodes(self):
@@ -120,14 +120,14 @@ class Shape(QtGui.QGraphicsItem):
             #print "node reference: %s (%s)"% (node.name, i)
             for vincule in node.getVincules():
                 bezierUpdate = self.nodes[i].getBezierByVinculeName(vincule.name)
-                print "bezier update(%s): bezier%s"% (i, bezierUpdate.name)
+                #print "bezier update(%s): bezier%s"% (i, bezierUpdate.name)
                 bezierUpdate.setPos(wi.proyectCoord(node.getBezier(vincule).pos(), mat))
-                print "bezier.%s.pos = %s"% (bezierUpdate.name, bezierUpdate.pos())
+                #print "bezier.%s.pos = %s"% (bezierUpdate.name, bezierUpdate.pos())
             i += 1
         self.definePathShape()
 
     def boundingPolygon(self):
-        print "  Shape.boundingPolygon.%s"% (self.name,)
+        #print "  Shape.boundingPolygon.%s"% (self.name,)
         mat = wi.getMat(self.getListPointsNodes(),self.points_dest)
         self.shapeDest.updateBezierTransform(self.nodes, mat)
         self.points_bound_dest = self.transformToListPoints(self.shapeDest.boundingRect())
@@ -139,9 +139,9 @@ class Shape(QtGui.QGraphicsItem):
         return wi.proyectPolygon(boundingPolygon, np.linalg.inv(mat))
 
     def proyect(self, mat):
-        print "Shape.pryect.shape.%s"% (self.name)
+        #print "Shape.pryect.shape.%s"% (self.name)
         for node in self.nodes:
-            print "Shape.proyect.node.%s"% (node.name)
+            #print "Shape.proyect.node.%s"% (node.name)
             node.proyect(mat)
 
     def paint(self, painter, option, widget):
@@ -195,7 +195,7 @@ class BoundPolygon(QtGui.QPolygonF):
         QtGui.QPolygonF.__init__(self)
         
         for point in points:
-            print "BoundPolygon.point", point
+            #print "BoundPolygon.point", point
             self.append(QtCore.QPointF(point[0],point[1]))
  
     def close(self):
@@ -221,7 +221,7 @@ class Point(QtGui.QGraphicsItem):
         self.setZValue(10)
 
     def proyect(self, mat):
-        print "Point.proyect.%s"% (self.name)
+        #print "Point.proyect.%s"% (self.name)
         wi.proyect(self.pos(),mat)
 
     def type(self):
@@ -276,6 +276,7 @@ class Bezier(Point):
     Type = QtGui.QGraphicsItem.UserType + 5
     
     Pi = math.pi
+    TwoPi = 2 * math.pi
     def __init__(self, graphWidget, node, nodeDest, definator = None):
         self.node = node
         self.name = "v" + node.name + nodeDest.name
@@ -284,11 +285,13 @@ class Bezier(Point):
         Point.__init__(self, graphWidget)
         self.vectorToDest = self.getVectorToDest()
         self.define(definator)
+        self.vectorToDest2 = self.vectorToDest
 
     def adjust(self):
-        print "Bezier%s.adjust: vect: %s, node: %s"% (self.name, self.vector.toPointF().toTuple(), self.node.pos().toTuple())
+        #print "Bezier%s.adjust: vect: %s, node: %s"% (self.name, self.vector.toPointF().toTuple(), self.node.pos().toTuple())
         #self.setPos(self.vector.toPointF() + self.node.pos())
         self.updateVector()
+        self.nodeDest.getBezier(self.node).updateVector()
         super(Bezier, self).adjust()
 
     def itemChange(self, change, value):
@@ -309,14 +312,16 @@ class Bezier(Point):
         QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
         #print "Bezier%s.mouseReleaseEvent: %s"% (self.name, self.pos().toTuple())
         self.updateVector(QtGui.QVector2D(self.pos() - self.node.pos()))
+        #print "Bezier%s.mouseReleaseEvent: self.rad: %s"% (self.name, self.rad * 180 / self.Pi)
         self.rad = self.getRadians()
 
     def setPos(self, pos):
-        #print "Bezier%s.setPos: %s"% (self.name, pos.toTuple())
+        if self.name == "vn1n2":
+            print "Bezier%s.setPos: %s"% (self.name, pos.toTuple())
         super(Bezier, self).setPos(pos)
 
     def posDefault(self):
-        #print "   Bezier%s.posDefault:"% (self.name,)
+        print "   Bezier%s.posDefault:"% (self.name,)
         #print "      node............:", self.node.pos().toTuple()
         #print "      nodeDest........:", self.nodeDest.pos().toTuple()
         self.updateVector(self.getVectorToDest() * FACTOR_BEZIER)
@@ -335,14 +340,24 @@ class Bezier(Point):
         return QtGui.QVector2D(self.nodeDest.pos() - self.node.pos())
 
     def updateVector(self, vector = None):
-        if vector:
+        #print "Bezier%s.updateVector: vector: ", vector.toTuple()
+        #print True if vector else False
+
+        if vector != None:
+            print "Beizer%s.updateVector: vec: %s"% (self.name, vector.toTuple())
             self.vector = vector
         else:
-            self.vector = self.getVectorToDest() * self.vector.length()
+            print "Beizer%s.updateVector: vecToDest: %s, lengt: %s"% (self.name, self.getVectorToDest().toTuple(), self.vector.toTuple())
+            vectorToDest = self.getVectorToDest()
+            self.vector = vectorToDest * (self.vector.length() / vectorToDest.length())
+            self.setPos(self.vector.toPointF() + self.node.pos())
+            print "Beizer%s.updateVector: vecResultPrevRot: %s"% (self.name, self.vector.toTuple())
             self.rotate()
 
     def updateVectorToDest(self):
         self.vectorToDest = self.getVectorToDest()
+        print "Beizer.updateVectorToDest: idems: ", self.vectorToDest == self.vectorToDest2
+        self.vectorToDest2 = self.vectorToDest
     """
     def definePos(self):
         self.setPos(self.vector.toPointF() + self.node.pos())
@@ -353,36 +368,42 @@ class Bezier(Point):
         if definator:
             definator.define(self)
         else:
+            print "==))por aca tambien!"
             self.setPos(self.posDefault())
   
+    def getNormal(self):
+        v1 = self.vectorToDest.toVector3D()
+        v2 = self.vector.toVector3D()
+        return QtGui.QVector3D.normal(v1, v2)
+
     def getRadians(self):
         if self.vector.length() == 0 or self.vectorToDest.length() == 0:
             return
-        print "Bezier.getAngle.%s vec: %s, vdest: %s"% (self.name, self.vector.toTuple(), self.vectorToDest.toTuple())
-        dotProduct = QtGui.QVector2D.dotProduct(self.vector, self.vectorToDest)
-        lengthVector = self.vector.length()
-        lengthVectorToDest = self.vectorToDest.length()
-        dividendo = lengthVector * lengthVectorToDest
-        result = dotProduct / dividendo 
-        print "arcos(%f / %f * %f)"% (dotProduct, lengthVector, lengthVectorToDest)
-        print "arcos(%f / %f)"% (dotProduct, dividendo)
-        print "arcos(%f)"% result
-        rad = math.acos(result)# * 180 / self.Pi
-        print "Bezier%s.defineAngle: %f"% (self.name, rad)
+        #print "Bezier.getAngle.%s vec: %s, vdest: %s"% (self.name, self.vector.toTuple(), self.vectorToDest.toTuple())
+        result = QtGui.QVector2D.dotProduct(self.vector, self.vectorToDest) / (self.vector.length() * self.vectorToDest.length()) 
+        rad = math.acos(result)
+        if self.getNormal().z() == -1:
+            rad = self.TwoPi - rad
+        print "Bezier%s.defineAngle: ang: %f, normal: %s"% (self.name, rad * 180 / self.Pi, self.getNormal().z())
         self.updateVectorToDest()
         return rad
 
     def rotate(self, rad = None):
         if rad:
             self.rad = rad
+        print "Bezier%s.rotate: pos: %s, rad: %s"% (self.name, self.pos().toTuple(), self.rad)
         #rad = angle * self.Pi/180
-        if self.pos() != (0,0):
+        #print "Bezier%s.rotate: vector: %s"% (self.name, self.pos())
+        if self.pos().toTuple() == (0.0,0.0):
+            print "Bezier%s.rotate: me paso!"
             self.setPos(self.posDefault())
 
-        x_rot = self.x() * math.cos(self.rad) - self.y() * math.sin(self.rad)
-        y_rot = self.x() * math.sin(self.rad) + self.y() * math.cos(self.rad)
-        #print "Bezier%s.rotate: angle: %f, x: %f, y: %f, x_rot: %f, y_rot: %f"% (self.name, angle, self.x(), self.y(), x_rot, y_rot)
-        self.updateVector(QtGui.QVector2D(QtCore.QPointF(x_rot,y_rot)))
+        x_rot = self.vector.x() * math.cos(self.rad) - self.vector.y() * math.sin(self.rad)
+        y_rot = self.vector.x() * math.sin(self.rad) + self.vector.y() * math.cos(self.rad)
+        #print "Bezier%s.rotate: angle: %f, x: %f, y: %f, x_rot: %f, y_rot: %f"% (self.name, self.rad, self.x(), self.y(), x_rot, y_rot)
+        vector = QtGui.QVector2D(QtCore.QPointF(x_rot,y_rot))
+        print "Bezier%s.rotate: vectorResult: %s, posRes: %s"% (self.name, vector.toTuple(), (x_rot, y_rot))
+        self.updateVector(vector)
         self.setPos(self.vector.toPointF() + self.node.pos())
 
     def getLineToNode(self):
@@ -438,7 +459,7 @@ class Node(Point):
             bezier = Bezier(graphWidget, self, node, AngleDefinator(angle))
             self.vincules[node] = bezier
             self.vinculesName[node.name] = node
-            print "Node.vincule.%s <-----> %s"% (self.name, node.name)
+            #print "Node.vincule.%s <-----> %s"% (self.name, node.name)
             tup = (bezier,) + node.vincule(self, yourAngle, angle, graphWidget)
             return tup 
         return ()
@@ -457,7 +478,7 @@ class Node(Point):
         return self.vincules[node]
 
     def proyect(self, mat):
-        print "Node.proyect.%s"% (self.name)
+        #print "Node.proyect.%s"% (self.name)
         super(Node, self).proyect(mat)
         for bezier in self.vincules:
             bezier.poryect(mat)
@@ -536,7 +557,7 @@ class SelectorWidget(QtGui.QGraphicsView):
 
         self.scale(scaleFactor, scaleFactor)
         for item in self.items():
-            print "setScale: ", 1.0/factor, factor
+            #print "setScale: ", 1.0/factor, factor
             item.setScale(1.0/factor)
 
     def getPoints(self):
