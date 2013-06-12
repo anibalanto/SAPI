@@ -193,14 +193,6 @@ def probar_momentos(img_original):
     img_segmentada.putpixel(p + (0,1),BLUE)
     img_segmentada.putpixel(p + (0,-1),BLUE)
 
-    """
-    ang2 = ang#np.deg2rad(ang)
-    print ang
-    pendiente = np.tan(ang2)
-
-    ordenada = p[1] - pendiente * p[0]
-    y = pendiente * maxx + ordenada
-    """
     dx = 40 * np.cos(ang)
     dy = 40 * np.sin(ang)
 

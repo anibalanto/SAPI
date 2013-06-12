@@ -306,34 +306,15 @@ class MomentosInvariantes(MedidaSegmento):
     divisor = (up20 - up02)
 
     if divisor == 0.0:
-      print "El divisor es 0!!!!!!!"
+      print "El divisor es 0!"
       if up11 == 0.0:
         return 0.0
       elif up11 > 0.0:
-        #return 45.0
-        return np.pi / 4.0
+        return np.pi / 4.0 #45 grados
       elif up11 < 0.0:
-        #return -45.0
-        return np.pi / -4.0
+        return np.pi / -4.0 #-45 grados
 
     return 0.5 * np.arctan((2 * up11) / divisor)
-
-    if divisor > 0.0:
-      if up11 == 0.0:
-        return 0.0
-      else:
-        return 0.5 * np.arctan((2 * up11) / divisor) # 0 < angulo < 45 o -45 < angulo < 0
-
-    if divisor < 0.0:
-      if up11 == 0.0:
-        #return -90.0
-        return np.pi / -2.0
-      elif up11 > 0.0:
-        #return 0.5 * np.arctan((2 * up11) / divisor) + 90.0 # 45 < angulo < 90
-        return 0.5 * np.arctan((2 * up11) / divisor) + np.pi / 2.0 # 45 < angulo < 90
-      elif up11 < 0.0:
-        #return 0.5 * np.arctan((2 * up11) / divisor) - 90.0 # -90 < angulo < -45
-        return 0.5 * np.arctan((2 * up11) / divisor) - np.pi / 2.0 # -90 < angulo < -45
 
   def calc_eccentricity(self, u):
     """
@@ -365,7 +346,3 @@ class MomentosInvariantes(MedidaSegmento):
           "m03" : self.m03,
           },
         }
-
-
-
-
