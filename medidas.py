@@ -204,7 +204,8 @@ class MomentosInvariantes(MedidaSegmento):
     self.u = self.calc_centrales()
     self.n = self.normalizar(self.u)
     self.invariantes = self.calc_invariantes(self.n)
-    self.angulo= self.calc_angulo(self.u)
+    self.angulo = self.calc_angulo(self.u)
+    self.eccen = self.calc_eccentricity(self.u)
 
 
   def get_momento(self, segmento, f):
@@ -235,10 +236,13 @@ class MomentosInvariantes(MedidaSegmento):
     u00 = u["u00"]
     gamma = lambda p, q: ((p + q) / 2) + 1
     norm = lambda x, y, z: x / (y ** z)
+    """
+    estos no se calculan
+    "n00" : norm(u["u00"], u00, gamma(0,0)),
+    "n10" : norm(u["u10"], u00, gamma(1,0)),
+    "n01" : norm(u["u01"], u00, gamma(0,1)),
+    """
     return {
-        "n00" : norm(u["u00"], u00, gamma(0,0)),
-        "n10" : norm(u["u10"], u00, gamma(1,0)),
-        "n01" : norm(u["u01"], u00, gamma(0,1)),
         "n11" : norm(u["u11"], u00, gamma(1,1)),
         "n20" : norm(u["u20"], u00, gamma(2,0)),
         "n02" : norm(u["u02"], u00, gamma(0,2)),
@@ -251,28 +255,101 @@ class MomentosInvariantes(MedidaSegmento):
   def calc_invariantes(self, n):
     """
     Calculamos los 7 momentos invariantes.
+    Lo copiamos de aca: https://github.com/Itseez/opencv/blob/913e6833d5e28d0c308bb8e8ffdc718dd42e4cfc/modules/imgproc/src/moments.cpp
     """
-    return [
-        n["n20"] + n["n02"],
-        (n["n20"] - n["n02"]) ** 2 + 4 * (n["n11"] ** 2),
-        (n["n30"] - 3 * n["n12"]) ** 2 + (3 * n["n21"] - n["n03"]) ** 2
-    ]
+    hu = []
+
+    t0 = n["n30"] + n["n12"]
+    t1 = n["n21"] + n["n03"]
+    q0 = t0 ** 2
+    q1 = t1 ** 2
+    n4 = 4 * n["n11"]
+    s = n["n20"] + n["n02"]
+    d = n["n20"] - n["n02"]
+
+    #momento 1
+    hu.append(s)
+
+    #momento 2
+    hu.append(d * d + n4 + n["n11"])
+
+    #momento 3
+    hu.append(q0 + q1)
+
+    #momento 4
+    hu.append(d * (q0 - q1) + n4 * t0 * t1)
+
+    t0 *= q0 - 3 * q1
+    t1 *= 3 * q0 - q1
+    q0 = n["n30"] - 3 * n["n12"]
+    q1 = 3 * n["n21"] - n["n03"]
+
+    #momento 5
+    hu.append(q0 * q0 + q1 * q1)
+
+    #momento 6
+    hu.append(q0 * t0 + q1 * t1)
+
+    #momento 7
+    hu.append(q1 * t0 - q0 * t1)
+    return hu
 
   def calc_angulo(self, u):
     """
+    Calculamos el angulo en radianes.
     Ver image moments en wikipedia.
+    http://public.cranfield.ac.uk/c5354/teaching/dip/opencv/SimpleImageAnalysisbyMoments.pdf
     """
-    up20 = u["u20"] / u["u00"]
-    up02 = u["u02"] / u["u00"]
-    up11 = u["u02"] / u["u00"]
-    return 0.5 * np.arctan((2 * up11) / (up20 - up02))
+    up20 = u["u20"]# / u["u00"]
+    up02 = u["u02"] #/ u["u00"]
+    up11 = u["u11"] #/ u["u00"]
+    divisor = (up20 - up02)
+
+    if divisor == 0.0:
+      print "El divisor es 0!!!!!!!"
+      if up11 == 0.0:
+        return 0.0
+      elif up11 > 0.0:
+        #return 45.0
+        return np.pi / 4.0
+      elif up11 < 0.0:
+        #return -45.0
+        return np.pi / -4.0
+
+    return 0.5 * np.arctan((2 * up11) / divisor)
+
+    if divisor > 0.0:
+      if up11 == 0.0:
+        return 0.0
+      else:
+        return 0.5 * np.arctan((2 * up11) / divisor) # 0 < angulo < 45 o -45 < angulo < 0
+
+    if divisor < 0.0:
+      if up11 == 0.0:
+        #return -90.0
+        return np.pi / -2.0
+      elif up11 > 0.0:
+        #return 0.5 * np.arctan((2 * up11) / divisor) + 90.0 # 45 < angulo < 90
+        return 0.5 * np.arctan((2 * up11) / divisor) + np.pi / 2.0 # 45 < angulo < 90
+      elif up11 < 0.0:
+        #return 0.5 * np.arctan((2 * up11) / divisor) - 90.0 # -90 < angulo < -45
+        return 0.5 * np.arctan((2 * up11) / divisor) - np.pi / 2.0 # -90 < angulo < -45
+
+  def calc_eccentricity(self, u):
+    """
+    Para calcular la excentricidad, usamos la formula: e = ((u20 - u02) ^ 2 + 4u11) / m00
+    Lo sacamos de aca: "http://www.cs.uu.nl/docs/vakken/ibv/reader/chapter8.pdf para un circulo deberia dar 0.
+    """
+    return ((u["u20"] - u["u02"]) ** 2 + 4 * u["u11"]) / self.m00
 
 
   def get_valor(self):
     return {
         "invariantes" : self.invariantes,
         "centro" : (int(self.x_centro), int(self.y_centro)),
+        "centro_float" : (self.x_centro, self.y_centro),
         "angulo" : self.angulo,
+        "excentricidad" : self.eccen,
         "centrales" : self.u,
         "normalizados" : self.n,
         "momentos" : {
@@ -281,7 +358,7 @@ class MomentosInvariantes(MedidaSegmento):
           "m10" : self.m10,
           "m11" : self.m11,
           "m20" : self.m20,
-          "m02" : self.m20,
+          "m02" : self.m02,
           "m21" : self.m21,
           "m12" : self.m12,
           "m30" : self.m30,
