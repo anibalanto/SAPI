@@ -292,6 +292,8 @@ class Bezier(Point):
         #self.setPos(self.vector.toPointF() + self.node.pos())
         self.updateVector()
         self.nodeDest.getBezier(self.node).updateVector()
+        self.updateVectorToDest()
+        self.nodeDest.getBezier(self.node).updateVectorToDest()
         super(Bezier, self).adjust()
 
     def itemChange(self, change, value):
@@ -316,12 +318,12 @@ class Bezier(Point):
         self.rad = self.getRadians()
 
     def setPos(self, pos):
-        if self.name == "vn1n2":
-            print "Bezier%s.setPos: %s"% (self.name, pos.toTuple())
+        #if self.name == "vn1n2":
+            #print "Bezier%s.setPos: %s"% (self.name, pos.toTuple())
         super(Bezier, self).setPos(pos)
 
     def posDefault(self):
-        print "   Bezier%s.posDefault:"% (self.name,)
+        #print "   Bezier%s.posDefault:"% (self.name,)
         #print "      node............:", self.node.pos().toTuple()
         #print "      nodeDest........:", self.nodeDest.pos().toTuple()
         self.updateVector(self.getVectorToDest() * FACTOR_BEZIER)
@@ -344,19 +346,20 @@ class Bezier(Point):
         #print True if vector else False
 
         if vector != None:
-            print "Beizer%s.updateVector: vec: %s"% (self.name, vector.toTuple())
+            #print "Beizer%s.updateVector: vec: %s"% (self.name, vector.toTuple())
             self.vector = vector
         else:
-            print "Beizer%s.updateVector: vecToDest: %s, lengt: %s"% (self.name, self.getVectorToDest().toTuple(), self.vector.toTuple())
+            #print "Beizer%s.updateVector: vecToDest: %s, lengt: %s"% (self.name, self.getVectorToDest().toTuple(), self.vector.toTuple())
             vectorToDest = self.getVectorToDest()
             self.vector = vectorToDest * (self.vector.length() / vectorToDest.length())
             self.setPos(self.vector.toPointF() + self.node.pos())
-            print "Beizer%s.updateVector: vecResultPrevRot: %s"% (self.name, self.vector.toTuple())
+            #print "Beizer%s.updateVector: vecResultPrevRot: %s"% (self.name, self.vector.toTuple())
             self.rotate()
 
     def updateVectorToDest(self):
         self.vectorToDest = self.getVectorToDest()
         print "Beizer.updateVectorToDest: idems: ", self.vectorToDest == self.vectorToDest2
+        print "Beizer.updateVectorToDest: new: ", self.vectorToDest.toTuple()
         self.vectorToDest2 = self.vectorToDest
     """
     def definePos(self):
@@ -374,24 +377,26 @@ class Bezier(Point):
     def getNormal(self):
         v1 = self.vectorToDest.toVector3D()
         v2 = self.vector.toVector3D()
+        print "vToDest  ", v1.toTuple()
+        print "v        ", v2.toTuple()
         return QtGui.QVector3D.normal(v1, v2)
 
     def getRadians(self):
         if self.vector.length() == 0 or self.vectorToDest.length() == 0:
             return
-        #print "Bezier.getAngle.%s vec: %s, vdest: %s"% (self.name, self.vector.toTuple(), self.vectorToDest.toTuple())
         result = QtGui.QVector2D.dotProduct(self.vector, self.vectorToDest) / (self.vector.length() * self.vectorToDest.length()) 
+        #print "Bezier.getRadians.%s result: %s"% (self.name, result)
         rad = math.acos(result)
         if self.getNormal().z() == -1:
             rad = self.TwoPi - rad
-        print "Bezier%s.defineAngle: ang: %f, normal: %s"% (self.name, rad * 180 / self.Pi, self.getNormal().z())
+        print "Bezier%s.getRadians angAnt: %f ang: %f, normal: %s"% (self.name, self.rad * 180 / self.Pi, rad * 180 / self.Pi, self.getNormal().z())
         self.updateVectorToDest()
         return rad
 
     def rotate(self, rad = None):
         if rad:
             self.rad = rad
-        print "Bezier%s.rotate: pos: %s, rad: %s"% (self.name, self.pos().toTuple(), self.rad)
+        #print "Bezier%s.rotate: pos: %s, rad: %s"% (self.name, self.pos().toTuple(), self.rad)
         #rad = angle * self.Pi/180
         #print "Bezier%s.rotate: vector: %s"% (self.name, self.pos())
         if self.pos().toTuple() == (0.0,0.0):
@@ -402,7 +407,7 @@ class Bezier(Point):
         y_rot = self.vector.x() * math.sin(self.rad) + self.vector.y() * math.cos(self.rad)
         #print "Bezier%s.rotate: angle: %f, x: %f, y: %f, x_rot: %f, y_rot: %f"% (self.name, self.rad, self.x(), self.y(), x_rot, y_rot)
         vector = QtGui.QVector2D(QtCore.QPointF(x_rot,y_rot))
-        print "Bezier%s.rotate: vectorResult: %s, posRes: %s"% (self.name, vector.toTuple(), (x_rot, y_rot))
+        #print "Bezier%s.rotate: vectorResult: %s, posRes: %s"% (self.name, vector.toTuple(), (x_rot, y_rot))
         self.updateVector(vector)
         self.setPos(self.vector.toPointF() + self.node.pos())
 
@@ -415,6 +420,13 @@ class Bezier(Point):
         painter.setPen(self.pen)
         painter.drawLine(self.getLineToNode())
         super(Bezier, self).paint(painter, option, widget)
+
+    """
+    def boundingRect(self):
+        return QtCore.QRectF(0, 0, 800, 800) 
+                #QtCore.QRectF(self.node.pos().x(), self.nodeDest.pos().y(), self.nodeDest.pos().x(), self.node.pos().y())
+    """
+
 """
 class Definator(object):
 
@@ -500,6 +512,13 @@ class Node(Point):
                 bezier.adjust()
 
         return super(Node, self).itemChange(change, value)
+
+    """
+    def mouseReleaseEvent(self, event):
+        return super(Node, self).itemChange(change, value)
+        self.update()
+        QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
+    """
 
     def paint(self, painter, option, widget):
         painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
