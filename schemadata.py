@@ -34,8 +34,14 @@ metadata.create_all()
 Session = sessionmaker(bind=engine)
 session = Session()
 
-img = open("panzas/IMG_0237.JPG", 'rb').read()#os.urandom(100000)#Image.open("panzas/IMG_0237.JPG")
-session.add(Sapito("Saparala", img))
+image = QtGui.QImage("panzas/IMG_0237.JPG")
+
+ba = QtCore.QByteArray()
+buff = QtCore.QBuffer(ba)
+buff.open(QtCore.QIODevice.WriteOnly)
+image.save(buff, "JPG")
+
+session.add(Sapito("Saparala", ba))
 session.commit()
 """session.add_all({
 	Contact("Ramirez Pedro", groups={groups[1],groups[3],groups[4]}),
