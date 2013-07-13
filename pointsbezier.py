@@ -60,8 +60,11 @@ class Shape(QtGui.QGraphicsItem):
             self.nodesWeakRef.append(weakref.ref(self.nodes[i]))
             self.nodesWeakRef[i]().addShape(self)
 
-        self.adjust() 
-
+        self.adjust()
+        """
+        for node in self.nodes:
+            node.setShape(self)
+        """
     def heightDest(self):
         return self.shapeDest.boundingRect().height()
 
@@ -162,8 +165,8 @@ class Shape(QtGui.QGraphicsItem):
             self.nodesBound[i].setPos(x, y)
             i +=1
         """
-        bp = self.boundingPolygon()
-        self.path.addPolygon(bp)
+        #bp = self.boundingPolygon()
+        #self.path.addPolygon(bp)
         #print "polygon: ", bp
         painter.setPen(QtGui.QPen(QtCore.Qt.blue, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawPath(self.path)
@@ -281,11 +284,16 @@ class Bezier(Point):
         self.node = node
         self.name = "v" + node.name + nodeDest.name
         self.nodeDest = nodeDest
-        #self.vector = None
+        #self.shape = None
         Point.__init__(self, graphWidget)
         self.vectorToDest = self.getVectorToDest()
         self.define(definator)
         self.vectorToDest2 = self.vectorToDest
+
+    """
+    def setShape(self, shape):
+        self.shape = shape
+    """
 
     def adjust(self):
         #print "Bezier%s.adjust: vect: %s, node: %s"% (self.name, self.vector.toPointF().toTuple(), self.node.pos().toTuple())
@@ -298,6 +306,8 @@ class Bezier(Point):
 
     def itemChange(self, change, value):
         self.node.adjust()
+        #if self.shape != None:
+            #self.shape.adjust()
         #print "Bezier.itemChange", self.pos().toTuple()
         #if hasattr(self, 'vector'):
             #self.defineAngle()
@@ -411,21 +421,20 @@ class Bezier(Point):
         self.updateVector(vector)
         self.setPos(self.vector.toPointF() + self.node.pos())
 
-    def getLineToNode(self):
-        line = QtCore.QLineF(self.pos(), self.node.pos())
-        #print line.toTuple()
-        return line 
-
     def paint(self, painter, option, widget):
         painter.setPen(self.pen)
-        painter.drawLine(self.getLineToNode())
+        painter.drawLine(QtCore.QLineF(0, 0, self.node.pos().x() - self.pos().x(), self.node.pos().y() - self.pos().y()))
+        #painter.drawLine(QtCore.QLineF(self.pos().x(), self.pos().y(), self.node.pos().x(), self.node.pos().y()))
+        print "Bezier%s.paint: Line: %s"% (self.name, (self.pos().toTuple(), self.node.pos().toTuple()))
+        #pair.drawRect(self.boundingRect())
         super(Bezier, self).paint(painter, option, widget)
 
-    """
     def boundingRect(self):
-        return QtCore.QRectF(0, 0, 800, 800) 
+        return QtCore.QRectF(-200, -200, 800, 800) 
                 #QtCore.QRectF(self.node.pos().x(), self.nodeDest.pos().y(), self.nodeDest.pos().x(), self.node.pos().y())
-    """
+        #self.scale = 1.0
+        #adjust = 2000.0
+        #return QtCore.QRectF(self.scale * (-10 - adjust), self.scale * (-10 - adjust), self.scale * (23 + adjust), self.scale * (23 + adjust))
 
 """
 class Definator(object):
@@ -465,6 +474,12 @@ class Node(Point):
 
         self.vincules = {}
         self.vinculesName = {}
+
+    """
+    def setShape(self, shape):
+        for bezier in self.vincules.values():
+            bezier.setShape(shape)
+    """
 
     def vincule(self, node, angle, yourAngle, graphWidget):
         if not (node in self.vincules):
