@@ -11,7 +11,8 @@ import os
 
 #Se crea la instancia del motor de la base de datos y se asocia con un
 #archivo
-engine = create_engine('sqlite:///sapitoserrano.db')
+engine = create_engine('sqlite:///sapitoserrano2.db')
+#engine = create_engine('postgresql://postgres:postgres@localhost:5432/sapitoserrano')
 
 metadata = MetaData(engine)
 Base = declarative_base(metadata=metadata)
@@ -19,12 +20,12 @@ Base = declarative_base(metadata=metadata)
 class Sapito(Base):
 	__tablename__ = 'sapito'
 	id = Column(Integer, primary_key=True)
-	n = Column(String(100))
-	n2 = deferred(Column(LargeBinary))
+	name = Column(String(100))
+	image = deferred(Column(LargeBinary))
 
-	def __init__(self, name, img):
-		self.n = name
-		self.n2 = img
+	def __init__(self, name, image):
+		self.name = name
+		self.image = image
 
 	def __repr__(self):
 		return "<Sapito('%s')>" % (self.name)
