@@ -4,6 +4,7 @@ class Segmento(object):
   def __init__(self):
     #lista de tuplas (x,y)
     self.elementos_enteros = []
+    self.elementos_enteros_hash = {}
     #lista de tuplas (x,y)
     self.elementos_perimetro = []
     self.cant = 0
@@ -15,6 +16,9 @@ class Segmento(object):
   def get_elementos_enteros(self):
     return self.elementos_enteros
 
+  def get_elementos_enteros_hash(self):
+    return self.elementos_enteros_hash
+
   def get_elementos_perimetro(self):
     return self.elementos_perimetro
 
@@ -23,6 +27,7 @@ class Segmento(object):
 
   def add_elemento_entero(self, x, y):
     self.elementos_enteros.append((x, y))
+    self.elementos_enteros_hash[(x,y)] = self.cant
     self.cant += 1
 
     if (self.maxx < x):
@@ -39,6 +44,19 @@ class Segmento(object):
 
   def __str__(self):
     return "segmento: elementos: {0}".format(self.elementos)
+
+  def get_minx(self):
+      return self.minx
+
+  def get_maxx(self):
+      return self.maxx
+
+  def get_miny(self):
+      return self.miny
+
+  def get_maxy(self):
+      return self.maxy
+
 
 class SegmentoManager(object):
   def __init__(self, ancho, alto):
