@@ -200,6 +200,7 @@ def probar_momentos(img_original):
     #dr.line([p[0],p[1],maxx,y], fill=BLUE)
     dr.line([p[0],p[1],p[0] + int(dx), p[1] - int(dy)], fill=BLUE)
 
+
   img_segmentada.show()
 
   """

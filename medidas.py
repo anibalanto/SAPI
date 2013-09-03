@@ -170,6 +170,24 @@ class PerimetroSegmento(MedidaSegmento):
   def get_valor(self):
     return len(self.segmento.get_elementos_perimetro())
 
+class EjeCentralSegmento(MedidaSegmento):
+  """
+  Retorna el punto x,y del perimetro, mas lejano al centro pasado como parametro.
+  """
+  def __init__(self, segmento, centro):
+    super(EjeCentralSegmento, self).__init__(segmento)
+    self.centro = centro
+
+  def get_valor(self):
+    maxval = None
+    distancia_max = -9999
+    for elem in self.segmento.get_elementos_perimetro():
+      d = np.linalg.norm(np.array(elem) - np.array(self.centro))#calculamos la distancia euclidea
+      if d > distancia_max:
+        maxval = elem
+        distancia_max = d
+    return maxval
+
 class MomentosInvariantes(MedidaSegmento):
   """
   Ver digital image processing pag. 700.
