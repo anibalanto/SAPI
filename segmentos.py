@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from imagen import ImagenPIL
 
 class Segmento(object):
   def __init__(self):
@@ -92,6 +93,22 @@ class SegmentoManager(object):
     for i in a_borrar:
       self.segmentos.remove(i)
 
+  def eliminar_extremos(self):
+    """
+    Elimina los segmentos que "tocan" los bordes.
+    """
+    a_borrar = []
+    borde_izquierdo = 1
+    borde_derecho = self.ancho - 2
+    borde_superior = 1
+    borde_inferior = self.alto - 2
+    for j in self.segmentos:
+      if j.minx == borde_izquierdo or j.maxx == borde_derecho or j.miny == borde_superior or j.maxy == borde_inferior:
+        a_borrar.append(j)
+
+    for i in a_borrar:
+      self.segmentos.remove(i)
+
   def unir(self, seg1, seg2):
     """
     Unimos dos segmentos en uno.
@@ -155,6 +172,13 @@ class SegmentoManager(object):
       self.segmentos.append(seg)
 
     self.mat[x][y] = seg
+
+  def toImage(self):
+    imagen = ImagenPIL()
+    for segmento in self.get_segmentos():
+      for xy in segmento.get_elementos_enteros():
+        imagen.putpixel(xy, (255, 255, 255))
+    return imagen
 
   def add_pixel_perimetro(self, x, y):
     self.mat[x][y].add_elemento_perimetro(x, y)

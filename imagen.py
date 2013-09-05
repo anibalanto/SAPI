@@ -113,6 +113,7 @@ class ImagenPIL(BaseImagen):
     return self.pix[xy[0],xy[1]][0:3]
 
   def putpixel(self, xy, value):
+    #print ("x,y = %s value = %s"% (xy, value))
     for i in value:
       if not 0 <= i <=255:
         raise MyException(xy, value)

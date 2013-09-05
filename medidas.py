@@ -361,10 +361,10 @@ class DimensionFractal(MedidaSegmento):
     i = self.segmento.get_minx()
     j = self.segmento.get_miny()
 
-    print "DimensionFractal.get_valor: minx: %s miny: %s maxx: %s maxy: %s"% (self.segmento.get_minx(), self.segmento.get_miny(), self.segmento.get_maxx(), self.segmento.get_maxy())
+    #print "DimensionFractal.get_valor: minx: %s miny: %s maxx: %s maxy: %s"% (self.segmento.get_minx(), self.segmento.get_miny(), self.segmento.get_maxx(), self.segmento.get_maxy())
     for i in xrange(self.segmento.get_minx(), self.segmento.get_maxx(), self.size):
         for j in xrange(self.segmento.get_miny(), self.segmento.get_maxy(), self.size):
-            print "DimensionFractal.get_valor: ", (i, j)
+            #print "DimensionFractal.get_valor: ", (i, j)
             if self.tiene_borde(i, j):
                 box_count += 1
             M += 1

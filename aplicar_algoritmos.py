@@ -214,20 +214,24 @@ def probar_momentos(img_original):
 
 def probar_dimension_fractal(img_original):
   img_segmentada = segmentar(img_original, False)
+  img_segmentada.show()
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
+  img_perimetros.show()
   segman = runcode.run_codes(img_segmentada, img_perimetros)
-  segman.eliminar_extremos_verticales()
+  segman.eliminar_extremos()
+  #segman.toImage().show()
   centros = []
-  momentos = []
+  centrales = []
   dimensiones = []
   for i in segman.get_segmentos():
     area = medidas.AreaSegmento(i).get_valor()
     val = medidas.MomentosInvariantes(i, area).get_valor()
     d = medidas.DimensionFractal(i).get_valor()
-    centros.append((val["centro"], val["angulo"], i.maxx))
-    momentos.append((val["centrales"], val["momentos"], val["normalizados"], area))
+    centros.append(val["centro"])
+    centrales.append(val["centrales"])
     dimensiones.append(d)
     print (dimensiones)
+    print (centros)
 
 
 

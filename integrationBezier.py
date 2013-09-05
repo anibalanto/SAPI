@@ -14,11 +14,11 @@ from pointsbezier import *
 class ImageViewer(object):
     def setupUi(self, MainWindow, filename):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(1024, 768)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.scrollArea = QtGui.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(0, 0, 800, 600))
+        self.scrollArea.setGeometry(QtCore.QRect(0, 0, 1024, 768))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -27,16 +27,17 @@ class ImageViewer(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 798, 598))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1022, 766))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
 
+
         self.selectorWidget = SelectorWidget(self.scrollAreaWidgetContents, filename)
-        self.selectorWidget.setGeometry(QtCore.QRect(0, 0, 800, 600))
+        #self.selectorWidget.setGeometry(QtCore.QRect(0, 0, 800, 600))
         self.selectorWidget.setObjectName("selectorWidget")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1024, 26))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
@@ -129,6 +130,9 @@ class ImageViewer(object):
 
         qimage = adaptrImg.OpenCVImageToQImage(cv_dest)
         algorit.probar_dimension_fractal(adaptrImg.QImageToImagePIL(qimage))
+
+        #qimageShapeDest = self.selectorWidget.imageShapeDest()
+        #adaptrImg.QImageToImagePIL(qimageShapeDest).show()
 
         if hasattr(self, 'transWidget'):
             self.transObjet.setImage(qimage, self.img_filename)
