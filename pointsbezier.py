@@ -5,7 +5,6 @@ import weakref
 import math
 import warp_image as wi
 import numpy as np
-import copy
 from PySide import QtCore, QtGui
 
 A01 = -10
@@ -16,14 +15,14 @@ A21 = 60
 
 A23 = 60
 A32 = -60
- 
+
 A30 = -60
 A03 = 30
 
-ANGLES = [[0,A01,0,A03],
-        [A10,0,A12,0],
-        [0,A21,0,A23],
-        [A30,0,A32,0]]
+ANGLES = [[0, A01, 0, A03],
+        [A10, 0, A12, 0],
+        [0, A21, 0, A23],
+        [A30, 0, A32, 0]]
 
 C1 = QtCore.Qt.red
 C2 = QtCore.Qt.green
@@ -31,9 +30,9 @@ C2 = QtCore.Qt.green
 WIDHT_DEST = 600
 HEIGHT_DEST = 600
 
-FACTOR_BEZIER = 1.0/3
+FACTOR_BEZIER = 1.0 / 3
 
-POINTS_DEST = [(0,0), (WIDHT_DEST,0), (WIDHT_DEST,HEIGHT_DEST), (0,HEIGHT_DEST)]
+POINTS_DEST = [(0, 0), (WIDHT_DEST, 0), (WIDHT_DEST, HEIGHT_DEST), (0, HEIGHT_DEST)]
 
 class Shape(QtGui.QGraphicsItem):
 
@@ -71,10 +70,16 @@ class Shape(QtGui.QGraphicsItem):
     def widthDest(self):
         return self.shapeDest.boundingRect().width()
 
-    def getPointsDest(self): 
+    def getPointsDest(self):
         rect = self.shapeDest.boundingRect()
         coords = rect.getCoords()
         return self.transformToListPoints(rect, -1 * coords[0], -1 * coords[1])
+
+    def boundingRectDest(self):
+        return self.shapeDest.boundingRect()
+
+    def getShapeDest(self):
+        return self.shapeDest
 
     def getPoints(self):
         points = []
@@ -97,10 +102,10 @@ class Shape(QtGui.QGraphicsItem):
             points.append((coords[(i+1) % 4] + dx, coords[i] +dy))
         return points
 
-    def containsPath(self, point):
+    def contains(self, point):
         return self.path.contains(point)
 
-    def intersectsPath(self, point):
+    def intersects(self, point):
         return self.path.intersects(point)
 
     def setScale(self, scale):
@@ -148,7 +153,7 @@ class Shape(QtGui.QGraphicsItem):
             node.proyect(mat)
 
     def paint(self, painter, option, widget):
-        
+
         self.definePathShape()
 
         #self.path.addRect(self.boundingRect())
@@ -159,7 +164,7 @@ class Shape(QtGui.QGraphicsItem):
             x, y = self.pointBound(boundPoint[0], boundPoint[1])
             #x, y = self.pointBound(self.nodes[i].pos().x(), self.nodes[i].pos().y())
             #print "node...............:", i, (self.nodes[i].pos().x(), self.nodes[i].pos().y())
-            print "bound..............:", i, (boundPoint[0], boundPoint[1]) 
+            print "bound..............:", i, (boundPoint[0], boundPoint[1])
             print "bound result.......:", i, (x, y)
             #print "node result........:",i , self.pointBound(self.nodes[i].pos().x(), self.nodes[i].pos().y())
             self.nodesBound[i].setPos(x, y)
@@ -172,8 +177,7 @@ class Shape(QtGui.QGraphicsItem):
         painter.drawPath(self.path)
 
     def definePathShape(self):
-        factor = 1.0/3
-        
+
         self.path =  QtGui.QPainterPath()
         self.path.moveTo(self.nodes[0].pos())
         for i in range(0,4):
@@ -189,24 +193,53 @@ class Shape(QtGui.QGraphicsItem):
             #print "node pos:", node.pos().toTuple()
         return mylist
 
-	def __repr__(self):
-		return "Shape.nodes: <%f>" % (self.getListPointsNodes()) 
+    def __repr__(self):
+	return "Shape.nodes: <%f>" % (self.getListPointsNodes())
+
+    def toImage(self):
+        rect = self.boundingRect()
+        qimage = QtGui.QImage(rect.width(),rect.height())
+        return qimage
+
+
+class ShapeDest(Shape):
+
+    def __init__(self, nodes, name = None):
+        super(ShapeDest, self).__init__(nodes, name)
+
+    def paint(self, painter, option, widget):
+
+        self.definePathShape()
+
+        #painter.setBrush(QtGui.QLinearGradient())
+        painter.setBrush(QtGui.QColor(0, 0, 0))
+        #painter.setPen(QtGui.QPen(QtCore.Qt.black, 3 * self.scale))
+        painter.drawPath(self.path)
+
+    def getImage(self):
+        #rect = self.boundingRect()
+        #self.scene().setSceneRect(0, 0, rect.width(), rect.height())
+        qimage = QtGui.QImage()
+        qpainter = QtGui.QPainter(qimage)
+        self.scene().render(qpainter)
+        qpainter.end()
+        return qimage
 
 class BoundPolygon(QtGui.QPolygonF):
 
     def __init__(self, points):
         QtGui.QPolygonF.__init__(self)
-        
+
         for point in points:
             #print "BoundPolygon.point", point
-            self.append(QtCore.QPointF(point[0],point[1]))
- 
+            self.append(QtCore.QPointF(point[0], point[1]))
+
     def close(self):
         self.append(self.toList()[0])
 
 class Point(QtGui.QGraphicsItem):
     Type = QtGui.QGraphicsItem.UserType + 4
-    
+
     def __init__(self, graphWidget):
         QtGui.QGraphicsItem.__init__(self)
         self.scale = 1.0
@@ -232,7 +265,7 @@ class Point(QtGui.QGraphicsItem):
 
     def adjust(self):
         self.prepareGeometryChange()
-        
+
     def setScale(self, scale):
         self.scale = scale
 
@@ -269,7 +302,7 @@ class Point(QtGui.QGraphicsItem):
         QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
 
 	def __repr__(self):
-		return "<%f, %f>" % (self.pos().x()), (self.pos().y()) 
+		return "<%f, %f>" % (self.pos().x()), (self.pos().y())
 
     def paint(self, painter, option, widget):
         painter.setPen(self.pen)
@@ -277,7 +310,7 @@ class Point(QtGui.QGraphicsItem):
 
 class Bezier(Point):
     Type = QtGui.QGraphicsItem.UserType + 5
-    
+
     Pi = math.pi
     TwoPi = 2 * math.pi
     def __init__(self, graphWidget, node, nodeDest, definator = None):
@@ -338,7 +371,7 @@ class Bezier(Point):
         #print "      nodeDest........:", self.nodeDest.pos().toTuple()
         self.updateVector(self.getVectorToDest() * FACTOR_BEZIER)
         #self.angle = 0.0
-        return self.vector.toPointF() 
+        return self.vector.toPointF()
 
     def getFactor(self):
         if not self.factor:
@@ -368,8 +401,8 @@ class Bezier(Point):
 
     def updateVectorToDest(self):
         self.vectorToDest = self.getVectorToDest()
-        print "Beizer.updateVectorToDest: idems: ", self.vectorToDest == self.vectorToDest2
-        print "Beizer.updateVectorToDest: new: ", self.vectorToDest.toTuple()
+        #print "Beizer.updateVectorToDest: idems: ", self.vectorToDest == self.vectorToDest2
+        #print "Beizer.updateVectorToDest: new: ", self.vectorToDest.toTuple()
         self.vectorToDest2 = self.vectorToDest
     """
     def definePos(self):
@@ -381,25 +414,25 @@ class Bezier(Point):
         if definator:
             definator.define(self)
         else:
-            print "==))por aca tambien!"
+            #print "==))por aca tambien!"
             self.setPos(self.posDefault())
-  
+
     def getNormal(self):
         v1 = self.vectorToDest.toVector3D()
         v2 = self.vector.toVector3D()
-        print "vToDest  ", v1.toTuple()
-        print "v        ", v2.toTuple()
+        #print "vToDest  ", v1.toTuple()
+        #print "v        ", v2.toTuple()
         return QtGui.QVector3D.normal(v1, v2)
 
     def getRadians(self):
         if self.vector.length() == 0 or self.vectorToDest.length() == 0:
             return
-        result = QtGui.QVector2D.dotProduct(self.vector, self.vectorToDest) / (self.vector.length() * self.vectorToDest.length()) 
+        result = QtGui.QVector2D.dotProduct(self.vector, self.vectorToDest) / (self.vector.length() * self.vectorToDest.length())
         #print "Bezier.getRadians.%s result: %s"% (self.name, result)
         rad = math.acos(result)
         if self.getNormal().z() == -1:
             rad = self.TwoPi - rad
-        print "Bezier%s.getRadians angAnt: %f ang: %f, normal: %s"% (self.name, self.rad * 180 / self.Pi, rad * 180 / self.Pi, self.getNormal().z())
+        #print "Bezier%s.getRadians angAnt: %f ang: %f, normal: %s"% (self.name, self.rad * 180 / self.Pi, rad * 180 / self.Pi, self.getNormal().z())
         self.updateVectorToDest()
         return rad
 
@@ -410,7 +443,7 @@ class Bezier(Point):
         #rad = angle * self.Pi/180
         #print "Bezier%s.rotate: vector: %s"% (self.name, self.pos())
         if self.pos().toTuple() == (0.0,0.0):
-            print "Bezier%s.rotate: me paso!"
+            #print "Bezier%s.rotate: me paso!"
             self.setPos(self.posDefault())
 
         x_rot = self.vector.x() * math.cos(self.rad) - self.vector.y() * math.sin(self.rad)
@@ -425,12 +458,12 @@ class Bezier(Point):
         painter.setPen(self.pen)
         painter.drawLine(QtCore.QLineF(0, 0, self.node.pos().x() - self.pos().x(), self.node.pos().y() - self.pos().y()))
         #painter.drawLine(QtCore.QLineF(self.pos().x(), self.pos().y(), self.node.pos().x(), self.node.pos().y()))
-        print "Bezier%s.paint: Line: %s"% (self.name, (self.pos().toTuple(), self.node.pos().toTuple()))
+        #print "Bezier%s.paint: Line: %s"% (self.name, (self.pos().toTuple(), self.node.pos().toTuple()))
         #pair.drawRect(self.boundingRect())
         super(Bezier, self).paint(painter, option, widget)
 
     def boundingRect(self):
-        return QtCore.QRectF(-200, -200, 800, 800) 
+        return QtCore.QRectF(-200, -200, 800, 800)
                 #QtCore.QRectF(self.node.pos().x(), self.nodeDest.pos().y(), self.nodeDest.pos().x(), self.node.pos().y())
         #self.scale = 1.0
         #adjust = 2000.0
@@ -460,7 +493,7 @@ class PosDefinator(object):
 
     def define(self, element):
         element.setPos(self.pos)
-        self.vector = QtGui.QVector2D(pos - self.node.pos())
+        self.vector = QtGui.QVector2D(self.pos - self.node.pos())
 
 class Node(Point):
     Type = QtGui.QGraphicsItem.UserType + 6
@@ -488,7 +521,7 @@ class Node(Point):
             self.vinculesName[node.name] = node
             #print "Node.vincule.%s <-----> %s"% (self.name, node.name)
             tup = (bezier,) + node.vincule(self, yourAngle, angle, graphWidget)
-            return tup 
+            return tup
         return ()
 
     def getVincules(self):
@@ -539,13 +572,41 @@ class Node(Point):
         painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawEllipse(-10 * self.scale, -10 * self.scale, 20 * self.scale, 20 * self.scale)
 
+
+class WidgetDest(QtGui.QGraphicsView):
+
+    def __init__(self, shape):
+        QtGui.QGraphicsView.__init__(self)
+
+        self.shape = shape
+        rect = self.shape.boundingRect()
+
+        scene = QtGui.QGraphicsScene(self)
+        scene.setSceneRect(0, 0, 0, 0)
+        scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+
+        self.setScene(scene)
+        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+
+        scene.addItem(shape)
+
+    def shape(self):
+        return self.shape
+
+
 class SelectorWidget(QtGui.QGraphicsView):
+
+    clicked = QtCore.Signal(int,int)
     def __init__(self, scroll, filename):
         QtGui.QGraphicsView.__init__(self, scroll)
 
         scene = QtGui.QGraphicsScene(self)
+        scene.setSceneRect(0, 0, 1000, 1000)
         scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-        scene.setSceneRect(0, 0, 600,600)
+        #self.setSceneRect(0, 0, 0, 0)
 
         #self.addImage(filename)
 
@@ -573,7 +634,19 @@ class SelectorWidget(QtGui.QGraphicsView):
 
         self.updateActions()
         """
+
+    """
+    def mousePressEvent(self, event):
+      self.clicked.emit(event.x(),event.y())
+    """
+
+    def clickSelector(self, x, y):
+        #node = self.shape.addNode(QtCore.QPointF(x, y))
+        #self.scene().addItem(node)
+        print (x, y)
+
     def addImage(self, image):
+
         imageItem = self.scene().addPixmap(QtGui.QPixmap.fromImage(image))
         imageItem.setZValue(-1)
 
@@ -582,13 +655,13 @@ class SelectorWidget(QtGui.QGraphicsView):
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
-        
+
     def scaleView(self, scaleFactor):
         factor = self.matrix().scale(scaleFactor, scaleFactor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
 
         if factor < 0.0001 or factor > 100:
             return
-
+        print (factor)
         self.scale(scaleFactor, scaleFactor)
         for item in self.items():
             #print "setScale: ", 1.0/factor, factor
@@ -596,7 +669,7 @@ class SelectorWidget(QtGui.QGraphicsView):
 
     def getPoints(self):
         points = []
-        i = 0 
+        i = 0
         for coord in self.shape.boundingPolygon().toList():
             if i != 4:
                 points.append(coord.toTuple())
@@ -611,6 +684,9 @@ class SelectorWidget(QtGui.QGraphicsView):
 
     def getHeightDest(self):
         return self.shape.heightDest()
+
+    def boundingRect(self):
+        return self.shape.boundingRectDest()
 
     """
     def loadImage(self, filename):
@@ -643,17 +719,19 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.scaleImage(self.size().width()/self.img.size().width())
     """
 
-    def createShapeBase(self, name, shapeDest = None):
+    def createNodesBase(self):
 
         node1 = Node(self, "n1")
         node2 = Node(self, "n2")
         node3 = Node(self, "n3")
         node4 = Node(self, "n4")
+        #nodeC = Node(self, "nc")
 
         node1.setPos(200, 200)
         node2.setPos(400, 200)
         node3.setPos(400, 400)
         node4.setPos(200, 400)
+        #nodeC.setPos(300, 300)
 
         bezier12, bezier21 = node1.vincule(node2,ANGLES[0][1],ANGLES[1][0],self)
         bezier23, bezier32 = node2.vincule(node3,ANGLES[1][2],ANGLES[2][1],self)
@@ -665,14 +743,17 @@ class SelectorWidget(QtGui.QGraphicsView):
         node3.setZValue(10)
         node4.setZValue(10)
         """
-        nodes = [node1, node2, node3, node4]
-        return Shape(nodes, name, shapeDest)
+        return [node1, node2, node3, node4]
+        #return Shape(nodes, name, shapeDest)
 
 
     def createItems(self):
 
-        shapeDest = self.createShapeBase("shBase")
-        self.shape = self.createShapeBase("shEdit", shapeDest)
+        shapeDest = ShapeDest(self.createNodesBase(), "shBase")
+        self.widgetDest = WidgetDest(shapeDest)
+        self.shape = Shape(self.createNodesBase(), "shEdit", shapeDest)
+
+        self.widgetDest.show()
 
         self.scene().addItem(self.shape)
 
@@ -681,50 +762,8 @@ class SelectorWidget(QtGui.QGraphicsView):
             for bezier in node.getBeziers():
                 self.scene().addItem(bezier)
 
-    """
-    def createActions(self):
-        self.openAct = QtGui.QAction("&Open...", self, shortcut="Ctrl+O",
-                triggered=self.open)
-
-        self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
-                triggered=self.close)
-
-        self.zoomInAct = QtGui.QAction("Zoom &In (25%)", self,
-                shortcut="Ctrl++", enabled=False, triggered=self.zoomIn)
-
-        self.zoomOutAct = QtGui.QAction("Zoom &Out (25%)", self,
-                shortcut="Ctrl+-", enabled=False, triggered=self.zoomOut)
-
-        self.normalSizeAct = QtGui.QAction("&Normal Size", self,
-                shortcut="Ctrl+S", enabled=False, triggered=self.normalSize)
-
-        self.transformAct = QtGui.QAction("&Transform", self,
-                shortcut="Ctrl+T", enabled=False, triggered=self.transform)
-
-    def createMenus(self):
-        self.fileMenu = QtGui.QMenu("&File", self)
-        self.fileMenu.addAction(self.openAct)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.exitAct)
-
-        self.viewMenu = QtGui.QMenu("&View", self)
-        self.viewMenu.addAction(self.zoomInAct)
-        self.viewMenu.addAction(self.zoomOutAct)
-        self.viewMenu.addAction(self.normalSizeAct)
-        self.viewMenu.addSeparator()
-
-        self.transformMenu = QtGui.QMenu("&Transform", self)
-        self.transformMenu.addAction(self.transformAct)
-
-        self.menuBar().addMenu(self.fileMenu)
-        self.menuBar().addMenu(self.viewMenu)
-        self.menuBar().addMenu(self.transformMenu)
-
-    def updateActions(self):
-        self.zoomInAct.setEnabled(not self.fitToWindowAct.isChecked())
-        self.zoomOutAct.setEnabled(not self.fitToWindowAct.isChecked())
-        self.normalSizeAct.setEnabled(not self.fitToWindowAct.isChecked())
-    """
+    def imageShapeDest(self):
+        return self.shape.getShapeDest().getImage()
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

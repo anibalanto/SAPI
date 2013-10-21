@@ -3,23 +3,23 @@
 from PySide import QtCore, QtGui
 from transformedWidget import *
 
+import aplicar_algoritmos as algorit
+import adaptationImage as adaptrImg
 import sys
 import cv2 as cv
 import warp_image as wi
 from pointsbezier import *
 
-import weakref
-import math
-import numpy as np
-import copy
+
 class ImageViewer(object):
     def setupUi(self, MainWindow, filename):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(1024, 768)
+
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.scrollArea = QtGui.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(0, 0, 800, 600))
+        self.scrollArea.setGeometry(QtCore.QRect(0, 0, 1024, 768))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -28,8 +28,9 @@ class ImageViewer(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 798, 598))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1022, 766))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+
 
         self.selectorWidget = SelectorWidget(self.scrollAreaWidgetContents, filename)
         self.selectorWidget.setGeometry(QtCore.QRect(0, 0, 800, 600))
@@ -37,7 +38,7 @@ class ImageViewer(object):
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1024, 26))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
@@ -46,6 +47,8 @@ class ImageViewer(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        self.selectorWidget.clicked.connect(self.selectorWidget.clickSelector)
 
         self.loadImage(filename)
         self.createActions(MainWindow)
@@ -69,7 +72,6 @@ class ImageViewer(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
 
-    
     def loadImage(self, filename):
         img_cv = cv.imread(filename)
         if not(img_cv.size):
@@ -78,11 +80,11 @@ class ImageViewer(object):
         self.cv_img = img_cv
         self.img = QtGui.QImage(filename)
         self.img_filename = filename
-        qim = self.openCVtoQImage(self.cv_img)
+        qim = adaptrImg.OpenCVImageToQImage(self.cv_img)
         self.selectorWidget.addImage(qim)
         #self.scaleImage(self.size().width()/self.img.size().width())
         #print "en loadImage:", self.imageLabel.size()
-    
+
     def open(self):
         filename,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
                 QtCore.QDir.currentPath())
@@ -115,20 +117,32 @@ class ImageViewer(object):
         self.updateActions()
     """
     def transform(self):
+
+        coords = self.selectorWidget.boundingRect().getCoords()
+        pixmap = QtGui.QPixmap.grabWidget(self.selectorWidget, coords[0],
+            coords[1], coords[2], coords[3])
+        pixmap.save("pixmap.png")
+
         points = self.selectorWidget.getPoints()
         pointsDest = self.selectorWidget.getPointsDest()
         width = int(self.selectorWidget.getWidthDest())
         height = int(self.selectorWidget.getHeightDest())
         cv_dest = wi.warpImage(self.cv_img, points, pointsDest, width, height)
 
-        if hasattr(self,'transWidget'):
-            self.transObjet.setImage(self.openCVtoQImage(cv_dest), self.img_filename)
+        qimage = adaptrImg.OpenCVImageToQImage(cv_dest)
+        algorit.probar_dimension_fractal(adaptrImg.QImageToImagePIL(qimage))
+
+        #qimageShapeDest = self.selectorWidget.imageShapeDest()
+        #adaptrImg.QImageToImagePIL(qimageShapeDest).show()
+
+        if hasattr(self, 'transWidget'):
+            self.transObjet.setImage(qimage, self.img_filename)
             self.transWidget.show()
         else:
             self.transWidget = QtGui.QWidget()
             self.transObjet = Ui_Form()
             self.transObjet.setupUi(self.transWidget, width, height)
-            self.transObjet.setImage(self.openCVtoQImage(cv_dest), self.img_filename)
+            self.transObjet.setImage(qimage, self.img_filename)
             self.transWidget.show()
 
     def createActions(self, mainWindow):
@@ -163,7 +177,7 @@ class ImageViewer(object):
 
     def createMenus(self, mainWindow):
         self.fileMenu = QtGui.QMenu("&File", mainWindow)
-        
+
         self.fileMenu.addAction(self.openAct)
         """
         self.fileMenu.addSeparator()
@@ -224,7 +238,7 @@ class ImageViewer(object):
 
         self.transformAct.setEnabled(self.i == 4)
 
-    
+
     def paintEvent(self, event):
         if self.i != 0:
             painter = QtGui.QPainter()
@@ -238,13 +252,6 @@ class ImageViewer(object):
             self.imageLabel.refresh()
 
     """
-    def openCVtoQImage(self, img_cv):
-        dst = cv.cvtColor(img_cv, cv.COLOR_BGR2RGB)
-        h = dst.shape[0]
-        w = dst.shape[1]
-        qim = QtGui.QImage(dst.data, w, h, dst.strides[0], QtGui.QImage.Format_RGB888)
-        return qim.copy()
-
 
 if __name__ == '__main__':
 

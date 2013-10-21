@@ -14,6 +14,7 @@ import sys
 import numpy as np
 import ImageDraw
 
+
 def cargar(filename):
   img = ImagenArchivo(filename)
   print "mode: %s" % img.mode
@@ -124,6 +125,9 @@ def probar_perimetro(img):
   for i in segman.segmentos:
     print medidas.AreaSegmento(i.elementos).get_valor()
 
+def diferencia(img, imgResta):
+    return transformador.Transformador.aplicar([colors.AlgoritmoResta(img)], imgResta, True)
+
 def segmentar(img_original, mostrar_pasos):
   """
   img_original: Imagen. Imagen rgb a segmentar.
@@ -208,6 +212,30 @@ def probar_momentos(img_original):
   for h, k, i, j in sorted(momentos, key=lambda x: x[3]):
     print "centrales \n{}\n momentos \n{}\n normalizados \n{}\n{}\n".format(h,k,i,j)
   """
+
+def probar_dimension_fractal(img_original):
+  img_segmentada = segmentar(img_original, False)
+  img_segmentada.show()
+  img_perimetros = runcode.get_img_perimetros(img_segmentada)
+  img_perimetros.show()
+  segman = runcode.run_codes(img_segmentada, img_perimetros)
+  segman.eliminar_extremos()
+  #segman.toImage().show()
+  centros = []
+  centrales = []
+  dimensiones = []
+  for i in segman.get_segmentos():
+    area = medidas.AreaSegmento(i).get_valor()
+    val = medidas.MomentosInvariantes(i, area).get_valor()
+    d = medidas.DimensionFractal(i).get_valor()
+    centros.append(val["centro"])
+    img_segmentada.putpixel(val["centro"],BLUE)
+    centrales.append(val["centrales"])
+    dimensiones.append(d)
+    print (dimensiones)
+    print (centros)
+  img_segmentada.show()
+
 
 
 def main():

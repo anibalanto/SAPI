@@ -3,7 +3,7 @@
 
 from __future__ import division
 from imagen import ImagenArchivo
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import colorsys
 import sys
