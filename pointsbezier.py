@@ -661,7 +661,7 @@ class SelectorWidget(QtGui.QGraphicsView):
 
         if factor < 0.0001 or factor > 100:
             return
-
+        print (factor)
         self.scale(scaleFactor, scaleFactor)
         for item in self.items():
             #print "setScale: ", 1.0/factor, factor

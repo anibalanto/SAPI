@@ -228,10 +228,12 @@ def probar_dimension_fractal(img_original):
     val = medidas.MomentosInvariantes(i, area).get_valor()
     d = medidas.DimensionFractal(i).get_valor()
     centros.append(val["centro"])
+    img_segmentada.putpixel(val["centro"],BLUE)
     centrales.append(val["centrales"])
     dimensiones.append(d)
     print (dimensiones)
     print (centros)
+  img_segmentada.show()
 
 
 

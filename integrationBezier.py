@@ -15,6 +15,7 @@ class ImageViewer(object):
     def setupUi(self, MainWindow, filename):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1024, 768)
+
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.scrollArea = QtGui.QScrollArea(self.centralwidget)
@@ -32,7 +33,7 @@ class ImageViewer(object):
 
 
         self.selectorWidget = SelectorWidget(self.scrollAreaWidgetContents, filename)
-        #self.selectorWidget.setGeometry(QtCore.QRect(0, 0, 800, 600))
+        self.selectorWidget.setGeometry(QtCore.QRect(0, 0, 800, 600))
         self.selectorWidget.setObjectName("selectorWidget")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         MainWindow.setCentralWidget(self.centralwidget)
