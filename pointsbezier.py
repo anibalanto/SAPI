@@ -211,16 +211,21 @@ class ShapeDest(Shape):
 
         self.definePathShape()
 
-        #painter.setBrush(QtGui.QLinearGradient())
         painter.setBrush(QtGui.QColor(0, 0, 0))
-        #painter.setPen(QtGui.QPen(QtCore.Qt.black, 3 * self.scale))
+        painter.drawRect(self.boundingRect())
+
+        painter.setBrush(QtGui.QColor(255, 255, 255))
         painter.drawPath(self.path)
 
+
+
     def getImage(self):
-        #rect = self.boundingRect()
-        #self.scene().setSceneRect(0, 0, rect.width(), rect.height())
-        qimage = QtGui.QImage()
+        brect = self.boundingRect()
+        qimage = QtGui.QImage(brect.width(), brect.height(), QtGui.QImage.Format_Mono)
         qpainter = QtGui.QPainter(qimage)
+        qpainter.setBackground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        qpainter.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.scene().setSceneRect(brect)
         self.scene().render(qpainter)
         qpainter.end()
         return qimage
@@ -572,14 +577,13 @@ class Node(Point):
         painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawEllipse(-10 * self.scale, -10 * self.scale, 20 * self.scale, 20 * self.scale)
 
-
+"""
 class WidgetDest(QtGui.QGraphicsView):
 
     def __init__(self, shape):
         QtGui.QGraphicsView.__init__(self)
 
         self.shape = shape
-        rect = self.shape.boundingRect()
 
         scene = QtGui.QGraphicsScene(self)
         scene.setSceneRect(0, 0, 0, 0)
@@ -593,10 +597,13 @@ class WidgetDest(QtGui.QGraphicsView):
 
         scene.addItem(shape)
 
+        #shape.getImage().save("pruebaqimage.png")
+
+
     def shape(self):
         return self.shape
 
-
+"""
 class SelectorWidget(QtGui.QGraphicsView):
 
     clicked = QtCore.Signal(int,int)
@@ -749,11 +756,17 @@ class SelectorWidget(QtGui.QGraphicsView):
 
     def createItems(self):
 
-        shapeDest = ShapeDest(self.createNodesBase(), "shBase")
-        self.widgetDest = WidgetDest(shapeDest)
-        self.shape = Shape(self.createNodesBase(), "shEdit", shapeDest)
+        self.shapeDest = ShapeDest(self.createNodesBase(), "shBase")
+        #self.widgetDest = WidgetDest(self.shapeDest)
 
-        self.widgetDest.show()
+        self.sceneDest = QtGui.QGraphicsScene()
+        self.sceneDest.setSceneRect(0, 0, 0, 0)
+        self.sceneDest.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        self.sceneDest.addItem(self.shapeDest)
+
+        self.shape = Shape(self.createNodesBase(), "shEdit", self.shapeDest)
+
+        #self.widgetDest.show()
 
         self.scene().addItem(self.shape)
 

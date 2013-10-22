@@ -128,6 +128,9 @@ def probar_perimetro(img):
 def diferencia(img, imgResta):
     return transformador.Transformador.aplicar([colors.AlgoritmoResta(img)], imgResta, True)
 
+def borrar(img, imgResta):
+    return transformador.Transformador.aplicar([colors.AlgoritmoBorrar(img)], imgResta, True)
+
 def segmentar(img_original, mostrar_pasos):
   """
   img_original: Imagen. Imagen rgb a segmentar.
@@ -203,7 +206,6 @@ def probar_momentos(img_original):
     dr = ImageDraw.Draw(img_segmentada.get_img())
     #dr.line([p[0],p[1],maxx,y], fill=BLUE)
     dr.line([p[0],p[1],p[0] + int(dx), p[1] - int(dy)], fill=BLUE)
-
 
   img_segmentada.show()
 

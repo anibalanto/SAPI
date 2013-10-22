@@ -259,5 +259,22 @@ class AlgoritmoResta(Algoritmo):
     else:
       return pix_otra
 
+class AlgoritmoBorrar(Algoritmo):
+  """
+  En cada pixel de color negro en la imagen original
+  es eliminado de la imagen.
+  """
+  def __init__(self, original):
+    self.original = original
+
+  def aplicar_en_pixel(self, x, y, img):
+
+    """img es monocromatica"""
+    if (img.getpixel((x, y)) == 0 ):
+      return BLACK
+    else:
+      return self.original.getpixel((x, y))
+
+
 if __name__ == "__main__":
   pass

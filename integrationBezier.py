@@ -130,7 +130,14 @@ class ImageViewer(object):
         cv_dest = wi.warpImage(self.cv_img, points, pointsDest, width, height)
 
         qimage = adaptrImg.OpenCVImageToQImage(cv_dest)
-        algorit.probar_dimension_fractal(adaptrImg.QImageToImagePIL(qimage))
+        qimageDest = self.selectorWidget.shapeDest.getImage()
+
+        imagen = adaptrImg.QImageToImagePIL(qimage)
+        imagenResta = adaptrImg.QImageToImagePIL(qimageDest)
+
+        imagenDiferencia = algorit.borrar(imagen, imagenResta)
+
+        algorit.probar_dimension_fractal(imagenDiferencia)
 
         #qimageShapeDest = self.selectorWidget.imageShapeDest()
         #adaptrImg.QImageToImagePIL(qimageShapeDest).show()
