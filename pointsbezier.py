@@ -221,7 +221,7 @@ class ShapeDest(Shape):
 
     def getImage(self):
         brect = self.boundingRect()
-        qimage = QtGui.QImage(brect.width(), brect.height(), QtGui.QImage.Format_Mono)
+        qimage = QtGui.QImage(brect.width(), brect.height(), QtGui.QImage.Format_RGB888)
         qpainter = QtGui.QPainter(qimage)
         qpainter.setBackground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
         qpainter.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))

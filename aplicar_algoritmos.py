@@ -214,7 +214,6 @@ def probar_momentos(img_original):
   for h, k, i, j in sorted(momentos, key=lambda x: x[3]):
     print "centrales \n{}\n momentos \n{}\n normalizados \n{}\n{}\n".format(h,k,i,j)
   """
-
 def probar_dimension_fractal(img_original):
   img_segmentada = segmentar(img_original, False)
   img_segmentada.show()
@@ -237,6 +236,37 @@ def probar_dimension_fractal(img_original):
     print (dimensiones)
     print (centros)
   img_segmentada.show()
+
+def probar_superficie_ocupada(img_original, img_sup_total):
+  img_perimetros_sup_total = runcode.get_img_perimetros(img_sup_total)
+  segman_sup_total = runcode.run_codes(img_sup_total, img_perimetros_sup_total)
+  area_sup_total = medidas.AreaSegmento(segman_sup_total.get_segmentos()[0]).get_valor()
+  print (area_sup_total)
+
+  img_segmentada = segmentar(img_original, False)
+  img_segmentada.show()
+  img_perimetros = runcode.get_img_perimetros(img_segmentada)
+  img_perimetros.show()
+  segman = runcode.run_codes(img_segmentada, img_perimetros)
+  segman.eliminar_extremos()
+  #segman.toImage().show()
+  area_sum = 0
+  for i in segman.get_segmentos():
+    area = medidas.AreaSegmento(i).get_valor()
+    area_sum = area_sum + area
+    #val = medidas.MomentosInvariantes(i, area).get_valor()
+    #d = medidas.DimensionFractal(i).get_valor()
+    #centros.append(val["centro"])
+    #img_segmentada.putpixel(val["centro"],BLUE)
+    #centrales.append(val["centrales"])
+    #dimensiones.append(d)
+    #print (dimensiones)
+    #print (centros)
+  #img_segmentada.show()
+  print (area_sum)
+  superficie_ocupada = float(area_sum) / float(area_sup_total)
+  print (superficie_ocupada)
+
 
 
 

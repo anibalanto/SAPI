@@ -137,7 +137,7 @@ class ImageViewer(object):
 
         imagenDiferencia = algorit.borrar(imagen, imagenResta)
 
-        algorit.probar_dimension_fractal(imagenDiferencia)
+        algorit.probar_superficie_ocupada(imagenDiferencia, imagenResta)
 
         #qimageShapeDest = self.selectorWidget.imageShapeDest()
         #adaptrImg.QImageToImagePIL(qimageShapeDest).show()

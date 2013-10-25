@@ -270,7 +270,7 @@ class AlgoritmoBorrar(Algoritmo):
   def aplicar_en_pixel(self, x, y, img):
 
     """img es monocromatica"""
-    if (img.getpixel((x, y)) == 0 ):
+    if (img.getpixel((x, y)) == BLACK ):
       return BLACK
     else:
       return self.original.getpixel((x, y))
