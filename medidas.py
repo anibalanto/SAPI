@@ -324,7 +324,6 @@ class MomentosInvariantes(MedidaSegmento):
     divisor = (up20 - up02)
 
     if divisor == 0.0:
-      print "El divisor es 0!"
       if up11 == 0.0:
         return 0.0
       elif up11 > 0.0:
