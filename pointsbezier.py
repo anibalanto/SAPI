@@ -611,7 +611,7 @@ class SelectorWidget(QtGui.QGraphicsView):
         QtGui.QGraphicsView.__init__(self, scroll)
 
         scene = QtGui.QGraphicsScene(self)
-        scene.setSceneRect(0, 0, 1000, 1000)
+        scene.setSceneRect(0, 0, 1024, 768)
         scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         #self.setSceneRect(0, 0, 0, 0)
 

@@ -139,8 +139,7 @@ class ImageViewer(object):
 
         algorit.probar_superficie_ocupada(imagenDiferencia, imagenResta)
 
-        #qimageShapeDest = self.selectorWidget.imageShapeDest()
-        #adaptrImg.QImageToImagePIL(qimageShapeDest).show()
+        #qimage = adaptrImg.ImagePILToQImage(imagenDiferencia)
 
         if hasattr(self, 'transWidget'):
             self.transObjet.setImage(qimage, self.img_filename)
