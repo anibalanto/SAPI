@@ -241,34 +241,42 @@ def probar_superficie_ocupada(img_original, img_sup_total):
   img_perimetros_sup_total = runcode.get_img_perimetros(img_sup_total)
   segman_sup_total = runcode.run_codes(img_sup_total, img_perimetros_sup_total)
   area_sup_total = medidas.AreaSegmento(segman_sup_total.get_segmentos()[0]).get_valor()
-  print (area_sup_total)
 
   img_segmentada = segmentar(img_original, False)
-  img_segmentada.show()
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
-  img_perimetros.show()
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   segman.eliminar_extremos()
-  #segman.toImage().show()
   area_sum = 0
   for i in segman.get_segmentos():
     area = medidas.AreaSegmento(i).get_valor()
     area_sum = area_sum + area
-    #val = medidas.MomentosInvariantes(i, area).get_valor()
-    #d = medidas.DimensionFractal(i).get_valor()
-    #centros.append(val["centro"])
-    #img_segmentada.putpixel(val["centro"],BLUE)
-    #centrales.append(val["centrales"])
-    #dimensiones.append(d)
-    #print (dimensiones)
-    #print (centros)
-  #img_segmentada.show()
-  print (area_sum)
   superficie_ocupada = float(area_sum) / float(area_sup_total)
-  print (superficie_ocupada)
+
+def mostrar_segmentada(img, centros):
+  i = img.get_img()
+  ancho, alto = img.size
+
+  dr = ImageDraw.Draw(i)
+  dr.line([(int(ancho/3),0), (int(ancho/3),alto)], fill=BLUE)
+  dr.line([(int(2 * ancho/3),0), (int( 2 * ancho/3),alto)], fill=BLUE)
+
+  dr.line([(0, int(alto/3)), (ancho, int(alto/3))], fill=BLUE)
+  dr.line([(0, int(2*alto/3)), (ancho, int(2*alto/3))], fill=BLUE)
+
+  for centro in centros:
+    i.putpixel((int(centro[0]), int(centro[1])), BLUE)
+
+  i.show()
 
 
-
+def probar_areas_regiones(img_original):
+  img_segmentada = segmentar(img_original, False)
+  img_perimetros = runcode.get_img_perimetros(img_segmentada)
+  segman = runcode.run_codes(img_segmentada, img_perimetros)
+  regiones, centros = medidas.MedidaAreasPorRegiones(segman, img_original).get_valor()
+  mostrar_segmentada(img_segmentada, centros)
+  print "Las regiones son:"
+  print regiones
 
 def main():
   if len(sys.argv) <= 1:
@@ -278,7 +286,8 @@ def main():
     original = cargar(sys.argv[1])
     #probar_perimetro(original)
     #generar_csv(original, sys.argv[1], True, True, False)
-    probar_momentos(original)
+    #probar_momentos(original)
+    probar_areas_regiones(original)
     #segmentada = segmentar(original, True)
     #ver_segmentos(segmentada, runcode.get_img_perimetros(segmentada))
 
