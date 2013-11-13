@@ -247,9 +247,37 @@ def probar_superficie_ocupada(img_original, img_sup_total):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   segman.eliminar_extremos()
   area_sum = 0
+  total_manchas = 0
   for i in segman.get_segmentos():
     area = medidas.AreaSegmento(i).get_valor()
     area_sum = area_sum + area
+    total_manchas = total_manchas + 1
+    #val = medidas.MomentosInvariantes(i, area).get_valor()
+    #d = medidas.DimensionFractal(i).get_valor()
+    #centros.append(val["centro"])
+    #img_segmentada.putpixel(val["centro"],BLUE)
+    #centrales.append(val["centrales"])
+    #dimensiones.append(d)
+    #print (dimensiones)
+    #print (centros)
+  #img_segmentada.show()
+  print (total_manchas)
+  print (area_sum)
+  factor_sup_ocup = float(area_sum) / float(area_sup_total)
+  print (factor_sup_ocup)
+  print (factor_sup_ocup * 2/3)
+  area_cota = area_sup_total * factor_sup_ocup * 2/3
+  print (area_cota)
+  area_aux = 0
+  cant_manchas = 0
+  for i in segman.get_segmentos():
+    area = medidas.AreaSegmento(i).get_valor()
+    area_aux = area_aux + area
+    cant_manchas = cant_manchas + 1
+    if area_aux > area_cota:
+        print (cant_manchas)
+        print (area_aux)
+        return
   superficie_ocupada = float(area_sum) / float(area_sup_total)
 
 def mostrar_segmentada(img):

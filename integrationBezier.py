@@ -73,6 +73,7 @@ class ImageViewer(object):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
 
     def loadImage(self, filename):
+        self.filename = filename
         img_cv = cv.imread(filename)
         if not(img_cv.size):
             QtGui.QMessageBox.information(self, "Image Viewer", "Cannot load %s." % filename)
@@ -137,10 +138,10 @@ class ImageViewer(object):
 
         imagenDiferencia = algorit.borrar(imagen, imagenResta)
 
-        algorit.probar_superficie_ocupada(imagenDiferencia, imagenResta)
+        #algorit.probar_superficie_ocupada(imagenDiferencia, imagenResta)
 
-        #qimageShapeDest = self.selectorWidget.imageShapeDest()
-        #adaptrImg.QImageToImagePIL(qimageShapeDest).show()
+        imagenDiferencia.save(self.filename+"transofrmada.jpg")
+        imagenDiferencia.show()
 
         if hasattr(self, 'transWidget'):
             self.transObjet.setImage(qimage, self.img_filename)
