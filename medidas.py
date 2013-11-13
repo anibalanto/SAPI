@@ -415,19 +415,18 @@ class MedidaAreasPorRegiones(object):
     self.centros = []
     ancho, alto = img_trans.size
     for segmento in segman.get_segmentos():
-      #for pixel in segmento.get_elementos_enteros():
-      #  sumar_a_region(pixel)
-      area = AreaSegmento(segmento).get_valor()
-      cx,cy = MomentosInvariantes(segmento, area).get_valor()["centro_float"]
-      self.centros.append((cx, cy))
-      off_x = cx / ancho
-      off_y = cy / alto
-      self.sumar_a_region(off_x, off_y, area)
+      for pixel in segmento.get_elementos_enteros():
+        self.sumar_a_region(pixel, ancho, alto)
 
-  def sumar_a_region(self, offx, offy, area):
-    idx_x = int(offx * 3)
-    idx_y = int(offy * 3)
-    self.regiones[3 * idx_x + idx_y] += area
+    superficie = (ancho*alto) / 9
+    self.porcentajes = []
+    for i in self.regiones:
+      self.porcentajes.append(i/superficie)
+
+  def sumar_a_region(self, pixel, ancho, alto):
+    off_x = int(3 * pixel[0] / ancho)
+    off_y = int(3 * pixel[1] / alto)
+    self.regiones[3 * off_y + off_x] += 1
 
   def get_valor(self):
-    return self.regiones, self.centros
+    return self.porcentajes

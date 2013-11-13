@@ -252,7 +252,7 @@ def probar_superficie_ocupada(img_original, img_sup_total):
     area_sum = area_sum + area
   superficie_ocupada = float(area_sum) / float(area_sup_total)
 
-def mostrar_segmentada(img, centros):
+def mostrar_segmentada(img):
   i = img.get_img()
   ancho, alto = img.size
 
@@ -263,9 +263,6 @@ def mostrar_segmentada(img, centros):
   dr.line([(0, int(alto/3)), (ancho, int(alto/3))], fill=BLUE)
   dr.line([(0, int(2*alto/3)), (ancho, int(2*alto/3))], fill=BLUE)
 
-  for centro in centros:
-    i.putpixel((int(centro[0]), int(centro[1])), BLUE)
-
   i.show()
 
 
@@ -273,8 +270,8 @@ def probar_areas_regiones(img_original):
   img_segmentada = segmentar(img_original, False)
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
   segman = runcode.run_codes(img_segmentada, img_perimetros)
-  regiones, centros = medidas.MedidaAreasPorRegiones(segman, img_original).get_valor()
-  mostrar_segmentada(img_segmentada, centros)
+  regiones = medidas.MedidaAreasPorRegiones(segman, img_original).get_valor()
+  mostrar_segmentada(img_segmentada)
   print "Las regiones son:"
   print regiones
 
