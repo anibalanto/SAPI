@@ -34,6 +34,42 @@ FACTOR_BEZIER = 1.0 / 3
 
 POINTS_DEST = [(0, 0), (WIDHT_DEST, 0), (WIDHT_DEST, HEIGHT_DEST), (0, HEIGHT_DEST)]
 
+class Points(object):
+
+    def __init__(self):
+        super(Points, self).__init__()
+        self.numberPoints = 0
+        self.points = []
+
+    def addPoint(self, scene, point):
+        if (self.numberPoints < 4):
+            self.points.append(point)
+            self.numberPoints = self.numberPoints + 1
+            scene.addItem(point)
+        else:
+            del point
+
+    def removePoint(self, scene):
+        if (self.numberPoints > 0):
+            point = self.points[self.numberPoints]
+            scene.removeItem(point)
+            del point
+            self.numberPoints = self.numberPoints - 1
+
+    def getNumberPoints(self):
+        return self.numberPoints
+
+    def getPoints(self):
+        return self.points
+    """
+    def paint(self, painter, option, widget):
+        self.definePathShape()
+        painter.setPen(QtGui.QPen(QtCore.Qt.blue, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
+        for i in range(0, self.numberPoints):
+            painter.draw
+
+    """
+
 class Shape(QtGui.QGraphicsItem):
 
     Pi = math.pi
@@ -241,6 +277,59 @@ class BoundPolygon(QtGui.QPolygonF):
 
     def close(self):
         self.append(self.toList()[0])
+
+class PointSimple(QtGui.QGraphicsItem):
+    Type = QtGui.QGraphicsItem.UserType + 8
+
+    def __init__(self, graphWidget, pos, scale):
+        QtGui.QGraphicsItem.__init__(self)
+        self.scale = 1.0
+
+        self.color = C1
+        self.graph = weakref.ref(graphWidget)
+
+        self.scale = scale
+        self.newPos = pos
+        self.setPos(pos)
+        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtGui.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setCacheMode(self.DeviceCoordinateCache)
+        self.setZValue(-1)
+        self.pen = QtGui.QPen(self.color, 2 * self.scale, QtCore.Qt.SolidLine)
+        self.setZValue(10)
+
+    def type(self):
+        return Node.Type
+
+    def setScale(self, scale):
+        self.scale = scale
+
+    def advance(self):
+        if self.newPos == self.pos():
+            return False
+
+        self.setPos(self.newPos)
+        return True
+
+    def boundingRect(self):
+        adjust = 2.0
+        return QtCore.QRectF(self.scale * (-10 - adjust), self.scale * (-10 - adjust),
+                             self.scale * (23 + adjust), self.scale * (23 + adjust))
+
+    def mousePressEvent(self, event):
+        self.update()
+        QtGui.QGraphicsItem.mousePressEvent(self, event)
+
+    def mouseReleaseEvent(self, event):
+        self.update()
+        QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
+
+    def paint(self, painter, option, widget):
+        painter.setPen(self.pen)
+        inic = -5 * self.scale
+        end = 10 * self.scale
+        painter.drawEllipse(inic, inic, end, end)
+
 
 class Point(QtGui.QGraphicsItem):
     Type = QtGui.QGraphicsItem.UserType + 4
@@ -604,14 +693,37 @@ class WidgetDest(QtGui.QGraphicsView):
         return self.shape
 
 """
+
+class MyScene(QtGui.QGraphicsScene):
+
+    clicked = QtCore.Signal(int,int)
+    def __init__(self, qGraphicsView):
+        super(MyScene, self).__init__(qGraphicsView)
+
+        self.grap = qGraphicsView
+
+
+    def mousePressEvent(self, event):
+      self.clicked.emit(event.scenePos().x(),event.scenePos().y())
+
+    def clickSelector(self, x, y):
+        point = PointSimple(self.grap, QtCore.QPointF(x, y), 1.0 / self.grap.factor)
+        self.grap.points.addPoint(self,point)
+        if (self.grap.points.getNumberPoints() == 4):
+            self.grap.createItems()
+            self.clicked.disconnect(self.clickSelector)
+            self.grap.clicked.connect(self.grap.clickSelector)
+
 class SelectorWidget(QtGui.QGraphicsView):
 
     clicked = QtCore.Signal(int,int)
-    def __init__(self, scroll, filename):
+
+    scaleFactor = 1.0
+    def __init__(self, scroll):
         QtGui.QGraphicsView.__init__(self, scroll)
 
-        scene = QtGui.QGraphicsScene(self)
-        scene.setSceneRect(0, 0, 1024, 768)
+        scene = MyScene(self)
+        #scene.setSceneRect(0, 0, 800, 800)
         scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         #self.setSceneRect(0, 0, 0, 0)
 
@@ -629,12 +741,14 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.scrollArea.setWidget(self.imageLabel)
         self.setCentralWidget(self.scrollArea)
         """
-        self.scale(0.8, 0.8)
+        self.scale(self.scaleFactor, self.scaleFactor)
         self.setMinimumSize(400, 400)
         self.setWindowTitle(self.tr("Elastic Nodes"))
 
 
-        self.createItems()
+        self.points = Points()
+
+        #self.createItems()
         """
         self.createActions()
         self.createMenus()
@@ -642,23 +756,27 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.updateActions()
         """
 
-    """
-    def mousePressEvent(self, event):
-      self.clicked.emit(event.x(),event.y())
-    """
-
     def clickSelector(self, x, y):
         #node = self.shape.addNode(QtCore.QPointF(x, y))
         #self.scene().addItem(node)
         print (x, y)
 
-    def addImage(self, image):
 
+
+    def addImage(self, image):
+        #self.scene().clear()
         imageItem = self.scene().addPixmap(QtGui.QPixmap.fromImage(image))
+        print(imageItem.boundingRect())
+        self.scene().setSceneRect(imageItem.boundingRect())
         imageItem.setZValue(-1)
+        self.factor = 700.0/float(max(image.width(),image.height()))
+        self.zoomFactor(self.factor)
+
+        #self.fitInView(imageItem, QtCore.Qt.KeepAspectRatio)
 
     def keyPressEvent(self, event):
         key = event.key()
+        print key
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
@@ -714,19 +832,23 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.updateActions()
         if not self.fitToWindowAct.isChecked():
             self.imageLabel.adjustSize()
-
-    def zoomIn(self):
-        self.scaleImage(1.25)
-
-    def zoomOut(self):
-        self.scaleImage(0.8)
-
-    def normalSize(self):
-        self.scaleFactor = 1.0
-        self.scaleImage(self.size().width()/self.img.size().width())
     """
 
-    def createNodesBase(self):
+    def zoomIn(self):
+        self.scaleFactor = 1.25
+        self.scale(self.scaleFactor,self.scaleFactor)
+
+    def zoomOut(self):
+        self.scaleFactor = 0.75
+        self.scale(self.scaleFactor,self.scaleFactor)
+
+    def zoomFactor(self, factor):
+        self.scale(factor,factor)
+
+    def getScaleFactor(self):
+        return self.factor
+
+    def createNodesBase(self, points = None):
 
         node1 = Node(self, "n1")
         node2 = Node(self, "n2")
@@ -734,11 +856,17 @@ class SelectorWidget(QtGui.QGraphicsView):
         node4 = Node(self, "n4")
         #nodeC = Node(self, "nc")
 
-        node1.setPos(200, 200)
-        node2.setPos(400, 200)
-        node3.setPos(400, 400)
-        node4.setPos(200, 400)
-        #nodeC.setPos(300, 300)
+        if (points != None):
+            node1.setPos(points[0].pos().x(), points[0].pos().y())
+            node2.setPos(points[1].pos().x(), points[1].pos().y())
+            node3.setPos(points[2].pos().x(), points[2].pos().y())
+            node4.setPos(points[3].pos().x(), points[3].pos().y())
+        else:
+            node1.setPos(200, 200)
+            node2.setPos(400, 200)
+            node3.setPos(400, 400)
+            node4.setPos(200, 400)
+
 
         bezier12, bezier21 = node1.vincule(node2,ANGLES[0][1],ANGLES[1][0],self)
         bezier23, bezier32 = node2.vincule(node3,ANGLES[1][2],ANGLES[2][1],self)
@@ -756,6 +884,8 @@ class SelectorWidget(QtGui.QGraphicsView):
 
     def createItems(self):
 
+        points = self.points.getPoints()
+
         self.shapeDest = ShapeDest(self.createNodesBase(), "shBase")
         #self.widgetDest = WidgetDest(self.shapeDest)
 
@@ -764,7 +894,7 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.sceneDest.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
         self.sceneDest.addItem(self.shapeDest)
 
-        self.shape = Shape(self.createNodesBase(), "shEdit", self.shapeDest)
+        self.shape = Shape(self.createNodesBase(points), "shEdit", self.shapeDest)
 
         #self.widgetDest.show()
 
