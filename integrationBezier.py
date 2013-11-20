@@ -50,6 +50,7 @@ class ImageViewer(object):
 
         self.selectorWidget.scene().clicked.connect(self.selectorWidget.scene().clickSelector)
 
+
         self.loadImage(filename)
         self.createActions(MainWindow)
         self.createMenus(MainWindow)

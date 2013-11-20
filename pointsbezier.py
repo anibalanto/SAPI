@@ -708,15 +708,15 @@ class MyScene(QtGui.QGraphicsScene):
 
     def clickSelector(self, x, y):
         point = PointSimple(self.grap, QtCore.QPointF(x, y), 1.0 / self.grap.factor)
-        print (x,y)
         self.grap.points.addPoint(self,point)
         if (self.grap.points.getNumberPoints() == 4):
             self.grap.createItems()
             self.clicked.disconnect(self.clickSelector)
+            self.grap.clicked.connect(self.grap.clickSelector)
 
 class SelectorWidget(QtGui.QGraphicsView):
 
-    #clicked = QtCore.Signal(int,int)
+    clicked = QtCore.Signal(int,int)
 
     scaleFactor = 1.0
     def __init__(self, scroll):
@@ -756,7 +756,10 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.updateActions()
         """
 
-
+    def clickSelector(self, x, y):
+        #node = self.shape.addNode(QtCore.QPointF(x, y))
+        #self.scene().addItem(node)
+        print (x, y)
 
 
 
