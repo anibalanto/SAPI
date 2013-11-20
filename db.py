@@ -42,6 +42,16 @@ class Individuo(Base):
   def __repr__(self):
     return "<Individuo('%s')>" % (self.nombre)
 
+def calc_distancia(vector_captura, vector_origen):
+  pass
+
+def get_top5(session, vector_origen):
+  mejores = []
+  for cap in session.query(Captura).all():
+    mejores.append((calc_distancia(cap.area_por_region, vector_origen), cap))
+  mejores.sort(key=lambda a: a[0])
+  return mejores[:5]
+
 def probar(session):
   image = QtGui.QImage("../misimagenes/ramoncito/ramon.1.trans.bmp")
 
