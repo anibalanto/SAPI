@@ -21,6 +21,8 @@ class Captura(Base):
   individuo_id = Column(Integer, ForeignKey('individuo.id'))
   imagen = deferred(Column(LargeBinary))
   area_por_region = Column(PickleType)#lista con la cantidad de area por region
+  #ubicacion
+  #hora de captura
 
   def __init__(self, imagen, area_por_region):
     self.imagen = imagen

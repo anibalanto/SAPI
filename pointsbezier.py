@@ -388,6 +388,7 @@ class Point(QtGui.QGraphicsItem):
         return path
 
     def mousePressEvent(self, event):
+        print "hola press event!"
         self.update()
         QtGui.QGraphicsItem.mousePressEvent(self, event)
 
@@ -441,7 +442,7 @@ class Bezier(Point):
         return super(Bezier, self).itemChange(change, value)
 
     def mousePressEvent(self, event):
-        #print "Bezier.mousePressEvent"
+        print "Bezier.mousePressEvent"
         self.update()
         QtGui.QGraphicsItem.mousePressEvent(self, event)
 
@@ -705,6 +706,7 @@ class MyScene(QtGui.QGraphicsScene):
 
     def mousePressEvent(self, event):
       self.clicked.emit(event.scenePos().x(),event.scenePos().y())
+      super(MyScene, self).mousePressEvent(event)
 
     def clickSelector(self, x, y):
         point = PointSimple(self.grap, QtCore.QPointF(x, y), 1.0 / self.grap.factor)
