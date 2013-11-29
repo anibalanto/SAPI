@@ -149,6 +149,9 @@ class ImagenPIL(BaseImagen):
     self.size = size
     self.pix = self.img.load()
 
+  def tostring(self, arg1, arg2):
+      return self.img.convert("RGBA").tostring(arg1, arg2)
+
 def ImagenArchivo(filename):
   #ret = ImagenQImage()#_cls()
   ret = ImagenPIL()
