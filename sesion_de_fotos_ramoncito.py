@@ -32,7 +32,7 @@ def mostrar_segmentos(segmentos, size):
       imagen_segmentos.putpixel(xy, colores_list[i])
   imagen_segmentos.show()
 
-def mostrar_valores(img_segmentada, img_perimetros, segman):
+def mostrar_valores(img_segmentada, img_perimetros, segman, img_original):
   """
   Mostramos las medidas de los segmentos.
   """
@@ -49,13 +49,17 @@ def mostrar_valores(img_segmentada, img_perimetros, segman):
   mostrar_segmentos(cinco_mas_grandes, img_segmentada.size)
 
   #Mostramos los datos
+  #print "La superficie ocupada de manchas es: %s" % probar_superficie_ocupada(img_original, )
   print "areas \t centro de masa \t d. fractal"
   for i in cinco_mas_grandes:
     area =  medidas.AreaSegmento(i).get_valor()
     momentos_dicc = medidas.MomentosInvariantes(i, area).get_valor()
     dfractal = medidas.DimensionFractal(i).get_valor()
-    #invariantes =
-    print "{0} \t {1} \t {2} \t {3}".format(area, momentos_dicc["centro_float"], dfractal, 0)#momentos_dicc["invariantes"])
+    #invariantes = [round(x, 2) for x in momentos_dicc["invariantes"]]
+    vectores = medidas.GenMedidasSegmento().get_valor(img_original, i, medidas.cualquier_color)
+    hsv = (vectores["h"], vectores["s"], vectores["v"])
+    media_hsv = medidas.MediaHSV(hsv).get_valor()
+    print "{0} \t {1} \t {2} \t {3}".format(area, momentos_dicc["centro_float"], dfractal, media_hsv)
   print ""
 
 def generar_valores(lista_imagenes):
@@ -64,7 +68,7 @@ def generar_valores(lista_imagenes):
   """
   for img in lista_imagenes:
     img_segmentada = segmentar(img)
-    mostrar_valores(*img_segmentada)
+    mostrar_valores(*img_segmentada, img_original=img)
 
 def crear_imagen(fname):
   return imagen.ImagenArchivo(fname)
