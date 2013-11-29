@@ -96,8 +96,8 @@ class ManagerBase(object):
     mejores.sort(key=lambda a: a[0])
     ret = {}
     for i in mejores:
-      if not ret.has_key(i.individuo.id):
-        ret[i.individuo.id] = self.bytes_a_imagen(i.imagen_transformada)
+      if not ret.has_key(i[1].individuo.id):
+        ret[i[1].individuo.id] = self.bytes_a_imagen(i[1].imagen_transformada)
     return ret
 
 
