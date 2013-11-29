@@ -94,7 +94,11 @@ class ManagerBase(object):
     for cap in self.session.query(Captura).all():
       mejores.append((self.calc_distancia(cap.area_por_region, vector_origen), cap))
     mejores.sort(key=lambda a: a[0])
-    return [x.individuo for x in mejores[:5]]
+    ret = {}
+    for i in mejores:
+      if not ret.has_key(i.individuo.id):
+        ret[i.individuo.id] = self.bytes_a_imagen(i.imagen_transformada)
+    return ret
 
 
 class Captura(Base):
