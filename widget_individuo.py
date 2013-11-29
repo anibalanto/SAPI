@@ -6,11 +6,12 @@ from PySide import QtGui, QtCore
 
 class WidgetIndividuo(QtGui.QWidget):
 
-  def __init__(self):
-    super(WidgetIndividuo, self).__init__()
+  def __init__(self, parent=None):
+    super(WidgetIndividuo, self).__init__(parent)
     self.iniciar_ui()
 
   def iniciar_ui(self):
+    self.setWindowFlags(QtCore.Qt.Window)
     self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Galeria de imagenes para un individuo")
     self.crear_layout()
@@ -26,13 +27,35 @@ class WidgetIndividuo(QtGui.QWidget):
 
     self.setLayout(horizontal_lay)
 
-class WidgetGaleria(QtGui.QWidget):
+class WidgetBotones(QtGui.QWidget):
+  """
+  Este widget muestra un par de botones tipo adelante/atras
+  """
+  def __init__(self, parent=None):
+    super(WidgetBotones, self).__init__(parent)
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    #Botones
+    self.boton_atras = QtGui.QPushButton('Atras', self)
+    self.boton_adelante = QtGui.QPushButton('Adelante', self)
+    self.boton_adelante.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Minimum)
+    self.boton_atras.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Minimum)
+
+    #Layout
+    horizontal_lay = QtGui.QHBoxLayout()
+    horizontal_lay.addWidget(self.boton_atras)
+    horizontal_lay.addWidget(self.boton_adelante)
+
+    self.setLayout(horizontal_lay)
+
+class WidgetImagen(QtGui.QWidget):
   """
   Este widget muestra una galeria de imagenes para un invididuo dado.
-  La idea es usar un QLabel para mostrar las imagenes y dos botones para avanzar y retroceder.
+  La idea es usar un QLabel para mostrar las imagenes. Los botones van en una subclase.
   """
-  def __init__(self):
-    super(WidgetGaleria, self).__init__()
+  def __init__(self, parent=None):
+    super(WidgetImagen, self).__init__(parent)
     self.iniciar_ui()
     self.iniciar_imagenes()
 
@@ -59,23 +82,12 @@ class WidgetGaleria(QtGui.QWidget):
     self.scroll_area.setWidget(self.image_label)
     self.scroll_area.setWidgetResizable(True)
 
-    #Botones para pasar de imagen
-    boton_atras = QtGui.QPushButton('Atras', self)
-    boton_adelante = QtGui.QPushButton('Adelante', self)
-    boton_atras.clicked.connect(self.adelante)
-    boton_adelante.clicked.connect(self.atras)
-
     #Layout
-    horizontal_lay = QtGui.QHBoxLayout()
-    horizontal_lay.addWidget(boton_atras)
-    horizontal_lay.addWidget(boton_adelante)
-
-    vertical_lay = QtGui.QVBoxLayout()
-    vertical_lay.addWidget(self.scroll_area)
-    vertical_lay.addLayout(horizontal_lay)
+    self.vertical_lay = QtGui.QVBoxLayout()
+    self.vertical_lay.addWidget(self.scroll_area)
 
     #Seteamos el layout para el widget
-    self.setLayout(vertical_lay)
+    self.setLayout(self.vertical_lay)
 
   def set_imagen(self, image):
     self.image_label.setPixmap(QtGui.QPixmap.fromImage(image))
@@ -95,10 +107,28 @@ class WidgetGaleria(QtGui.QWidget):
     self.indice_imagenes = (self.indice_imagenes + 1) % len(self.lista_imagenes)
     self.set_imagen(self.lista_imagenes[self.indice_imagenes])
 
-class WidgetDatos(QtGui.QWidget):
+class WidgetGaleria(WidgetImagen):
+  """
+  Extiende WidgetImagen agregandole 2 botones para avanzar y retroceder la galeria.
+  """
+  def __init__(self, parent=None):
+    super(WidgetGaleria, self).__init__(parent)
+    self._iniciar_ui()
 
-  def __init__(self):
-    super(WidgetDatos, self).__init__()
+  def _iniciar_ui(self):
+    #Botones para pasar de imagen
+    botones = WidgetBotones()
+    botones.boton_atras.clicked.connect(self.adelante)
+    botones.boton_adelante.clicked.connect(self.atras)
+
+    self.vertical_lay.addWidget(botones)
+
+class WidgetDatos(QtGui.QWidget):
+  """
+  La idea de este widget es mostrar un grid con los datos de un individuo, onda key value.
+  """
+  def __init__(self, parent=None):
+    super(WidgetDatos, self).__init__(parent)
     #TODO dicc para probar
     self.labels = [("nombre", "pepe"), ("edad", "28"), ("nacionalidad", "polaco")]
     self.iniciar_ui()
@@ -128,9 +158,39 @@ class WidgetDatos(QtGui.QWidget):
 
     self.setLayout(grid_lay)
 
+
+class WidgetListaIndividuos(QtGui.QWidget):
+  def __init__(self, parent=None):
+    super(WidgetListaIndividuos, self).__init__(parent)
+    self.iniciar_ui(range(3))
+
+  def iniciar_ui(self, individuos):
+    vertical_lay = QtGui.QVBoxLayout()
+    for i in individuos:
+      horizontal_lay = QtGui.QHBoxLayout()
+      horizontal_lay.addWidget(WidgetImagen())
+      boton_mostrar = QtGui.QPushButton("Mostrar individuo")
+      boton_mostrar.clicked.connect(self.launch)
+      boton_mostrar.individuo = i
+      horizontal_lay.addWidget(boton_mostrar)
+      vertical_lay.addLayout(horizontal_lay)
+    self.setLayout(vertical_lay)
+
+
+    #TODO: Quitar esto cuando no sea una ventana
+    self.setGeometry(300, 300, 600, 400)
+    self.setWindowTitle("Galeria de imagenes para un individuo")
+    self.show()
+
+  def launch(self):
+    print self.sender().individuo
+    WidgetIndividuo(self)
+
+
 def main():
   app = QtGui.QApplication(sys.argv)
-  ex = WidgetIndividuo()
+  #ex = WidgetIndividuo()
+  ex = WidgetListaIndividuos()
   sys.exit(app.exec_())
 
 
