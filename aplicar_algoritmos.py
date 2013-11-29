@@ -294,7 +294,8 @@ def mostrar_segmentada(img):
   i.show()
 
 
-def probar_areas_regiones(img_original):
+def calcular_regiones(img_original):
+  #Retornamos la imagen segmentada + el vector de regiones
   img_segmentada = segmentar(img_original, False)
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
   segman = runcode.run_codes(img_segmentada, img_perimetros)
@@ -302,7 +303,7 @@ def probar_areas_regiones(img_original):
   #mostrar_segmentada(img_segmentada)
   print "Las regiones son:"
   print regiones
-  return img_segmentada
+  return img_segmentada, regiones
 
 def main():
   if len(sys.argv) <= 1:

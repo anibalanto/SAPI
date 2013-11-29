@@ -61,7 +61,7 @@ class WidgetImagen(QtGui.QWidget):
 
   def iniciar_imagenes(self):
     self.indice_imagenes = 0
-    #La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
+    #TODO La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
     self.lista_imagenes = [
         QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon_1_trans.png"),
         QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon.2.trans.bmp"),
@@ -175,12 +175,6 @@ class WidgetListaIndividuos(QtGui.QWidget):
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
     self.setLayout(vertical_lay)
-
-
-    #TODO: Quitar esto cuando no sea una ventana
-    self.setGeometry(300, 300, 600, 400)
-    self.setWindowTitle("Galeria de imagenes para un individuo")
-    self.show()
 
   def launch(self):
     print self.sender().individuo

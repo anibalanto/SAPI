@@ -3,6 +3,8 @@
 
 from PySide import QtCore, QtGui
 from transformedWidget import *
+from widget_individuo import WidgetListaIndividuos
+from db import ManagerBase
 
 import aplicar_algoritmos as algorit
 import adaptationImage as adaptrImg
@@ -15,6 +17,7 @@ class WindowSapito(QtGui.QMainWindow):
 
     def __init__(self):
         super(WindowSapito, self).__init__()
+        self.db_man = ManagerBase()
 
         self.initUI()
 
@@ -28,10 +31,10 @@ class WindowSapito(QtGui.QMainWindow):
         resultLayout = QtGui.QVBoxLayout()
 
         imageResultLayout = QtGui.QHBoxLayout()
-        listResultLayout = QtGui.QHBoxLayout()
 
         resultLayout.addLayout(imageResultLayout)
-        resultLayout.addLayout(listResultLayout)
+        self.widget_listado = WidgetListaIndividuos()
+        resultLayout.addWidget(self.widget_listado)
 
         mainLayout.addLayout(selectorLayout)
         mainLayout.addLayout(resultLayout)
@@ -74,12 +77,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.loadImage(filename)
 
     def transform(self):
-
-        #coords = self.selectorWidget.boundingRect().getCoords()
-        #pixmap = QtGui.QPixmap.grabWidget(self.selectorWidget, coords[0],
-            #coords[1], coords[2], coords[3])
-        #pixmap.save("pixmap.png")
-
         points = self.selectorWidget.getPoints()
         pointsDest = self.selectorWidget.getPointsDest()
         width = int(self.selectorWidget.getWidthDest())
@@ -94,14 +91,19 @@ class WindowSapito(QtGui.QMainWindow):
 
         imagenDiferencia = algorit.borrar(imagen, imagenResta)
 
-        imageSeg = algorit.probar_areas_regiones(imagenDiferencia)
-        #imagenDiferencia.save(self.filename+"transofrmada.jpg")
-        #imagenDiferencia.show()
-
+        imageSeg, regiones = algorit.probar_areas_regiones(imagenDiferencia)
         qimageSeg = adaptrImg.ImagePILToQImage(imageSeg)
 
         self.imageResult.setGeometry(QtCore.QRect(0, 0, width, height))
         self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimageSeg))
+
+        completar_similares(regiones)
+
+    def completar_similares(self,regiones):
+        #buscar en la bd a partir del vector generado para la imagen
+        #actualizar el WidgetListaIndividuos con lo que traemos de la bd
+        similares = self.db_man.similares(regiones)
+        self.widget_listado.actualizar(similares)
 
     def createActions(self):
         self.openAct = QtGui.QAction("&Open...", self,
