@@ -23,10 +23,8 @@ def OpenCVImageToQImage(openCVImage):
     qim = QtGui.QImage(dst.data, w, h, dst.strides[0], QtGui.QImage.Format_RGB888)
     return qim.copy()
 
-"""
+
 def ImagePILToQImage(pilImage):
-    data = pilImage.tostring('raw','RGBA') # the tostring() function is out of the loop
-    #while True:
+    data = pilImage.tostring('raw','RGBA')
     qimage = QtGui.QImage(data,pilImage.size[0],pilImage.size[1],QtGui.QImage.Format_ARGB32)
     return qimage
-"""

@@ -602,34 +602,6 @@ class Node(Point):
         #painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawEllipse(-10 * self.graphWidget.getScale(), -10 * self.graphWidget.getScale(), 20 * self.graphWidget.getScale(), 20 * self.graphWidget.getScale())
 
-"""
-class WidgetDest(QtGui.QGraphicsView):
-
-    def __init__(self, shape):
-        QtGui.QGraphicsView.__init__(self)
-
-        self.shape = shape
-
-        scene = QtGui.QGraphicsScene(self)
-        scene.setSceneRect(0, 0, 0, 0)
-        scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-
-        self.setScene(scene)
-        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
-        self.setRenderHint(QtGui.QPainter.Antialiasing)
-        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
-
-        scene.addItem(shape)
-
-        #shape.getImage().save("pruebaqimage.png")
-
-
-    def shape(self):
-        return self.shape
-
-"""
-
 class MyScene(QtGui.QGraphicsScene):
 
     clicked = QtCore.Signal(int,int)
@@ -810,6 +782,9 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.resetFactor()
         self.resetTransform()
         self.scale(self.factor,self.factor)
+
+    def rotateImage(self):
+        self.rotate(90)
 
     def getScale(self):
         return self.invfactor
