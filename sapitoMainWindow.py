@@ -107,8 +107,10 @@ class WindowSapito(QtGui.QMainWindow):
         #self.exitAct = QtGui.QAction("E&xit", self.centralwidget, shortcut="Ctrl+Q",
          #       triggered=self.close)
 
+        self.zoomOutAct = QtGui.QAction("Zoom &Out", self,
+                shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
 
-        self.zoomInAct = QtGui.QAction("Zoom &In (25%)", self,
+        self.zoomInAct = QtGui.QAction("Zoom &In", self,
                 shortcut="Ctrl++", enabled=True, triggered=self.selectorWidget.zoomIn)
 
         self.resetSizeAct = QtGui.QAction("&Reset Size", self,
@@ -139,7 +141,7 @@ class WindowSapito(QtGui.QMainWindow):
         """
         self.viewMenu = QtGui.QMenu("&View", self)
         self.viewMenu.addAction(self.zoomInAct)
-        #self.viewMenu.addAction(self.zoomOutAct)
+        self.viewMenu.addAction(self.zoomOutAct)
         self.viewMenu.addAction(self.resetSizeAct)
         """
         self.viewMenu.addSeparator()

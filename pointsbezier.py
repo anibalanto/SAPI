@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import weakref
 import math
 import warp_image as wi
@@ -250,13 +249,15 @@ class BoundPolygon(QtGui.QPolygonF):
 class PointSimple(QtGui.QGraphicsItem):
     Type = QtGui.QGraphicsItem.UserType + 8
 
-    def __init__(self, graphWidget, pos, scale):
+    def __init__(self, myScene, graphWidget, pos, scale):
         QtGui.QGraphicsItem.__init__(self)
         self.scale = 1.0
 
         self.color = C1
         self.graph = weakref.ref(graphWidget)
         self.graphWidget = graphWidget
+
+        self.myScene = myScene
 
         self.scale = scale
         self.newPos = pos
@@ -285,11 +286,11 @@ class PointSimple(QtGui.QGraphicsItem):
         return QtCore.QRectF(self.scale * (-10 - adjust), self.scale * (-10 - adjust),
                              self.scale * (23 + adjust), self.scale * (23 + adjust))
 
-    def mousePressEvent(self, event):
-        self.update()
-        QtGui.QGraphicsItem.mousePressEvent(self, event)
+    #def mouseReleaseEvent(self, event):
+        #print ("PointSimple.mousePressEvent")
 
-    def mouseReleaseEvent(self, event):
+    def mousePressEvent(self, event):
+        self.myScene.notDoAddPoint()
         self.update()
         QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
 
@@ -638,16 +639,26 @@ class MyScene(QtGui.QGraphicsScene):
 
         self.grap = qGraphicsView
 
+        self.doAddPoint = True
+
         self.clicked.connect(self.clickSelector)
 
-
     def mousePressEvent(self, event):
-      self.clicked.emit(event.scenePos().x(),event.scenePos().y())
-      super(MyScene, self).mousePressEvent(event)
+        super(MyScene, self).mousePressEvent(event)
+        #self.clickSelector(event.scenePos().x(),event.scenePos().y())
+        self.clicked.emit(event.scenePos().x(),event.scenePos().y())
+
+    def notDoAddPoint(self):
+        self.doAddPoint = False
+
+    def getDoAddPoint(self):
+        doAddPoint = self.doAddPoint
+        self.doAddPoint = True
+        return doAddPoint
 
     def clickSelector(self, x, y):
-        if (self.grap.isSetImage()):
-            point = PointSimple(self.grap, QtCore.QPointF(x, y), self.grap.getScale())
+        if (self.grap.isSetImage() and self.getDoAddPoint()):
+            point = PointSimple(self, self.grap, QtCore.QPointF(x, y), self.grap.getScale())
             self.grap.points.addPoint(self,point)
             if (self.grap.points.getNumberPoints() == 4):
                 self.grap.createItems()
@@ -728,9 +739,6 @@ class SelectorWidget(QtGui.QGraphicsView):
     def isSetImage(self):
         return self.factor != None
 
-    def wheelEvent(self, event):
-        self.scaleView(math.pow(2.0, -event.delta() / 240.0))
-
     def scaleView(self, scaleFactor):
         factor = self.matrix().scale(scaleFactor, scaleFactor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
 
@@ -764,7 +772,10 @@ class SelectorWidget(QtGui.QGraphicsView):
         return self.shape.boundingRectDest()
 
     def wheelEvent(self, event):
-        return
+        if (event.delta() < 0):
+            self.zoomOut()
+        else:
+            self.zoomIn()
 
     """
     def loadImage(self, filename):
@@ -789,8 +800,11 @@ class SelectorWidget(QtGui.QGraphicsView):
 
     def zoomIn(self):
         self.setFactor(self.factor * 1.25)
-        self.scale(1.25,1.25)
+        self.scale(1.25, 1.25)
 
+    def zoomOut(self):
+        self.setFactor(self.factor * 0.75)
+        self.scale(0.75, 0.75)
 
     def resetSizeImage(self):
         self.resetFactor()
@@ -871,7 +885,7 @@ class SelectorWidget(QtGui.QGraphicsView):
 
         self.points.removeAllPoints(self.scene())
 
-        self.scene().clicked.connect(self.scene().clickSelector)
+        #self.scene().clicked.connect(self.scene().clickSelector)
         self.clicked.connect(self.clickSelector)
         self.clicked.disconnect(self.clickSelector)
         #print(self.transform())
