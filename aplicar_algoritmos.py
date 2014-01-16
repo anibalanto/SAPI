@@ -129,7 +129,7 @@ def diferencia(img, imgResta):
     return transformador.Transformador.aplicar([colors.AlgoritmoResta(img)], imgResta, True)
 
 def borrar(img, imgResta):
-    return transformador.Transformador.aplicar([colors.AlgoritmoBorrar(img)], imgResta, True)
+    return transformador.Transformador.aplicar([colors.AlgoritmoBorrar(img)], imgResta, False)
 
 def segmentar(img_original, mostrar_pasos):
   """

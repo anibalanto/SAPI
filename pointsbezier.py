@@ -286,9 +286,6 @@ class PointSimple(QtGui.QGraphicsItem):
         return QtCore.QRectF(self.scale * (-10 - adjust), self.scale * (-10 - adjust),
                              self.scale * (23 + adjust), self.scale * (23 + adjust))
 
-    #def mouseReleaseEvent(self, event):
-        #print ("PointSimple.mousePressEvent")
-
     def mousePressEvent(self, event):
         self.myScene.notDoAddPoint()
         self.update()
@@ -473,7 +470,7 @@ class Bezier(Point):
             self.rad = rad
         if self.pos().toTuple() == (0.0,0.0):
             self.setPos(self.posDefault())
-
+        #print "rad:", self.rad
         x_rot = self.vector.x() * math.cos(self.rad) - self.vector.y() * math.sin(self.rad)
         y_rot = self.vector.x() * math.sin(self.rad) + self.vector.y() * math.cos(self.rad)
         #print "Bezier%s.rotate: angle: %f, x: %f, y: %f, x_rot: %f, y_rot: %f"% (self.name, self.rad, self.x(), self.y(), x_rot, y_rot)
@@ -497,12 +494,6 @@ class Bezier(Point):
         #self.scale = 1.0
         #adjust = 2000.0
         #return QtCore.QRectF(self.scale * (-10 - adjust), self.scale * (-10 - adjust), self.scale * (23 + adjust), self.scale * (23 + adjust))
-
-"""
-class Definator(object):
-
-    def define(self, element)
-"""
 
 class AngleDefinator(object):
 
@@ -537,18 +528,11 @@ class Node(Point):
         self.vincules = {}
         self.vinculesName = {}
 
-    """
-    def setShape(self, shape):
-        for bezier in self.vincules.values():
-            bezier.setShape(shape)
-    """
-
     def vincule(self, node, angle, yourAngle, graphWidget):
         if not (node in self.vincules):
             bezier = Bezier(graphWidget, self, node, AngleDefinator(angle))
             self.vincules[node] = bezier
             self.vinculesName[node.name] = node
-            #print "Node.vincule.%s <-----> %s"% (self.name, node.name)
             tup = (bezier,) + node.vincule(self, yourAngle, angle, graphWidget)
             return tup
         return ()
@@ -560,14 +544,12 @@ class Node(Point):
         return self.vincules.values()
 
     def getBezierByVinculeName(self, vinculeName):
-        #print "Node.getBezierByNameVincule.%s: vinculeName: %s in %s"% (self.name, vinculeName, self.vinculesName.keys())
         return self.getBezier(self.vinculesName[vinculeName])
 
     def getBezier(self, node):
         return self.vincules[node]
 
     def proyect(self, mat):
-        #print "Node.proyect.%s"% (self.name)
         super(Node, self).proyect(mat)
         for bezier in self.vincules:
             bezier.poryect(mat)
@@ -590,13 +572,6 @@ class Node(Point):
 
         return super(Node, self).itemChange(change, value)
 
-    """
-    def mouseReleaseEvent(self, event):
-        return super(Node, self).itemChange(change, value)
-        self.update()
-        QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
-    """
-
     def paint(self, painter, option, widget):
         super(Node, self).paint(painter, option, widget)
         #painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
@@ -617,7 +592,6 @@ class MyScene(QtGui.QGraphicsScene):
 
     def mousePressEvent(self, event):
         super(MyScene, self).mousePressEvent(event)
-        #self.clickSelector(event.scenePos().x(),event.scenePos().y())
         self.clicked.emit(event.scenePos().x(),event.scenePos().y())
 
     def notDoAddPoint(self):
@@ -749,27 +723,6 @@ class SelectorWidget(QtGui.QGraphicsView):
         else:
             self.zoomIn()
 
-    """
-    def loadImage(self, filename):
-        img_cv = cv.imread(filename)
-        if not(img_cv.size):
-            QtGui.QMessageBox.information(self, "Image Viewer", "Cannot load %s." % filename)
-            return
-        self.cv_img = img_cv
-        self.img_filename = filename
-        self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(self.openCVtoQImage(self.cv_img)))
-        self.scaleImage(self.size().width()/self.img.size().width())
-        print "en loadImage:", self.imageLabel.size()
-
-    def open(self):
-        filename,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
-                QtCore.QDir.currentPath())
-        self.loadImage(filename)
-        self.updateActions()
-        if not self.fitToWindowAct.isChecked():
-            self.imageLabel.adjustSize()
-    """
-
     def zoomIn(self):
         self.setFactor(self.factor * 1.25)
         self.scale(1.25, 1.25)
@@ -860,7 +813,7 @@ class SelectorWidget(QtGui.QGraphicsView):
 
         self.points.removeAllPoints(self.scene())
 
-        #self.scene().clicked.connect(self.scene().clickSelector)
+        self.scene().clicked.connect(self.scene().clickSelector)
         self.clicked.connect(self.clickSelector)
         self.clicked.disconnect(self.clickSelector)
         #print(self.transform())

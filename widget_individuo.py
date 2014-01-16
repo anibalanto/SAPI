@@ -54,10 +54,10 @@ class WidgetImagen(QtGui.QWidget):
   Este widget muestra una galeria de imagenes para un invididuo dado.
   La idea es usar un QLabel para mostrar las imagenes. Los botones van en una subclase.
   """
-  def __init__(self, parent=None):
+  def __init__(self, image, parent=None):
     super(WidgetImagen, self).__init__(parent)
     self.iniciar_ui()
-    self.iniciar_imagenes()
+    self.set_imagen(image)
 
   def iniciar_imagenes(self):
     self.indice_imagenes = 0
@@ -160,26 +160,91 @@ class WidgetDatos(QtGui.QWidget):
 
 
 class WidgetListaIndividuos(QtGui.QWidget):
-  def __init__(self, parent=None):
+  def __init__(self, similares = {}, parent=None):
     super(WidgetListaIndividuos, self).__init__(parent)
-    self.iniciar_ui(range(3))
+    self.iniciar_ui(similares)
 
-  def iniciar_ui(self, individuos):
+  def iniciar_ui(self, similares, addRadio = True):
     vertical_lay = QtGui.QVBoxLayout()
-    for i in individuos:
+    for key,value in similares.iteritems():
       horizontal_lay = QtGui.QHBoxLayout()
-      horizontal_lay.addWidget(WidgetImagen())
+      print value
+      value.save("hectorcarlone.jpg")
+      if (addRadio):
+        radio = QtGui.QRadioButton()
+        radio.id_individuo = key
+        horizontal_lay.addWidget(radio)
+      horizontal_lay.addWidget(WidgetImagen(value))
       boton_mostrar = QtGui.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
-      boton_mostrar.individuo = i
+      boton_mostrar.id_individuo = key
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
     self.setLayout(vertical_lay)
 
   def launch(self):
-    print self.sender().individuo
+    print self.sender().id_individuo
     WidgetIndividuo(self)
 
+class WidgetBotones(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetBotones, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    horizontal_layout = QtGui.QHBoxLayout()
+    self.botonNuevo = QtGui.QPushButton("Nuevo")
+    self.botonAgrCaptura = QtGui.QPushButton("Agregar Captura")
+    horizontal_layout.addWidget(self.botonNuevo)
+    horizontal_layout.addWidget(self.botonAgrCaptura)
+
+    self.botonNuevo.clicked.connect(self.launch)
+
+    self.setLayout(horizontal_layout)
+
+  def launch(self):
+    WidgetNuevoIndividuo(self)
+
+  def save(self, attr):
+    self.parent.save(attr)
+
+class WidgetNuevoIndividuo(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetNuevoIndividuo, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    self.labeln = QtGui.QLabel("Nombre: ")
+    self.labelz = QtGui.QLabel("Zona: ")
+    self.editn = QtGui.QLineEdit()
+    self.editz = QtGui.QLineEdit()
+
+    qgridLayout = QtGui.QGridLayout()
+
+    qgridLayout.addWidget(self.labeln, 0, 0)
+    qgridLayout.addWidget(self.editn, 0, 1)
+    qgridLayout.addWidget(self.labelz, 1, 0)
+    qgridLayout.addWidget(self.editz, 1, 1)
+
+    self.setLayout(qgridLayout)
+    self.setWindowFlags(QtCore.Qt.Window)
+    self.setGeometry(300, 300, 600, 400)
+    self.setWindowTitle("Formulario para agregar nuevo individuo")
+
+    botonGuardar = QtGui.QPushButton("Guardar")
+
+    botonGuardar.clicked.connect(self.save)
+
+    qgridLayout.addWidget(botonGuardar, 2, 1)
+
+    self.show()
+
+  def save(self):
+    self.parent.save({ "nombre" : self.editn.text(), "zona" : self.editz.text()})
 
 def main():
   app = QtGui.QApplication(sys.argv)

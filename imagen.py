@@ -153,14 +153,14 @@ class ImagenPIL(BaseImagen):
       return self.img.convert("RGBA").tostring(arg1, arg2)
 
 def ImagenArchivo(filename):
-  #ret = ImagenQImage()#_cls()
-  ret = ImagenPIL()
+  ret = ImagenQImage()#_cls()
+  #ret = ImagenPIL()
   ret.fromfile(filename)
   return ret
 
 def ImagenVacia(size):
-  #ret = ImagenQImage()#_cls()
-  ret = ImagenPIL()
+  ret = ImagenQImage()#_cls()
+  #ret = ImagenPIL()
   ret.empty(size)
   return ret
 

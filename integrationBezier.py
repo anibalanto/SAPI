@@ -16,6 +16,28 @@ class ImageViewer(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1024, 800)
 
+        hlayout = QtGui.QHBoxLayout()
+        vlayout1 = QtGui.QVBoxLayout()
+        vlayout2 = QtGui.QVBoxLayout()
+
+        hlayout.addLayout(vlayout1)
+        hlayout.addLayout(vlayout2)
+
+        MainWindow.setLayout(hlayout)
+        MainWindow.addWidget(QtGui.QLabel("hola1"))
+
+        scrollAreaWidgetContents = QtGui.QWidget()
+        scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1022, 798))
+        #scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        selectorWidget = SelectorWidget(scrollAreaWidgetContents)
+        selectorWidget.setGeometry(QtCore.QRect(0, 0, 800, 800))
+
+        vlayout1.addWidget(selectorWidget)
+        vlayout1.addWidget(QtGui.QLabel("hola"))
+
+
+        #MainWindow.setCentralWidget()
+        """
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.scrollArea = QtGui.QScrollArea(self.centralwidget)
@@ -55,20 +77,6 @@ class ImageViewer(object):
         self.createActions(MainWindow)
         self.createMenus(MainWindow)
         """
-        if filename:
-            self.loadImage(filename)
-            self.img_filename = filename
-
-            self.fitToWindowAct.setEnabled(True)
-            #self.fitToWindowAct.setChecked(True)
-            self.updateActions()
-
-            if not self.fitToWindowAct.isChecked():
-                self.imageLabel.adjustSize()
-
-        self.fitToWindowAct.setEnabled(True)
-        """
-        #self.updateActions()
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
@@ -83,9 +91,8 @@ class ImageViewer(object):
         self.img = QtGui.QImage(filename)
         self.img_filename = filename
         qim = adaptrImg.OpenCVImageToQImage(self.cv_img)
+        self.reset()
         self.selectorWidget.addImage(qim)
-        #self.scaleImage(self.size().width()/self.img.size().width())
-        #print "en loadImage:", self.imageLabel.size()
 
     def open(self):
         filename,_ = QtGui.QFileDialog.getOpenFileName(self.centralwidget, "Open File",
@@ -93,25 +100,6 @@ class ImageViewer(object):
 
         self.loadImage(filename)
 
-    """
-    def zoomIn(self):
-        self.scaleImage(1.25)
-
-    def zoomOut(self):
-        self.scaleImage(0.8)
-
-    def normalSize(self):
-        self.scaleFactor = 1.0
-        self.scaleImage(self.size().width()/self.img.size().width())
-        #self.imageLabel.adjustSize()
-
-    def fitToWindow(self):
-        fitToWindow = self.fitToWindowAct.isChecked()
-        self.scrollArea.setWidgetResizable(fitToWindow)
-        if not fitToWindow:
-            self.normalSize()
-        self.updateActions()
-    """
     def transform(self):
 
         coords = self.selectorWidget.boundingRect().getCoords()
@@ -133,8 +121,6 @@ class ImageViewer(object):
 
         imagenDiferencia = algorit.borrar(imagen, imagenResta)
 
-        #algorit.probar_superficie_ocupada(imagenDiferencia, imagenResta)
-
         imagenDiferencia.save(self.filename+"transofrmada.jpg")
         imagenDiferencia.show()
 
@@ -155,14 +141,13 @@ class ImageViewer(object):
         #self.exitAct = QtGui.QAction("E&xit", self.centralwidget, shortcut="Ctrl+Q",
          #       triggered=self.close)
 
-
+        """
         self.zoomInAct = QtGui.QAction("Zoom &In (25%)", mainWindow,
                 shortcut="Ctrl++", enabled=True, triggered=self.selectorWidget.zoomIn)
 
         self.zoomOutAct = QtGui.QAction("Zoom &Out (25%)", mainWindow,
                 shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
 
-        """
         self.normalSizeAct = QtGui.QAction("&Normal Size", mainWindow,
                 shortcut="Ctrl+S", enabled=True, triggered=self.selectorWidget.normalSize)
         """
@@ -187,10 +172,12 @@ class ImageViewer(object):
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.exitAct)
         """
+        """
         self.viewMenu = QtGui.QMenu("&View", mainWindow)
         self.viewMenu.addAction(self.zoomInAct)
         self.viewMenu.addAction(self.zoomOutAct)
         #self.viewMenu.addAction(self.normalSizeAct)
+        """
         """
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fitToWindowAct)
@@ -200,7 +187,7 @@ class ImageViewer(object):
         self.transformMenu.addAction(self.transformAct)
 
         mainWindow.menuBar().addMenu(self.fileMenu)
-        mainWindow.menuBar().addMenu(self.viewMenu)
+        #mainWindow.menuBar().addMenu(self.viewMenu)
         mainWindow.menuBar().addMenu(self.transformMenu)
 
     """
