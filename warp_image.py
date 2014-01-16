@@ -28,7 +28,7 @@ def proyectPolygon(polygon, mat):
         newPolygon.append(newCoord)
     #print "newPolygon: ", newPolygon.toList()
     return newPolygon
-   
+
 def proyectX(x, y, mat):
     return (mat[0,0] * x + mat[0,1] * y + mat[0,2])/(mat[2,0] * x + mat[2,1] * y + mat[2,2])
 

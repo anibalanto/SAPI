@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import rpdb2; rpdb2.start_embedded_debugger("admin")
 import colors
 import transformador
 import runcode
