@@ -58,9 +58,9 @@ class WidgetImagen(QtGui.QWidget):
     super(WidgetImagen, self).__init__(parent)
     self.iniciar_ui()
     self.set_imagen(image)
+    self.indice_imagenes = 0
 
   def iniciar_imagenes(self):
-    self.indice_imagenes = 0
     #TODO La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
     self.lista_imagenes = [
         QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon_1_trans.png"),
