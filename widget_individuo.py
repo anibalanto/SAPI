@@ -54,11 +54,12 @@ class WidgetImagen(QtGui.QWidget):
   Este widget muestra una galeria de imagenes para un invididuo dado.
   La idea es usar un QLabel para mostrar las imagenes. Los botones van en una subclase.
   """
-  def __init__(self, image, parent=None):
+  def __init__(self, image, lista_imagenes=None, parent=None):
     super(WidgetImagen, self).__init__(parent)
     self.iniciar_ui()
     self.set_imagen(image)
     self.indice_imagenes = 0
+    self.lista_imagenes = lista_imagenes
 
   def iniciar_imagenes(self):
     #TODO La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
@@ -91,6 +92,9 @@ class WidgetImagen(QtGui.QWidget):
 
   def set_imagen(self, image):
     self.image_label.setPixmap(QtGui.QPixmap.fromImage(image))
+
+  def set_lista_imagenes(self, lista_imagenes):
+    self.lista_imagenes = lista_imagenes
 
   def atras(self):
     """
