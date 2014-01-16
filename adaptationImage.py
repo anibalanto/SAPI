@@ -25,6 +25,6 @@ def OpenCVImageToQImage(openCVImage):
 
 
 def ImagePILToQImage(pilImage):
-    data = pilImage.tostring('raw','RGBA')
+    data = pilImage.convert("RGBA").tostring('raw','RGBA')
     qimage = QtGui.QImage(data,pilImage.size[0],pilImage.size[1],QtGui.QImage.Format_ARGB32)
     return qimage
