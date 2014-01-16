@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import rpdb2; rpdb2.start_embedded_debugger("admin")
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, LargeBinary, PickleType, ForeignKey
 from sqlalchemy.orm import deferred, relationship
