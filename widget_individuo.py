@@ -6,33 +6,33 @@ from PySide import QtGui, QtCore
 
 class WidgetIndividuo(QtGui.QWidget):
 
-  def __init__(self, parent=None):
+  def __init__(self, imagen, parent=None):
     super(WidgetIndividuo, self).__init__(parent)
-    self.iniciar_ui()
+    self.iniciar_ui(imagen)
 
-  def iniciar_ui(self):
+  def iniciar_ui(self, imagen):
     self.setWindowFlags(QtCore.Qt.Window)
     self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Galeria de imagenes para un individuo")
-    self.crear_layout()
+    self.crear_layout(imagen)
     self.show()
 
-  def crear_layout(self):
+  def crear_layout(self, imagen):
     vertical_lay = QtGui.QVBoxLayout()
     vertical_lay.addWidget(WidgetDatos())
 
     horizontal_lay = QtGui.QHBoxLayout()
-    horizontal_lay.addWidget(WidgetGaleria())
+    horizontal_lay.addWidget(WidgetGaleria(imagen))
     horizontal_lay.addLayout(vertical_lay)
 
     self.setLayout(horizontal_lay)
 
-class WidgetBotones(QtGui.QWidget):
+class WidgetBotonesAtrasAdelante(QtGui.QWidget):
   """
   Este widget muestra un par de botones tipo adelante/atras
   """
   def __init__(self, parent=None):
-    super(WidgetBotones, self).__init__(parent)
+    super(WidgetBotonesAtrasAdelante, self).__init__(parent)
     self.iniciar_ui()
 
   def iniciar_ui(self):
@@ -111,13 +111,13 @@ class WidgetGaleria(WidgetImagen):
   """
   Extiende WidgetImagen agregandole 2 botones para avanzar y retroceder la galeria.
   """
-  def __init__(self, parent=None):
-    super(WidgetGaleria, self).__init__(parent)
+  def __init__(self, imagen, parent=None):
+    super(WidgetGaleria, self).__init__(imagen, parent)
     self._iniciar_ui()
 
   def _iniciar_ui(self):
     #Botones para pasar de imagen
-    botones = WidgetBotones()
+    botones = WidgetBotonesAtrasAdelante()
     botones.boton_atras.clicked.connect(self.adelante)
     botones.boton_adelante.clicked.connect(self.atras)
 
@@ -178,18 +178,19 @@ class WidgetListaIndividuos(QtGui.QWidget):
       boton_mostrar = QtGui.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
       boton_mostrar.id_individuo = key
+      boton_mostrar.imagen = value
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
     self.setLayout(vertical_lay)
 
   def launch(self):
     print self.sender().id_individuo
-    WidgetIndividuo(self)
+    WidgetIndividuo(self.sender().imagen, self)
 
-class WidgetBotones(QtGui.QWidget):
+class WidgetBotonesAgregarCaptura(QtGui.QWidget):
 
   def __init__(self, parent = None):
-    super(WidgetBotones, self).__init__(parent)
+    super(WidgetBotonesAgregarCaptura, self).__init__(parent)
     self.parent = parent
     self.iniciar_ui()
 
