@@ -3,7 +3,7 @@
 
 from PySide import QtCore, QtGui
 from transformedWidget import *
-from widget_individuo import WidgetListaIndividuos, WidgetBotones
+from widget_individuo import WidgetListaIndividuos, WidgetBotonesAgregarCaptura
 from db import ManagerBase
 
 import aplicar_algoritmos as algorit
@@ -36,7 +36,7 @@ class WindowSapito(QtGui.QMainWindow):
         self.widget_listado = WidgetListaIndividuos()
         self.widget_listado.resize(300, 400)
 
-        self.widget_botones = WidgetBotones(self)
+        self.widget_botones = WidgetBotonesAgregarCaptura(self)
         self.resultLayout.addWidget(self.widget_listado)
         self.resultLayout.addWidget(self.widget_botones)
 
