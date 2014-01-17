@@ -89,6 +89,7 @@ class ManagerBase(object):
   def similares(self, vector_origen):
     """
     Retorna los individuos asociados a las 5 capturas mas cercanas a vector_origen
+    estructura de retorno: {id: {dicc_datos: datos del individuo, capturas: lista de QImage de las capturas}}
     """
     mejores = []
     for cap in self.session.query(Captura).all():
@@ -97,9 +98,13 @@ class ManagerBase(object):
     ret = {}
     for i in mejores:
       if not ret.has_key(i[1].individuo.id):
-        ret[i[1].individuo.id] = self.bytes_a_imagen(i[1].imagen_transformada)
+        ret[i[1].individuo.id] = {
+            "imagen" : self.bytes_a_imagen(i[1].imagen_transformada),
+            #todas las capturas del individuo asociado a la captura
+            "lista_imagenes" : [self.bytes_a_imagen(j.imagen_transformada) for j in i[1].individuo.capturas],
+            "dicc_datos" : {"nombre" : i[1].individuo.nombre},
+            }
     return ret
-
 
 class Captura(Base):
   __tablename__ = 'captura'

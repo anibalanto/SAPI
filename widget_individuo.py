@@ -5,24 +5,32 @@ import sys
 from PySide import QtGui, QtCore
 
 class WidgetIndividuo(QtGui.QWidget):
+  """
+  Widget compuesto de un WidgetDatos y un WidgetGaleria.
+  Sirve para mostrar los datos de un individuo, y las capturas de este individuo.
+  lista_imagenes: lista de imagenes para la galeria. Esta lista se muestra en
+  WidgetGaleria.
+  datos: diccionario con los datos del individuo, que se van a mostrar en el
+  WidgetDatos.
+  """
 
-  def __init__(self, imagen, parent=None):
+  def __init__(self, lista_imagenes, datos_individuo, parent=None):
     super(WidgetIndividuo, self).__init__(parent)
-    self.iniciar_ui(imagen)
+    self.iniciar_ui(lista_imagenes, datos_individuo)
 
-  def iniciar_ui(self, imagen):
+  def iniciar_ui(self, lista_imagenes, datos_individuo):
     self.setWindowFlags(QtCore.Qt.Window)
     self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Galeria de imagenes para un individuo")
-    self.crear_layout(imagen)
+    self.crear_layout(lista_imagenes, datos_individuo)
     self.show()
 
-  def crear_layout(self, imagen):
+  def crear_layout(self, lista_imagenes, datos_individuo):
     vertical_lay = QtGui.QVBoxLayout()
-    vertical_lay.addWidget(WidgetDatos())
+    vertical_lay.addWidget(WidgetDatos(datos_individuo))
 
     horizontal_lay = QtGui.QHBoxLayout()
-    horizontal_lay.addWidget(WidgetGaleria(imagen))
+    horizontal_lay.addWidget(WidgetGaleria(lista_imagenes))
     horizontal_lay.addLayout(vertical_lay)
 
     self.setLayout(horizontal_lay)
@@ -54,11 +62,15 @@ class WidgetImagen(QtGui.QWidget):
   Este widget muestra una galeria de imagenes para un invididuo dado.
   La idea es usar un QLabel para mostrar las imagenes. Los botones van en una subclase.
   """
-  def __init__(self, image, parent=None):
+  def __init__(self, lista_imagenes, parent=None):
     super(WidgetImagen, self).__init__(parent)
     self.iniciar_ui()
-    self.set_imagen(image)
+    if lista_imagenes:
+      self.set_imagen(lista_imagenes[0])
+    self.indice_imagenes = 0
+    self.lista_imagenes = lista_imagenes
 
+  """
   def iniciar_imagenes(self):
     self.indice_imagenes = 0
     #TODO La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
@@ -68,6 +80,7 @@ class WidgetImagen(QtGui.QWidget):
         QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon.3.trans.bmp"),
         ]
     self.set_imagen(self.lista_imagenes[0])
+  """
 
   def iniciar_ui(self):
     #Label
@@ -110,9 +123,10 @@ class WidgetImagen(QtGui.QWidget):
 class WidgetGaleria(WidgetImagen):
   """
   Extiende WidgetImagen agregandole 2 botones para avanzar y retroceder la galeria.
+  lista_imagenes: lista con las imagenes que se van a mostrar en la galeria.
   """
-  def __init__(self, imagen, parent=None):
-    super(WidgetGaleria, self).__init__(imagen, parent)
+  def __init__(self, lista_imagenes, parent=None):
+    super(WidgetGaleria, self).__init__(lista_imagenes, parent)
     self._iniciar_ui()
 
   def _iniciar_ui(self):
@@ -125,12 +139,13 @@ class WidgetGaleria(WidgetImagen):
 
 class WidgetDatos(QtGui.QWidget):
   """
-  La idea de este widget es mostrar un grid con los datos de un individuo, onda key value.
+  La idea de este widget es mostrar un grid con los datos de un individuo,
+  con los datos de dicc_datos.
   """
-  def __init__(self, parent=None):
+  def __init__(self, dicc_datos, parent=None):
     super(WidgetDatos, self).__init__(parent)
-    #TODO dicc para probar
-    self.labels = [("nombre", "pepe"), ("edad", "28"), ("nacionalidad", "polaco")]
+    #self.labels = [("nombre", "pepe"), ("edad", "28"), ("nacionalidad", "polaco")]
+    self.labels = dicc_datos
     self.iniciar_ui()
 
   def iniciar_ui(self):
@@ -170,9 +185,16 @@ class MyRadioButton(QtGui.QRadioButton):
 
 
 class WidgetListaIndividuos(QtGui.QWidget):
-  def __init__(self, similares = {}, parent=None):
+  """
+  Widget que muestra una lista vertical de 1 captura por individuo, con un radiobutton y un boton para mostrar el individuo.
+  similares: diccionario de la forma
+    {id_individuo: {imagen: <imagen captura>, dicc_datos: <diccionario con los datos del individuo>, capturas: <lista de imagenes de las capturas>}}
+  Todas las imagenes son QImage.
+  """
+  def __init__(self, similares = None, parent=None):
     self.parent = parent
     super(WidgetListaIndividuos, self).__init__(parent)
+    if similares is None: similares = {}
     self.iniciar_ui(similares)
 
   def iniciar_ui(self, similares, addRadio = True):
@@ -191,14 +213,15 @@ class WidgetListaIndividuos(QtGui.QWidget):
       horizontal_lay.addWidget(WidgetImagen(value))
       boton_mostrar = QtGui.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
-      boton_mostrar.id_individuo = key
-      boton_mostrar.imagen = value
+      boton_mostrar.id_individuo = sapo_id
+      boton_mostrar.datos_individuo = dicc_sapo["dicc_datos"]
+      boton_mostrar.lista_imagenes = dicc_sapo["capturas"]
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
     self.setLayout(vertical_lay)
 
   def launch(self):
-    WidgetIndividuo(self.sender().imagen, self)
+    WidgetIndividuo(self.sender().lista_imagenes, self.sender().datos_individuo, self)
 
 class WidgetBotonesAgregarCaptura(QtGui.QWidget):
 
@@ -270,7 +293,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 def main():
   app = QtGui.QApplication(sys.argv)
   #ex = WidgetIndividuo()
-  ex = WidgetListaIndividuos()
+  #ex = WidgetListaIndividuos()
   sys.exit(app.exec_())
 
 
