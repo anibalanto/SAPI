@@ -54,14 +54,13 @@ class WidgetImagen(QtGui.QWidget):
   Este widget muestra una galeria de imagenes para un invididuo dado.
   La idea es usar un QLabel para mostrar las imagenes. Los botones van en una subclase.
   """
-  def __init__(self, image, lista_imagenes=None, parent=None):
+  def __init__(self, image, parent=None):
     super(WidgetImagen, self).__init__(parent)
     self.iniciar_ui()
     self.set_imagen(image)
-    self.indice_imagenes = 0
-    self.lista_imagenes = lista_imagenes
 
   def iniciar_imagenes(self):
+    self.indice_imagenes = 0
     #TODO La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
     self.lista_imagenes = [
         QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon_1_trans.png"),
@@ -92,9 +91,6 @@ class WidgetImagen(QtGui.QWidget):
 
   def set_imagen(self, image):
     self.image_label.setPixmap(QtGui.QPixmap.fromImage(image))
-
-  def set_lista_imagenes(self, lista_imagenes):
-    self.lista_imagenes = lista_imagenes
 
   def atras(self):
     """
@@ -162,22 +158,36 @@ class WidgetDatos(QtGui.QWidget):
 
     self.setLayout(grid_lay)
 
+class MyRadioButton(QtGui.QRadioButton):
+
+  def __init__(self, parent):
+    self.parent = parent
+    super(MyRadioButton, self).__init__()
+    self.clicked.connect(self.click)
+
+  def click(self):
+    self.parent.iRadioChecked = self.index
+
 
 class WidgetListaIndividuos(QtGui.QWidget):
   def __init__(self, similares = {}, parent=None):
+    self.parent = parent
     super(WidgetListaIndividuos, self).__init__(parent)
     self.iniciar_ui(similares)
 
   def iniciar_ui(self, similares, addRadio = True):
     vertical_lay = QtGui.QVBoxLayout()
+    self.parent.radios = []
+    i = 0
     for key,value in similares.iteritems():
       horizontal_lay = QtGui.QHBoxLayout()
-      print value
-      value.save("hectorcarlone.jpg")
       if (addRadio):
-        radio = QtGui.QRadioButton()
+        radio = MyRadioButton(self.parent)
         radio.id_individuo = key
+        radio.index = i
         horizontal_lay.addWidget(radio)
+        self.parent.radios.append(radio)
+        i = i + 1
       horizontal_lay.addWidget(WidgetImagen(value))
       boton_mostrar = QtGui.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
@@ -188,7 +198,6 @@ class WidgetListaIndividuos(QtGui.QWidget):
     self.setLayout(vertical_lay)
 
   def launch(self):
-    print self.sender().id_individuo
     WidgetIndividuo(self.sender().imagen, self)
 
 class WidgetBotonesAgregarCaptura(QtGui.QWidget):
@@ -205,12 +214,18 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     horizontal_layout.addWidget(self.botonNuevo)
     horizontal_layout.addWidget(self.botonAgrCaptura)
 
-    self.botonNuevo.clicked.connect(self.launch)
+    self.botonNuevo.clicked.connect(self.launchNuevo)
+    self.botonAgrCaptura.clicked.connect(self.launchAgrCaptura)
 
     self.setLayout(horizontal_layout)
 
-  def launch(self):
+  def launchNuevo(self):
     WidgetNuevoIndividuo(self)
+
+  def launchAgrCaptura(self):
+    print self.parent.iRadioChecked
+    if (self.parent.iRadioChecked != -1):
+      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
 
   def save(self, attr):
     self.parent.save(attr)
@@ -250,6 +265,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
   def save(self):
     self.parent.save({ "nombre" : self.editn.text(), "zona" : self.editz.text()})
+
 
 def main():
   app = QtGui.QApplication(sys.argv)

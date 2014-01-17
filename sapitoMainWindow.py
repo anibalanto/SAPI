@@ -18,10 +18,11 @@ class WindowSapito(QtGui.QMainWindow):
     def __init__(self):
         super(WindowSapito, self).__init__()
         self.db_man = ManagerBase()
-
         self.initUI()
 
     def initUI(self):
+
+        self.iRadioChecked = -1
 
         self.filename = None
         self.resize(1024, 800)
@@ -33,7 +34,7 @@ class WindowSapito(QtGui.QMainWindow):
         imageResultLayout = QtGui.QHBoxLayout()
 
         self.resultLayout.addLayout(imageResultLayout)
-        self.widget_listado = WidgetListaIndividuos()
+        self.widget_listado = WidgetListaIndividuos({}, self)
         self.widget_listado.resize(300, 400)
 
         self.widget_botones = WidgetBotonesAgregarCaptura(self)
@@ -118,7 +119,7 @@ class WindowSapito(QtGui.QMainWindow):
         #buscar en la bd a partir del vector generado para la imagen
         #actualizar el WidgetListaIndividuos con lo que traemos de la bd
         similares = self.db_man.similares(regiones)
-        self.widget_listado = WidgetListaIndividuos(similares)
+        self.widget_listado = WidgetListaIndividuos(similares, self)
         self.resultLayout.addWidget(self.widget_listado)
 
 
@@ -175,11 +176,15 @@ class WindowSapito(QtGui.QMainWindow):
         self.normalSizeAct.setEnabled(not self.fitToWindowAct.isChecked())
     """
     def save(self, attr):
+        """
         self.img.save("enbase_image.png")
         self.transformada.save("enbase_transformada.png")
         self.segmentada.save("enbase_segmentada.png")
+        """
         self.db_man.crear_individuo(self.img, self.transformada, self.segmentada, self.vector_regiones, attr)
 
+    def agregarCaptura(self, id_individuo, attr):
+        self.db_man.crear_captura(id_individuo, self.img, self.transformada, self.segmentada, self.vector_regiones, attr)
 
 def main():
 
