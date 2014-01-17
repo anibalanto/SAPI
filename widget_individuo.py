@@ -157,7 +157,7 @@ class WidgetDatos(QtGui.QWidget):
     grid_lay = QtGui.QGridLayout()
     idx = 0
     policy = QtGui.QSizePolicy.Minimum
-    for k,v in self.labels:
+    for k,v in self.labels.iteritems():
       l1 = QtGui.QLabel(k)
       l1.setSizePolicy(policy, policy)
       grid_lay.addWidget(l1, idx, 0)
@@ -198,12 +198,13 @@ class WidgetListaIndividuos(QtGui.QWidget):
         radio = QtGui.QRadioButton()
         radio.id_individuo = sapo_id
         horizontal_lay.addWidget(radio)
-      horizontal_lay.addWidget(WidgetImagen(dicc_sapo["imagen"]))
+      #En vez de pasar la imagen sola, pasamos una lista de 1 elemento con la imagen.
+      horizontal_lay.addWidget(WidgetImagen([dicc_sapo["imagen"]]))
       boton_mostrar = QtGui.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
       boton_mostrar.id_individuo = sapo_id
       boton_mostrar.datos_individuo = dicc_sapo["dicc_datos"]
-      boton_mostrar.lista_imagenes = dicc_sapo["capturas"]
+      boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
     self.setLayout(vertical_lay)
