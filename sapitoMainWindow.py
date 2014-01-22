@@ -3,7 +3,7 @@
 
 from PySide import QtCore, QtGui
 from transformedWidget import *
-from widget_individuo import WidgetListaIndividuos, WidgetBotonesAgregarCaptura
+from widget_individuo import WidgetListaIndividuosRadios, WidgetBotonesAgregarCaptura
 from db import ManagerBase
 
 import aplicar_algoritmos as algorit
@@ -34,7 +34,7 @@ class WindowSapito(QtGui.QMainWindow):
         imageResultLayout = QtGui.QHBoxLayout()
 
         self.resultLayout.addLayout(imageResultLayout)
-        self.widget_listado = WidgetListaIndividuos({}, self)
+        self.widget_listado = WidgetListaIndividuosRadios({}, self)
         self.widget_listado.resize(300, 400)
 
         self.widget_botones = WidgetBotonesAgregarCaptura(self)
@@ -119,7 +119,7 @@ class WindowSapito(QtGui.QMainWindow):
         #buscar en la bd a partir del vector generado para la imagen
         #actualizar el WidgetListaIndividuos con lo que traemos de la bd
         similares = self.db_man.similares(regiones)
-        self.widget_listado = WidgetListaIndividuos(similares, self)
+        self.widget_listado = WidgetListaIndividuosRadios(similares, self)
         self.resultLayout.addWidget(self.widget_listado)
 
 
@@ -190,6 +190,7 @@ def main():
 
     app = QtGui.QApplication(sys.argv)
     ex = WindowSapito()
+    #ex = WidgetListaIndividuos({})
     ex.show()
     sys.exit(app.exec_())
 
