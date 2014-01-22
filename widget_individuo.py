@@ -304,14 +304,15 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     self.show()
 
   def save(self):
-    self.parent.save({ "nombre" : self.editn.text(), "zona" : self.editz.text()})
+    self.parent.save({"nombre" : self.editn.text(), "zona" : self.editz.text()})
 
 def main():
   app = QtGui.QApplication(sys.argv)
   #ex = WidgetIndividuo()
-  #ex = WidgetListaIndividuos()
+  from db import ManagerBase
+  ex = WidgetListaIndividuos(ManagerBase().all_individuos())
+  ex.show()
   sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
     main()

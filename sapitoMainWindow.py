@@ -3,7 +3,7 @@
 
 from PySide import QtCore, QtGui
 from transformedWidget import *
-from widget_individuo import WidgetListaIndividuosRadios, WidgetBotonesAgregarCaptura
+from widget_individuo import WidgetListaIndividuosRadios, WidgetBotonesAgregarCaptura, WidgetListaIndividuos
 from db import ManagerBase
 
 import aplicar_algoritmos as algorit
@@ -123,12 +123,18 @@ class WindowSapito(QtGui.QMainWindow):
         self.resultLayout.addWidget(self.widget_listado)
 
 
+    def view_all(self):
+        self.lista_individuos = WidgetListaIndividuos(ManagerBase().all_individuos())
+        self.lista_individuos.show()
+
     def createActions(self):
         self.openAct = QtGui.QAction("&Open...", self,
                 shortcut="Ctrl+O", enabled=True, triggered=self.open)
 
         self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
                 triggered=self.close)
+
+        self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
 
         self.zoomOutAct = QtGui.QAction("Zoom &Out", self,
                 shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
@@ -151,6 +157,7 @@ class WindowSapito(QtGui.QMainWindow):
 
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.exitAct)
+        self.fileMenu.addAction(self.view_all_act)
 
         self.viewMenu = QtGui.QMenu("&View", self)
         self.viewMenu.addAction(self.zoomInAct)
@@ -187,13 +194,10 @@ class WindowSapito(QtGui.QMainWindow):
         self.db_man.crear_captura(id_individuo, self.img, self.transformada, self.segmentada, self.vector_regiones, attr)
 
 def main():
-
     app = QtGui.QApplication(sys.argv)
     ex = WindowSapito()
-    #ex = WidgetListaIndividuos({})
     ex.show()
     sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
     main()
