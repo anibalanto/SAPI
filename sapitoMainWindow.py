@@ -25,15 +25,43 @@ class WindowSapito(QtGui.QMainWindow):
         self.iRadioChecked = -1
 
         self.filename = None
-        self.resize(1024, 800)
+        self.showFullScreen()
 
-        mainLayout = QtGui.QHBoxLayout()
+        self.mainLayout = QtGui.QHBoxLayout()
         selectorLayout = QtGui.QVBoxLayout()
+
+        self.mainLayout.addLayout(selectorLayout)
+
+        self.selectorWidget = SelectorWidget()
+
+        selectorLayout.addWidget(self.selectorWidget)
+
+
+        centralWidget = QtGui.QWidget()
+        centralWidget.setGeometry(QtCore.QRect(0, 0, 800, 800))
+
+        centralWidget.setLayout(self.mainLayout)
+
+        self.setCentralWidget(centralWidget)
+
+        self.createActions()
+        self.createMenus()
+
+        self.imageResult = QtGui.QLabel()
+        self.imageResult.resize(300, 300)
+
+        self.imageTransform = QtGui.QLabel()
+        self.imageTransform.resize(300,300)
+
+
+    def initUIResult(self):
         self.resultLayout = QtGui.QVBoxLayout()
 
         imageResultLayout = QtGui.QHBoxLayout()
+        image2ResultLayout = QtGui.QHBoxLayout()
 
         self.resultLayout.addLayout(imageResultLayout)
+        self.resultLayout.addLayout(image2ResultLayout)
         self.widget_listado = WidgetListaIndividuosRadios({}, self)
         self.widget_listado.resize(300, 400)
 
@@ -41,25 +69,11 @@ class WindowSapito(QtGui.QMainWindow):
         self.resultLayout.addWidget(self.widget_listado)
         self.resultLayout.addWidget(self.widget_botones)
 
-        mainLayout.addLayout(selectorLayout)
-        mainLayout.addLayout(self.resultLayout)
+        self.mainLayout.addLayout(self.resultLayout)
 
-        self.selectorWidget = SelectorWidget()
-        self.imageResult = QtGui.QLabel()
-        self.imageResult.resize(300, 300)
-
-        selectorLayout.addWidget(self.selectorWidget)
+        imageResultLayout.addWidget(self.imageTransform)
         imageResultLayout.addWidget(self.imageResult)
 
-        centralWidget = QtGui.QWidget()
-        centralWidget.setGeometry(QtCore.QRect(0, 0, 800, 800))
-
-        centralWidget.setLayout(mainLayout)
-
-        self.setCentralWidget(centralWidget)
-
-        self.createActions()
-        self.createMenus()
 
     def loadImage(self, filename):
 
@@ -101,18 +115,29 @@ class WindowSapito(QtGui.QMainWindow):
         imageSeg, regiones = algorit.calcular_regiones(imagenDiferencia)
         qimageSeg = imageSeg.get_img()
 
-        print type(imageSeg)
-
-        self.imageResult.setGeometry(QtCore.QRect(0, 0, width, height))
-        self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimageSeg))
-
-        self.completar_similares(regiones)
-
-        #print type(imagenDiferencia)
-
         self.transformada = imagenDiferencia.get_img()
         self.segmentada = qimageSeg
         self.vector_regiones = regiones
+
+
+        qimageResult = qimageSeg
+        qimageResult.scaled(50, 50)
+
+        #self.imageResult.setGeometry(QtCore.QRect(0, 0, width/2, height/2))
+        self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimageSeg.scaled(150, 150)))
+
+        qimageTransform = self.transformada
+        qimageTransform.scaled(50, 50)
+
+        #self.imageTransform.setGeometry(QtCore.QRect(0, 0, width/2, height/2))
+        self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(self.transformada.scaled(150, 150)))
+
+
+
+        self.initUIResult()
+
+        self.completar_similares(regiones)
+        #self.mainLayout.addLayout(self.resultLayout)
 
 
     def completar_similares(self,regiones):
@@ -175,7 +200,7 @@ class WindowSapito(QtGui.QMainWindow):
         self.zoomOutAct.setEnabled(not self.fitToWindowAct.isChecked())
         self.normalSizeAct.setEnabled(not self.fitToWindowAct.isChecked())
     """
-    def save(self, attr):
+    def saveIndividuo(self, attr):
         """
         self.img.save("enbase_image.png")
         self.transformada.save("enbase_transformada.png")
