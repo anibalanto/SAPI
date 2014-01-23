@@ -106,6 +106,28 @@ class ManagerBase(object):
             }
     return ret
 
+  def all_individuos(self):
+    """
+    Retorna todos los individuos.
+    Estructura de retorno:
+    {id:
+      {
+        dicc_datos: datos del individuo,
+        imagen: imagen a mostrar tipo thumbnail,
+        lista_imagenes: lista de QImage de las capturas
+      }
+    }
+    """
+    ret = {}
+    for individuo in self.session.query(Individuo).all():
+      ret[individuo.id] = {
+          "imagen" : self.bytes_a_imagen(individuo.capturas[0].imagen_transformada),
+          #todas las capturas del individuo asociado a la captura
+          "lista_imagenes" : [self.bytes_a_imagen(j.imagen_transformada) for j in individuo.capturas],
+          "dicc_datos" : {"nombre" : individuo.nombre},
+          }
+    return ret
+
 class Captura(Base):
   __tablename__ = 'captura'
 
