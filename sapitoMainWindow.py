@@ -155,10 +155,10 @@ class WindowSapito(QtGui.QMainWindow):
         self.openAct = QtGui.QAction("&Open...", self,
                 shortcut="Ctrl+O", enabled=True, triggered=self.open)
 
+        self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
+
         self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
                 triggered=self.close)
-
-        self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
 
         self.zoomOutAct = QtGui.QAction("Zoom &Out", self,
                 shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
@@ -178,10 +178,10 @@ class WindowSapito(QtGui.QMainWindow):
     def createMenus(self):
         self.fileMenu = QtGui.QMenu("&File", self)
         self.fileMenu.addAction(self.openAct)
+        self.fileMenu.addAction(self.view_all_act)
 
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.exitAct)
-        self.fileMenu.addAction(self.view_all_act)
 
         self.viewMenu = QtGui.QMenu("&View", self)
         self.viewMenu.addAction(self.zoomInAct)

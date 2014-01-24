@@ -246,7 +246,7 @@ def WidgetListaIndividuosRadiosScroleable(similares=None, parent=None):
 
 class WidgetListaIndividuosRadios(WidgetListaIndividuos):
   """
-  Sublcase de WidgetListaIndividuos, que agrega radiobuttons a cada individuo.
+  Sublcase de WidgetListaIndividuos que agrega radiobuttons a cada individuo.
   """
 
   def crear_layout(self, similares):
