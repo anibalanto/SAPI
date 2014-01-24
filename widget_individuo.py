@@ -169,6 +169,8 @@ class MyRadioButton(QtGui.QRadioButton):
     self.clicked.connect(self.click)
 
   def click(self):
+    if (self.parent.iRadioChecked == -1):
+        self.parent.widget_botones.botonAgrCaptura.setEnabled(True)
     self.parent.iRadioChecked = self.index
 
 class WidgetScroleable(QtGui.QWidget):
@@ -281,6 +283,7 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     horizontal_layout = QtGui.QHBoxLayout()
     self.botonNuevo = QtGui.QPushButton("Nuevo")
     self.botonAgrCaptura = QtGui.QPushButton("Agregar Captura")
+    self.botonAgrCaptura.setEnabled(False)
     horizontal_layout.addWidget(self.botonNuevo)
     horizontal_layout.addWidget(self.botonAgrCaptura)
 
@@ -290,15 +293,51 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     self.setLayout(horizontal_layout)
 
   def launchNuevo(self):
-    WidgetNuevoIndividuo(self)
+    WidgetNuevoIndividuo(self.parent)
 
   def launchAgrCaptura(self):
+    WidgetAgregarCaptura(self.parent)
     print self.parent.iRadioChecked
     if (self.parent.iRadioChecked != -1):
       self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
 
-  def save(self, attr):
-    self.parent.save(attr)
+class WidgetAgregarCaptura(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetAgregarCaptura, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    self.labeld = QtGui.QLabel("Fecha: ")
+    self.labell = QtGui.QLabel("LatLon: ")
+    self.editd = QtGui.QCalendarWidget()
+    self.editl = QtGui.QLineEdit()
+
+    qgridLayout = QtGui.QGridLayout()
+
+    qgridLayout.addWidget(self.labeld, 0, 0)
+    qgridLayout.addWidget(self.editd, 0, 1)
+    qgridLayout.addWidget(self.labell, 1, 0)
+    qgridLayout.addWidget(self.editl, 1, 1)
+
+    self.setLayout(qgridLayout)
+    self.setWindowFlags(QtCore.Qt.Window)
+    self.setGeometry(300, 300, 600, 400)
+    self.setWindowTitle("Formulario para agregar nueva captura")
+
+    botonGuardar = QtGui.QPushButton("Guardar")
+
+    botonGuardar.clicked.connect(self.agregarCaptura)
+
+    qgridLayout.addWidget(botonGuardar, 2, 1)
+
+    self.show()
+
+  def agregarCaptura(self):
+      #self.parent.save({ "nombre" : self.editn.text(), "zona" : self.editz.text()})
+      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
+      self.close()
 
 class WidgetNuevoIndividuo(QtGui.QWidget):
 
@@ -335,6 +374,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
   def save(self):
     self.parent.save({"nombre" : self.editn.text(), "zona" : self.editz.text()})
+    self.close()
 
 def main():
   app = QtGui.QApplication(sys.argv)
