@@ -25,7 +25,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.iRadioChecked = -1
 
         self.filename = None
-        self.showFullScreen()
 
         self.mainLayout = QtGui.QHBoxLayout()
         selectorLayout = QtGui.QVBoxLayout()
@@ -53,6 +52,8 @@ class WindowSapito(QtGui.QMainWindow):
         self.imageTransform = QtGui.QLabel()
         self.imageTransform.resize(300, 300)
 
+        self.showMaximized()
+
 
     def initUIResult(self):
         self.resultLayout = QtGui.QVBoxLayout()
@@ -60,6 +61,7 @@ class WindowSapito(QtGui.QMainWindow):
         imageResultLayout = QtGui.QHBoxLayout()
         image2ResultLayout = QtGui.QHBoxLayout()
 
+        self.resultLayout.addLayout(imageResultLayout)
         self.resultLayout.addLayout(image2ResultLayout)
         self.widget_listado = WidgetListaIndividuosRadiosScroleable({}, self)
         self.widget_listado.resize(300, 400)
@@ -108,7 +110,6 @@ class WindowSapito(QtGui.QMainWindow):
         imagen = adaptrImg.QImageToImagePIL(qimage)
         imagenResta = adaptrImg.QImageToImagePIL(qimageDest)
 
-
         imagenDiferencia = algorit.borrar(imagen, imagenResta)
 
         imageSeg, regiones = algorit.calcular_regiones(imagenDiferencia)
@@ -117,7 +118,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.transformada = imagenDiferencia.get_img()
         self.segmentada = qimageSeg
         self.vector_regiones = regiones
-
 
         qimageResult = qimageSeg
         qimageResult.scaled(50, 50)
@@ -131,13 +131,10 @@ class WindowSapito(QtGui.QMainWindow):
         #self.imageTransform.setGeometry(QtCore.QRect(0, 0, width/2, height/2))
         self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(self.transformada.scaled(150, 150)))
 
-
-
         self.initUIResult()
 
         self.completar_similares(regiones)
         #self.mainLayout.addLayout(self.resultLayout)
-
 
     def completar_similares(self,regiones):
         #buscar en la bd a partir del vector generado para la imagen
