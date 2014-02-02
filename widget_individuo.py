@@ -70,18 +70,6 @@ class WidgetImagen(QtGui.QWidget):
     self.indice_imagenes = 0
     self.lista_imagenes = lista_imagenes
 
-  """
-  def iniciar_imagenes(self):
-    self.indice_imagenes = 0
-    #TODO La lista de imagenes la tenemos que obtener de la bd o nos las tendrian que pasar al constructor mejor
-    self.lista_imagenes = [
-        QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon_1_trans.png"),
-        QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon.2.trans.bmp"),
-        QtGui.QImage("/home/siko/facultad/pdi/misimagenes/ramoncito/ramon.3.trans.bmp"),
-        ]
-    self.set_imagen(self.lista_imagenes[0])
-  """
-
   def iniciar_ui(self):
     #Label
     self.image_label = QtGui.QLabel()
@@ -123,6 +111,7 @@ class WidgetImagen(QtGui.QWidget):
 class WidgetGaleria(WidgetImagen):
   """
   Extiende WidgetImagen agregandole 2 botones para avanzar y retroceder la galeria.
+  Para obtener los botones, se compone usa el WidgetBotonesAtrasAdelante.
   lista_imagenes: lista con las imagenes que se van a mostrar en la galeria.
   """
   def __init__(self, lista_imagenes, parent=None):
@@ -144,7 +133,6 @@ class WidgetDatos(QtGui.QWidget):
   """
   def __init__(self, dicc_datos, parent=None):
     super(WidgetDatos, self).__init__(parent)
-    #self.labels = [("nombre", "pepe"), ("edad", "28"), ("nacionalidad", "polaco")]
     self.labels = dicc_datos
     self.iniciar_ui()
 
@@ -185,6 +173,23 @@ class MyRadioButton(QtGui.QRadioButton):
         self.parent.widget_botones.botonAgrCaptura.setEnabled(True)
     self.parent.iRadioChecked = self.index
 
+class WidgetScroleable(QtGui.QWidget):
+  """
+  Agrega una barra de scroll, al widget que se le pasa como parametro.
+  """
+  def __init__(self, widget, parent=None):
+    super(WidgetScroleable, self).__init__(parent)
+    self.scroll_area = QtGui.QScrollArea()
+    self.scroll_area.setWidget(widget)
+
+    self.lay = QtGui.QVBoxLayout()
+    self.lay.addWidget(self.scroll_area)
+
+    self.setLayout(self.lay)
+
+def WidgetListaIndividuosScroleable(similares=None, parent=None):
+  return WidgetScroleable(WidgetListaIndividuos(similares, parent))
+
 class WidgetListaIndividuos(QtGui.QWidget):
   """
   Widget que muestra una lista vertical de 1 captura por individuo, con un radiobutton y un boton para mostrar el individuo.
@@ -196,9 +201,11 @@ class WidgetListaIndividuos(QtGui.QWidget):
     self.parent = parent
     super(WidgetListaIndividuos, self).__init__(parent)
     if similares is None: similares = {}
-    self.iniciar_ui(similares)
+    #Creamos el layout y lo seteamos. Las subclases, pueden overridear este metodo para modificar el layout.
+    lay = self.crear_layout(similares)
+    self.setLayout(lay)
 
-  def iniciar_ui(self, similares, addRadio=True):
+  def crear_layout(self, similares):
     vertical_lay = QtGui.QVBoxLayout()
     for sapo_id, dicc_sapo in similares.iteritems():
       horizontal_lay = QtGui.QHBoxLayout()
@@ -211,26 +218,49 @@ class WidgetListaIndividuos(QtGui.QWidget):
       boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
-    self.setLayout(vertical_lay)
+    return vertical_lay
 
   def launch(self):
     WidgetIndividuo(self.sender().lista_imagenes, self.sender().datos_individuo, self)
 
-class WidgetListaIndividuosRadios(WidgetListaIndividuos):
+def WidgetListaIndividuosStandaloneScroleable(similares=None, parent=None):
+  return WidgetScroleable(WidgetListaIndividuosStandalone(similares, parent))
 
-  def iniciar_ui(self, similares, addRadio=True):
+class WidgetListaIndividuosStandalone(WidgetListaIndividuos):
+  """
+  Esta lista de individuos, muestra el thumbnail de cada individuo, los datos del mismo
+  y el boton "mostrar individuo" que lanza la galeria.
+  """
+
+  def crear_layout(self, similares):
+    """
+    Metemos un WidgetDatos entre la imagen y el boton mostrar.
+    """
+    lay = super(WidgetListaIndividuosStandalone, self).crear_layout(similares)
+    for idx, key in enumerate(similares):
+      lay.itemAt(idx).insertWidget(1,WidgetDatos(similares[key]["dicc_datos"]))
+    return lay
+
+def WidgetListaIndividuosRadiosScroleable(similares=None, parent=None):
+  return WidgetScroleable(WidgetListaIndividuosRadios(similares, parent))
+
+class WidgetListaIndividuosRadios(WidgetListaIndividuos):
+  """
+  Sublcase de WidgetListaIndividuos que agrega radiobuttons a cada individuo.
+  """
+
+  def crear_layout(self, similares):
     vertical_lay = QtGui.QVBoxLayout()
     self.parent.radios = []
     i = 0
     for sapo_id, dicc_sapo in similares.iteritems():
       horizontal_lay = QtGui.QHBoxLayout()
-      if (addRadio):
-        radio = MyRadioButton(self.parent)
-        radio.id_individuo = sapo_id
-        radio.index = i
-        horizontal_lay.addWidget(radio)
-        self.parent.radios.append(radio)
-        i = i + 1
+      radio = MyRadioButton(self.parent)
+      radio.id_individuo = sapo_id
+      radio.index = i
+      horizontal_lay.addWidget(radio)
+      self.parent.radios.append(radio)
+      i = i + 1
       #En vez de pasar la imagen sola, pasamos una lista de 1 elemento con la imagen.
       horizontal_lay.addWidget(WidgetImagen([dicc_sapo["imagen"]]))
       boton_mostrar = QtGui.QPushButton("Mostrar individuo")
@@ -240,7 +270,7 @@ class WidgetListaIndividuosRadios(WidgetListaIndividuos):
       boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
       horizontal_lay.addWidget(boton_mostrar)
       vertical_lay.addLayout(horizontal_lay)
-    self.setLayout(vertical_lay)
+    return vertical_lay
 
 class WidgetBotonesAgregarCaptura(QtGui.QWidget):
 
@@ -350,7 +380,7 @@ def main():
   app = QtGui.QApplication(sys.argv)
   #ex = WidgetIndividuo()
   from db import ManagerBase
-  ex = WidgetListaIndividuos(ManagerBase().all_individuos())
+  ex = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
   ex.show()
   sys.exit(app.exec_())
 

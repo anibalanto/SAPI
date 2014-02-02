@@ -3,7 +3,7 @@
 
 from PySide import QtCore, QtGui
 from transformedWidget import *
-from widget_individuo import WidgetListaIndividuosRadios, WidgetBotonesAgregarCaptura, WidgetListaIndividuos
+from widget_individuo import WidgetListaIndividuosRadiosScroleable, WidgetBotonesAgregarCaptura, WidgetListaIndividuosStandaloneScroleable
 from db import ManagerBase
 
 import aplicar_algoritmos as algorit
@@ -26,7 +26,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.iRadioChecked = -1
 
         self.filename = None
-        self.showFullScreen()
 
         self.mainLayout = QtGui.QHBoxLayout()
         selectorLayout = QtGui.QVBoxLayout()
@@ -54,43 +53,44 @@ class WindowSapito(QtGui.QMainWindow):
         self.imageTransform = QtGui.QLabel()
         self.imageTransform.resize(300, 300)
 
+        self.showMaximized()
+
 
 
     def initUIResult(self):
-        resultLayout = QtGui.QVBoxLayout()
-        imageResultLayout = QtGui.QHBoxLayout()
+        self.resultLayout = QtGui.QVBoxLayout()
+        self.imageResultLayout = QtGui.QHBoxLayout()
         #image2ResultLayout = QtGui.QHBoxLayout()
 
-        resultLayout.addLayout(imageResultLayout)
-        #resultLayout.addLayout(image2ResultLayout)
-        widget_listado = WidgetListaIndividuosRadios({}, self)
-        #widget_listado.resize(300, 400)
+        self.resultLayout.addLayout(self.imageResultLayout)
 
-        widget_botones = WidgetBotonesAgregarCaptura(self)
-        resultLayout.addWidget(widget_listado)
-        resultLayout.addWidget(widget_botones)
+        self.widget_listado = WidgetListaIndividuosRadiosScroleable({}, self)
+        self.widget_listado.resize(300, 400)
 
-        self.mainLayout.addLayout(resultLayout)
+        self.widget_botones = WidgetBotonesAgregarCaptura(self)
+        self.resultLayout.addWidget(self.widget_listado)
+        self.resultLayout.addWidget(self.widget_botones)
 
-        imageResultLayout.addWidget(self.imageTransform)
-        imageResultLayout.addWidget(self.imageResult)
+        self.mainLayout.addLayout(self.resultLayout)
+
+        self.imageResultLayout.addWidget(self.imageTransform)
+        self.imageResultLayout.addWidget(self.imageResult)
 
         self.iniciadaUIResult = True
-
-        return resultLayout
 
 
     def hideUIResult(self):
         resultLayout = self.mainLayout.takeAt(1)
-        a1 = resultLayout.takeAt(3)
-        a2 = resultLayout.takeAt(2)
-        a3 = resultLayout.takeAt(1)
-        """
-        a1.deleteLater()
-        a2.deleteLater()
-        a3.deleteLater()
-        """
         resultLayout.deleteLater()
+
+        image1 = self.imageResultLayout.takeAt(1)
+        image2 = self.imageResultLayout.takeAt(0)
+        image1.widget().deleteLater()
+        image2.widget().deleteLater()
+
+        self.widget_listado.deleteLater()
+        self.widget_botones.deleteLater()
+
 
         self.iniciadaUIResult = False
 
@@ -131,7 +131,6 @@ class WindowSapito(QtGui.QMainWindow):
         imagen = adaptrImg.QImageToImagePIL(qimage)
         imagenResta = adaptrImg.QImageToImagePIL(qimageDest)
 
-
         imagenDiferencia = algorit.borrar(imagen, imagenResta)
 
         imageSeg, regiones = algorit.calcular_regiones(imagenDiferencia)
@@ -140,7 +139,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.transformada = imagenDiferencia.get_img()
         self.segmentada = qimageSeg
         self.vector_regiones = regiones
-
 
         qimageResult = qimageSeg
         qimageResult.scaled(50, 50)
@@ -154,34 +152,31 @@ class WindowSapito(QtGui.QMainWindow):
         #self.imageTransform.setGeometry(QtCore.QRect(0, 0, width/2, height/2))
         self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(self.transformada.scaled(150, 150)))
 
+        self.initUIResult()
 
-
-        resultLayout = self.initUIResult()
-
-        self.completar_similares(regiones, resultLayout)
+        self.completar_similares(regiones)
         #self.mainLayout.addLayout(self.resultLayout)
 
-
-    def completar_similares(self,regiones, resultLayout):
+    def completar_similares(self, regiones):
         #buscar en la bd a partir del vector generado para la imagen
         #actualizar el WidgetListaIndividuos con lo que traemos de la bd
         similares = self.db_man.similares(regiones)
-        self.widget_listado = WidgetListaIndividuosRadios(similares, self)
-        resultLayout.addWidget(self.widget_listado)
+        self.widget_listado = WidgetListaIndividuosRadiosScroleable(similares, self)
+        self.resultLayout.addWidget(self.widget_listado)
 
 
     def view_all(self):
-        self.lista_individuos = WidgetListaIndividuos(ManagerBase().all_individuos())
+        self.lista_individuos = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
         self.lista_individuos.show()
 
     def createActions(self):
         self.openAct = QtGui.QAction("&Open...", self,
                 shortcut="Ctrl+O", enabled=True, triggered=self.open)
 
+        self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
+
         self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
                 triggered=self.close)
-
-        self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
 
         self.zoomOutAct = QtGui.QAction("Zoom &Out", self,
                 shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
@@ -201,10 +196,10 @@ class WindowSapito(QtGui.QMainWindow):
     def createMenus(self):
         self.fileMenu = QtGui.QMenu("&File", self)
         self.fileMenu.addAction(self.openAct)
+        self.fileMenu.addAction(self.view_all_act)
 
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.exitAct)
-        self.fileMenu.addAction(self.view_all_act)
 
         self.viewMenu = QtGui.QMenu("&View", self)
         self.viewMenu.addAction(self.zoomInAct)

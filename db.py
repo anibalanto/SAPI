@@ -21,7 +21,11 @@ class ManagerBase(object):
     Base.metadata.create_all(self.engine)#Las tablas que ya existen no se tocan
 
   def crear_individuo(self, img_original, img_transformada, img_segmentada, vector_regiones, dicc_datos):
-    """ Las imagenes son del tipo QImage """
+    """
+    Creamos un nuevo Individuo y una Captura asociada a este, a partir de las imagenes que recibimos como
+    parametros.
+    Las imagenes son del tipo QImage.
+    """
     nuevo_individuo = Individuo(dicc_datos["nombre"])
     #TODO: pasar otros parametros del dicc
     captura = Captura(
@@ -89,7 +93,7 @@ class ManagerBase(object):
   def similares(self, vector_origen):
     """
     Retorna los individuos asociados a las 5 capturas mas cercanas a vector_origen
-    estructura de retorno: {id: {dicc_datos: datos del individuo, capturas: lista de QImage de las capturas}}
+    estructura de retorno: {id: {dicc_datos: datos del individuo, imagen: primer captura a mostrar del individuo, lista_imagenes: lista de QImage de las capturas}}
     """
     mejores = []
     for cap in self.session.query(Captura).all():
