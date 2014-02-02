@@ -22,6 +22,7 @@ class WindowSapito(QtGui.QMainWindow):
 
     def initUI(self):
 
+        self.iniciadaUIResult = False
         self.iRadioChecked = -1
 
         self.filename = None
@@ -38,7 +39,7 @@ class WindowSapito(QtGui.QMainWindow):
 
 
         centralWidget = QtGui.QWidget()
-        centralWidget.setGeometry(QtCore.QRect(0, 0, 800, 800))
+        #centralWidget.setGeometry(QtCore.QRect(0, 0, 800, 800))
 
         centralWidget.setLayout(self.mainLayout)
 
@@ -54,29 +55,50 @@ class WindowSapito(QtGui.QMainWindow):
         self.imageTransform.resize(300, 300)
 
 
+
     def initUIResult(self):
-        self.resultLayout = QtGui.QVBoxLayout()
-
+        resultLayout = QtGui.QVBoxLayout()
         imageResultLayout = QtGui.QHBoxLayout()
-        image2ResultLayout = QtGui.QHBoxLayout()
+        #image2ResultLayout = QtGui.QHBoxLayout()
 
-        self.resultLayout.addLayout(imageResultLayout)
-        self.resultLayout.addLayout(image2ResultLayout)
-        self.widget_listado = WidgetListaIndividuosRadios({}, self)
-        self.widget_listado.resize(300, 400)
+        resultLayout.addLayout(imageResultLayout)
+        #resultLayout.addLayout(image2ResultLayout)
+        widget_listado = WidgetListaIndividuosRadios({}, self)
+        #widget_listado.resize(300, 400)
 
-        self.widget_botones = WidgetBotonesAgregarCaptura(self)
-        self.resultLayout.addWidget(self.widget_listado)
-        self.resultLayout.addWidget(self.widget_botones)
+        widget_botones = WidgetBotonesAgregarCaptura(self)
+        resultLayout.addWidget(widget_listado)
+        resultLayout.addWidget(widget_botones)
 
-        self.mainLayout.addLayout(self.resultLayout)
+        self.mainLayout.addLayout(resultLayout)
 
         imageResultLayout.addWidget(self.imageTransform)
         imageResultLayout.addWidget(self.imageResult)
 
+        self.iniciadaUIResult = True
+
+        return resultLayout
+
+
+    def hideUIResult(self):
+        resultLayout = self.mainLayout.takeAt(1)
+        a1 = resultLayout.takeAt(3)
+        a2 = resultLayout.takeAt(2)
+        a3 = resultLayout.takeAt(1)
+        """
+        a1.deleteLater()
+        a2.deleteLater()
+        a3.deleteLater()
+        """
+        resultLayout.deleteLater()
+
+        self.iniciadaUIResult = False
+
 
     def loadImage(self, filename):
 
+        if (self.iniciadaUIResult):
+            self.hideUIResult()
         img_cv = cv.imread(filename)
         if not(img_cv.size):
             QtGui.QMessageBox.information(self, "Image Viewer", "Cannot load %s." % filename)
@@ -134,18 +156,18 @@ class WindowSapito(QtGui.QMainWindow):
 
 
 
-        self.initUIResult()
+        resultLayout = self.initUIResult()
 
-        self.completar_similares(regiones)
+        self.completar_similares(regiones, resultLayout)
         #self.mainLayout.addLayout(self.resultLayout)
 
 
-    def completar_similares(self,regiones):
+    def completar_similares(self,regiones, resultLayout):
         #buscar en la bd a partir del vector generado para la imagen
         #actualizar el WidgetListaIndividuos con lo que traemos de la bd
         similares = self.db_man.similares(regiones)
         self.widget_listado = WidgetListaIndividuosRadios(similares, self)
-        self.resultLayout.addWidget(self.widget_listado)
+        resultLayout.addWidget(self.widget_listado)
 
 
     def view_all(self):
