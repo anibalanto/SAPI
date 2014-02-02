@@ -373,7 +373,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     self.show()
 
   def save(self):
-    self.parent.save({"nombre" : self.editn.text(), "zona" : self.editz.text()})
+    self.parent.saveIndividuo({"nombre" : self.editn.text(), "zona" : self.editz.text()})
     self.close()
 
 def main():
