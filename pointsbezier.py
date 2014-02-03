@@ -581,6 +581,8 @@ class MyScene(QtGui.QGraphicsScene):
 
     clicked = QtCore.Signal(int,int)
 
+    clickConnected = True
+
     def __init__(self, qGraphicsView):
         super(MyScene, self).__init__(qGraphicsView)
 
@@ -609,6 +611,7 @@ class MyScene(QtGui.QGraphicsScene):
             if (self.grap.points.getNumberPoints() == 4):
                 self.grap.createItems()
                 self.clicked.disconnect(self.clickSelector)
+                self.clickConnected = False
                 self.grap.clicked.connect(self.grap.clickSelector)
                 self.grap.points.removeAllPoints(self)
 
@@ -802,7 +805,6 @@ class SelectorWidget(QtGui.QGraphicsView):
         return self.shape.getShapeDest().getImage()
 
     def reset(self):
-        print("reset")
         if(self.shape != None):
             self.scene().removeItem(self.shape)
             for node in self.shape.getNodes():
@@ -813,7 +815,9 @@ class SelectorWidget(QtGui.QGraphicsView):
 
         self.points.removeAllPoints(self.scene())
 
-        self.scene().clicked.connect(self.scene().clickSelector)
+        if (not self.scene().clickConnected):
+            self.scene().clicked.connect(self.scene().clickSelector)
+            self.scene().clickConnected = True
         self.clicked.connect(self.clickSelector)
         self.clicked.disconnect(self.clickSelector)
         #print(self.transform())
