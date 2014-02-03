@@ -76,6 +76,9 @@ class ImagenQImage(BaseImagen):
   def fromfile(self, filename):
     self.img = QImage(filename)
 
+  def from_instance(self, qimage):
+    self.img = qimage
+
   def empty(self, size, mode=QImage.Format_RGB888):
     self.img = QImage(size[0], size[1], mode)
 

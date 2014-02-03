@@ -3,9 +3,11 @@
 
 from PySide import QtCore, QtGui
 from transformedWidget import *
-from widget_individuo import WidgetListaIndividuosRadiosScroleable, WidgetBotonesAgregarCaptura, WidgetListaIndividuosStandaloneScroleable
+from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
+    WidgetBotonesAgregarCaptura, \
+    WidgetListaIndividuosStandaloneScroleable
 from db import ManagerBase
-
+from imagen import ImagenQImage
 import aplicar_algoritmos as algoritmos
 import adaptationImage as adaptrImg
 import sys
@@ -147,10 +149,13 @@ class WindowSapito(QtGui.QMainWindow):
         qimage_resta = self.selectorWidget.shapeDest.getImage()
 
         #A la proyectada le sacamos lo que no queremos.
-        self.qimage_transformada = algoritmos.borrar(qimage_proyectada, qimage_resta)
+        #Por ahora pasamos las imagenes en el wrapper
+        self.qimage_transformada = algoritmos.borrar(ImagenQImage().from_instance(qimage_proyectada), ImagenQImage().from_instance(qimage_resta)).get_img()
 
         #Obtenemos la segemntada y el vector de regiones a partir de la resta que hicimos antes.
-        self.qimage_segmentada, self.vector_regiones = algoritmos.calcular_regiones(self.qimage_transformada)
+        #Por ahora pasamos las imagenes en el wrapper
+        imagen_wrapper, self.vector_regiones = algoritmos.calcular_regiones(ImagenQImage().from_instance(self.qimage_transformada))
+        self.qimage_segmentada  = imagen_wrapper.get_img() # Sacamos la imagen del wrapper.
 
         #Cargamos los widgets de la barra de costado con las imagenes obtenidas.
         self.initUIResult(self.qimage_transformada, self.qimage_segmentada)
@@ -163,7 +168,6 @@ class WindowSapito(QtGui.QMainWindow):
         similares = self.db_man.similares(regiones)
         self.widget_listado = WidgetListaIndividuosRadiosScroleable(similares, self)
         self.resultLayout.addWidget(self.widget_listado)
-
 
     def view_all(self):
         """
