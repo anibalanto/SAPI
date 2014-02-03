@@ -150,11 +150,17 @@ class WindowSapito(QtGui.QMainWindow):
 
         #A la proyectada le sacamos lo que no queremos.
         #Por ahora pasamos las imagenes en el wrapper
-        self.qimage_transformada = algoritmos.borrar(ImagenQImage().from_instance(qimage_proyectada), ImagenQImage().from_instance(qimage_resta)).get_img()
+        proy = ImagenQImage()
+        proy.from_instance(qimage_proyectada)
+        segm = ImagenQImage()
+        segm.from_instance(qimage_resta)
+        self.qimage_transformada = algoritmos.borrar(proy, segm).get_img()
 
         #Obtenemos la segemntada y el vector de regiones a partir de la resta que hicimos antes.
         #Por ahora pasamos las imagenes en el wrapper
-        imagen_wrapper, self.vector_regiones = algoritmos.calcular_regiones(ImagenQImage().from_instance(self.qimage_transformada))
+        trans = ImagenQImage()
+        trans.from_instance(self.qimage_transformada)
+        imagen_wrapper, self.vector_regiones = algoritmos.calcular_regiones(trans)
         self.qimage_segmentada  = imagen_wrapper.get_img() # Sacamos la imagen del wrapper.
 
         #Cargamos los widgets de la barra de costado con las imagenes obtenidas.
