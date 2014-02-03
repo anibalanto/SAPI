@@ -63,6 +63,8 @@ class WindowSapito(QtGui.QMainWindow):
 
 
     def initUIResult(self, qimage_transfomada, qimage_segementada):
+        if (self.iniciadaUIResult):
+            self.hideUIResult()
 
         self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(qimage_transformada.scaled(150, 150)))
         self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimage_segmentada.scaled(150, 150)))
@@ -72,17 +74,16 @@ class WindowSapito(QtGui.QMainWindow):
 
         self.resultLayout.addLayout(self.imageResultLayout)
 
-        self.widget_listado = WidgetListaIndividuosRadiosScroleable({}, self)
-        self.widget_listado.resize(300, 400)
-
         self.widget_botones = WidgetBotonesAgregarCaptura(self)
-        self.resultLayout.addWidget(self.widget_listado)
         self.resultLayout.addWidget(self.widget_botones)
 
         self.mainLayout.addLayout(self.resultLayout)
 
         self.imageResultLayout.addWidget(self.imageTransform)
         self.imageResultLayout.addWidget(self.imageResult)
+
+        self.imageTransform.setVisible(True)
+        self.imageResult.setVisible(True)
 
         self.iniciadaUIResult = True
 
@@ -93,8 +94,11 @@ class WindowSapito(QtGui.QMainWindow):
 
         image1 = self.imageResultLayout.takeAt(1)
         image2 = self.imageResultLayout.takeAt(0)
-        image1.widget().deleteLater()
-        image2.widget().deleteLater()
+        image1.widget().setVisible(False)
+        image2.widget().setVisible(False)
+
+        #resultLayout.takeAt()
+
 
         self.widget_listado.deleteLater()
         self.widget_botones.deleteLater()
