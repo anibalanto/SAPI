@@ -92,6 +92,7 @@ class WindowSapito(QtGui.QMainWindow):
         resultLayout = self.mainLayout.takeAt(1)
         resultLayout.deleteLater()
 
+
         image1 = self.imageResultLayout.takeAt(1)
         image2 = self.imageResultLayout.takeAt(0)
         image1.widget().setVisible(False)
@@ -108,6 +109,7 @@ class WindowSapito(QtGui.QMainWindow):
     def loadImage(self, filename):
         self.filename = filename
 
+<<<<<<< HEAD
         if (self.iniciadaUIResult):
             self.hideUIResult()
 
@@ -120,6 +122,23 @@ class WindowSapito(QtGui.QMainWindow):
           if(self.filename != None):
               self.selectorWidget.reset()
           self.selectorWidget.addImage(self.q_img)
+=======
+        img_cv = cv.imread(filename)
+        if not(img_cv.size):
+            QtGui.QMessageBox.information(self, "Image Viewer", "Cannot load %s." % filename)
+            return
+        self.cv_img = img_cv
+        self.img = QtGui.QImage(filename)
+        self.img_filename = filename
+        qim = adaptrImg.OpenCVImageToQImage(self.cv_img)
+        if(self.filename != None):
+            self.selectorWidget.reset()
+        self.selectorWidget.addImage(qim)
+        self.filename = filename
+>>>>>>> origin/master
+
+        if (self.iniciadaUIResult):
+            self.hideUIResult()
 
     def open(self):
         filename,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
