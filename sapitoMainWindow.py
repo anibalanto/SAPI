@@ -62,7 +62,7 @@ class WindowSapito(QtGui.QMainWindow):
 
 
 
-    def initUIResult(self, qimage_transfomada, qimage_segementada):
+    def initUIResult(self, qimage_transformada, qimage_segmentada):
         if (self.iniciadaUIResult):
             self.hideUIResult()
 
