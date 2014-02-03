@@ -6,7 +6,7 @@ from transformedWidget import *
 from widget_individuo import WidgetListaIndividuosRadiosScroleable, WidgetBotonesAgregarCaptura, WidgetListaIndividuosStandaloneScroleable
 from db import ManagerBase
 
-import aplicar_algoritmos as algorit
+import aplicar_algoritmos as algoritmos
 import adaptationImage as adaptrImg
 import sys
 import cv2 as cv
@@ -15,10 +15,13 @@ from pointsbezier import *
 
 class WindowSapito(QtGui.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, imagen_inicial=None):
         super(WindowSapito, self).__init__()
         self.db_man = ManagerBase()
         self.initUI()
+        #Para debugear, recibimos una imagen inicial, en vez de tener que abrirla desde la gui.
+        if imagen_inicial is not None:
+          self.loadImage(imagen_inicial)
 
     def initUI(self):
 
@@ -47,9 +50,11 @@ class WindowSapito(QtGui.QMainWindow):
         self.createActions()
         self.createMenus()
 
+        #Este widget muestra la imagen proyectada y segmentada.
         self.imageResult = QtGui.QLabel()
         self.imageResult.resize(300, 300)
 
+        #Este widget muestra la imagen proyectada.
         self.imageTransform = QtGui.QLabel()
         self.imageTransform.resize(300, 300)
 
@@ -57,10 +62,13 @@ class WindowSapito(QtGui.QMainWindow):
 
 
 
-    def initUIResult(self):
+    def initUIResult(self, qimage_transfomada, qimage_segementada):
+
+        self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(qimage_transformada.scaled(150, 150)))
+        self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimage_segmentada.scaled(150, 150)))
+
         self.resultLayout = QtGui.QVBoxLayout()
         self.imageResultLayout = QtGui.QHBoxLayout()
-        #image2ResultLayout = QtGui.QHBoxLayout()
 
         self.resultLayout.addLayout(self.imageResultLayout)
 
@@ -91,26 +99,23 @@ class WindowSapito(QtGui.QMainWindow):
         self.widget_listado.deleteLater()
         self.widget_botones.deleteLater()
 
-
         self.iniciadaUIResult = False
 
-
     def loadImage(self, filename):
+        self.filename = filename
 
         if (self.iniciadaUIResult):
             self.hideUIResult()
-        img_cv = cv.imread(filename)
-        if not(img_cv.size):
-            QtGui.QMessageBox.information(self, "Image Viewer", "Cannot load %s." % filename)
-            return
-        self.cv_img = img_cv
-        self.img = QtGui.QImage(filename)
-        self.img_filename = filename
-        qim = adaptrImg.OpenCVImageToQImage(self.cv_img)
-        if(self.filename != None):
-            self.selectorWidget.reset()
-        self.selectorWidget.addImage(qim)
-        self.filename = filename
+
+        self.cv_img  = cv.imread(self.filename) # Abrimos la imagen con opencv
+        self.q_img = QtGui.QImage(self.filename) # Abrimos la imagen con qt
+
+        if not(self.cv_img and self.cv_img.size):
+            QtGui.QMessageBox.information(self, "Image Viewer", "Error al cargar la imagen %s." % filename)
+        else:
+          if(self.filename != None):
+              self.selectorWidget.reset()
+          self.selectorWidget.addImage(self.q_img)
 
     def open(self):
         filename,_ = QtGui.QFileDialog.getOpenFileName(self, "Open File",
@@ -119,43 +124,33 @@ class WindowSapito(QtGui.QMainWindow):
         self.loadImage(filename)
 
     def transform(self):
-        points = self.selectorWidget.getPoints()
-        pointsDest = self.selectorWidget.getPointsDest()
-        width = int(self.selectorWidget.getWidthDest())
-        height = int(self.selectorWidget.getHeightDest())
+        """
+        Aplicamos la transformacion a la region seleccionada y llenamos la lista de similares.
+        """
+        points = self.selectorWidget.getPoints() # Los puntos que marco el usuario.
+        pointsDest = self.selectorWidget.getPointsDest() # Los puntos a los que va la proyeccion.
+        width = int(self.selectorWidget.getWidthDest()) # Ancho bounding box destino.
+        height = int(self.selectorWidget.getHeightDest()) # Alto bounding box destino.
+
+        #Imagen proyectada en cv y en qt.
         cv_dest = wi.warpImage(self.cv_img, points, pointsDest, width, height)
+        qimage_proyectada = adaptrImg.OpenCVImageToQImage(cv_dest)
 
-        qimage = adaptrImg.OpenCVImageToQImage(cv_dest)
-        qimageDest = self.selectorWidget.shapeDest.getImage()
+        #Crea imagen de la forma destino con blanco adentro y negro afuera.
+        #Esta imagen la vamos a usar para borrar lo que no queremos de la proyectada.
+        #Es como un crop.
+        qimage_resta = self.selectorWidget.shapeDest.getImage()
 
-        imagen = adaptrImg.QImageToImagePIL(qimage)
-        imagenResta = adaptrImg.QImageToImagePIL(qimageDest)
+        #A la proyectada le sacamos lo que no queremos.
+        self.qimage_transformada = algoritmos.borrar(qimage_proyectada, qimage_resta)
 
-        imagenDiferencia = algorit.borrar(imagen, imagenResta)
+        #Obtenemos la segemntada y el vector de regiones a partir de la resta que hicimos antes.
+        self.qimage_segmentada, self.vector_regiones = algoritmos.calcular_regiones(self.qimage_transformada)
 
-        imageSeg, regiones = algorit.calcular_regiones(imagenDiferencia)
-        qimageSeg = imageSeg.get_img()
+        #Cargamos los widgets de la barra de costado con las imagenes obtenidas.
+        self.initUIResult(self.qimage_transformada, self.qimage_segmentada)
 
-        self.transformada = imagenDiferencia.get_img()
-        self.segmentada = qimageSeg
-        self.vector_regiones = regiones
-
-        qimageResult = qimageSeg
-        qimageResult.scaled(50, 50)
-
-        #self.imageResult.setGeometry(QtCore.QRect(0, 0, width/2, height/2))
-        self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimageSeg.scaled(150, 150)))
-
-        qimageTransform = self.transformada
-        qimageTransform.scaled(50, 50)
-
-        #self.imageTransform.setGeometry(QtCore.QRect(0, 0, width/2, height/2))
-        self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(self.transformada.scaled(150, 150)))
-
-        self.initUIResult()
-
-        self.completar_similares(regiones)
-        #self.mainLayout.addLayout(self.resultLayout)
+        self.completar_similares(self.vector_regiones)
 
     def completar_similares(self, regiones):
         #buscar en la bd a partir del vector generado para la imagen
@@ -166,30 +161,27 @@ class WindowSapito(QtGui.QMainWindow):
 
 
     def view_all(self):
+        """
+        Llamamos al widget que muestra todos los individuos.
+        Este metodo se llama desde la barra de menu.
+        """
         self.lista_individuos = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
         self.lista_individuos.show()
 
     def createActions(self):
         self.openAct = QtGui.QAction("&Open...", self,
                 shortcut="Ctrl+O", enabled=True, triggered=self.open)
-
         self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
-
         self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
                 triggered=self.close)
-
         self.zoomOutAct = QtGui.QAction("Zoom &Out", self,
                 shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
-
         self.zoomInAct = QtGui.QAction("Zoom &In", self,
                 shortcut="Ctrl++", enabled=True, triggered=self.selectorWidget.zoomIn)
-
         self.resetSizeAct = QtGui.QAction("Reset Size", self,
                 shortcut="Ctrl+0", enabled=True, triggered=self.selectorWidget.resetSizeImage)
-
         self.rotateAct = QtGui.QAction("&Rotate", self,
                 shortcut="Ctrl+R", enabled=True, triggered=self.selectorWidget.rotateImage)
-
         self.transformAct = QtGui.QAction("&Transform", self,
                 shortcut="Ctrl+T", enabled=True, triggered=self.transform)
 
@@ -206,10 +198,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.viewMenu.addAction(self.zoomOutAct)
         self.viewMenu.addAction(self.resetSizeAct)
         self.viewMenu.addAction(self.rotateAct)
-        """
-        self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.fitToWindowAct)
-        """
 
         self.transformMenu = QtGui.QMenu("&Transform", self)
         self.transformMenu.addAction(self.transformAct)
@@ -218,26 +206,18 @@ class WindowSapito(QtGui.QMainWindow):
         self.menuBar().addMenu(self.viewMenu)
         self.menuBar().addMenu(self.transformMenu)
 
-    """
-    def updateActions(self):
-        self.zoomInAct.setEnabled(not self.fitToWindowAct.isChecked())
-        self.zoomOutAct.setEnabled(not self.fitToWindowAct.isChecked())
-        self.normalSizeAct.setEnabled(not self.fitToWindowAct.isChecked())
-    """
     def saveIndividuo(self, attr):
-        """
-        self.img.save("enbase_image.png")
-        self.transformada.save("enbase_transformada.png")
-        self.segmentada.save("enbase_segmentada.png")
-        """
-        self.db_man.crear_individuo(self.img, self.transformada, self.segmentada, self.vector_regiones, attr)
+        self.db_man.crear_individuo(self.q_img, self.qimage_transformada, self.qimage_segmentada, self.vector_regiones, attr)
 
     def agregarCaptura(self, id_individuo, attr):
-        self.db_man.crear_captura(id_individuo, self.img, self.transformada, self.segmentada, self.vector_regiones, attr)
+        self.db_man.crear_captura(id_individuo, self.q_img, self.qimage_transformada, self.qimage_segmentada, self.vector_regiones, attr)
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    ex = WindowSapito()
+    try:
+      ex = WindowSapito(sys.argv[1])
+    except:
+      ex = WindowSapito()
     ex.show()
     sys.exit(app.exec_())
 
