@@ -71,9 +71,6 @@ class ImagenQImage(BaseImagen):
 
   @property
   def size(self):
-    print "me estan llamando"
-    print self.img.width()
-    print self.img.height()
     return (self.img.width(), self.img.height())
 
   def fromfile(self, filename):

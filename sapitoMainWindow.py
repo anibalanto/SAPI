@@ -43,7 +43,6 @@ class WindowSapito(QtGui.QMainWindow):
 
 
         centralWidget = QtGui.QWidget()
-        #centralWidget.setGeometry(QtCore.QRect(0, 0, 800, 800))
 
         centralWidget.setLayout(self.mainLayout)
 
@@ -61,8 +60,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.imageTransform.resize(300, 300)
 
         self.showMaximized()
-
-
 
     def initUIResult(self, qimage_transformada, qimage_segmentada):
         if (self.iniciadaUIResult):
@@ -94,14 +91,10 @@ class WindowSapito(QtGui.QMainWindow):
         resultLayout = self.mainLayout.takeAt(1)
         resultLayout.deleteLater()
 
-
         image1 = self.imageResultLayout.takeAt(1)
         image2 = self.imageResultLayout.takeAt(0)
         image1.widget().setVisible(False)
         image2.widget().setVisible(False)
-
-        #resultLayout.takeAt()
-
 
         self.widget_listado.deleteLater()
         self.widget_botones.deleteLater()

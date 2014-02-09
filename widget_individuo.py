@@ -91,7 +91,10 @@ class WidgetImagen(QtGui.QWidget):
     self.setLayout(self.vertical_lay)
 
   def set_imagen(self, image):
-    self.image_label.setPixmap(QtGui.QPixmap.fromImage(image))
+    """
+    Antes de agregar la imagen al pixmap, la escalamos a 150x150
+    """
+    self.image_label.setPixmap(QtGui.QPixmap.fromImage(image.scaled(150,150)))
 
   def atras(self):
     """
@@ -253,7 +256,8 @@ class WidgetListaIndividuosRadios(WidgetListaIndividuos):
     vertical_lay = QtGui.QVBoxLayout()
     self.parent.radios = []
     i = 0
-    for sapo_id, dicc_sapo in similares.iteritems():
+    for dicc_sapo in similares:
+      sapo_id = dicc_sapo["id"]
       horizontal_lay = QtGui.QHBoxLayout()
       radio = MyRadioButton(self.parent)
       radio.id_individuo = sapo_id
