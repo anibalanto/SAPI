@@ -169,8 +169,8 @@ class MyRadioButton(QtGui.QRadioButton):
     self.clicked.connect(self.click)
 
   def click(self):
-    if (self.parent.iRadioChecked == -1):
-        self.parent.widget_botones.botonAgrCaptura.setEnabled(True)
+    #if (self.parent.iRadioChecked == -1):
+    self.parent.widget_botones.botonAgrCaptura.setEnabled(True)
     self.parent.iRadioChecked = self.index
 
 class WidgetScroleable(QtGui.QWidget):
