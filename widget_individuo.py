@@ -20,7 +20,7 @@ class WidgetIndividuo(QtGui.QWidget):
 
   def iniciar_ui(self, lista_imagenes, datos_individuo):
     self.setWindowFlags(QtCore.Qt.Window)
-    self.setGeometry(300, 300, 600, 400)
+    #self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Galeria de imagenes para un individuo")
     self.crear_layout(lista_imagenes, datos_individuo)
     self.show()
@@ -327,7 +327,7 @@ class WidgetAgregarCaptura(QtGui.QWidget):
 
     self.setLayout(qgridLayout)
     self.setWindowFlags(QtCore.Qt.Window)
-    self.setGeometry(300, 300, 600, 400)
+    #self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Formulario para agregar nueva captura")
 
     botonGuardar = QtGui.QPushButton("Guardar")
@@ -365,7 +365,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
     self.setLayout(qgridLayout)
     self.setWindowFlags(QtCore.Qt.Window)
-    self.setGeometry(300, 300, 600, 400)
+    #self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Formulario para agregar nuevo individuo")
 
     botonGuardar = QtGui.QPushButton("Guardar")
