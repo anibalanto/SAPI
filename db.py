@@ -107,7 +107,10 @@ class ManagerBase(object):
     mejores.sort(key=lambda a: a[0])
     ret = [] #Lista de retorno
     agregados = set()#Guardamos los ids que ya agregamos
-    for i in mejores:
+    idx = 0
+    while idx < len(mejores) and len(agregados) < 10:
+      #for i in mejores:
+      i = mejores[idx]
       if not i[1].individuo.id in agregados:
         agregados.add(i[1].individuo.id)
         ret.append(
@@ -119,6 +122,7 @@ class ManagerBase(object):
               "dicc_datos" : {"nombre" : i[1].individuo.nombre},
               }
         )
+      idx += 1
     return ret
 
   def all_individuos(self):
