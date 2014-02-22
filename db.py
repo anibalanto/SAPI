@@ -160,6 +160,14 @@ class ManagerBase(object):
       idx += 1
     return ret
 
+  def nuevo_fotografo(self, nombre, apellido, email):
+    f = Fotografo(nombre, apellido, email)
+    self.session.add(f)
+    self.session.commit()
+
+  def all_fotografos(self):
+    return self.session.query(Fotografo).all()
+
   def all_individuos(self):
     """
     Retorna todos los individuos.

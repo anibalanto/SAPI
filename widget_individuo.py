@@ -3,6 +3,44 @@
 
 import sys
 from PySide import QtGui, QtCore
+from db import ManagerBase
+
+class WidgetAgregarFotografo(QtGui.QWidget):
+  def __init__(self, parent=None):
+    super(WidgetAgregarFotografo, self).__init__(parent)
+    self.setLayout(self.iniciar_ui())
+    self.show()
+
+  def guardar(self):
+    db_man = ManagerBase()
+    n = self.name_input.text()
+    ln = self.lastname_input.text()
+    em = self.email_input.text()
+    if (n and ln and em):
+      db_man.nuevo_fotografo(n, ln, em)
+      self.close()
+
+  def iniciar_ui(self):
+    #labels, inputs y boton guardar
+    self.name_label = QtGui.QLabel("Nombre")
+    self.name_input = QtGui.QLineEdit()
+    self.lastname_label = QtGui.QLabel("Apellido")
+    self.lastname_input = QtGui.QLineEdit()
+    self.email_label = QtGui.QLabel("e-mail")
+    self.email_input = QtGui.QLineEdit()
+    save_button = QtGui.QPushButton("Guardar")
+    save_button.clicked.connect(self.guardar)
+
+    #layout
+    lay = QtGui.QGridLayout()
+    lay.addWidget(self.name_label, 0, 0)
+    lay.addWidget(self.name_input, 0, 1)
+    lay.addWidget(self.lastname_label, 1, 0)
+    lay.addWidget(self.lastname_input, 1, 1)
+    lay.addWidget(self.email_label, 2, 0)
+    lay.addWidget(self.email_input, 2, 1)
+    lay.addWidget(save_button, 3, 1)
+    return lay
 
 class WidgetIndividuo(QtGui.QWidget):
   """
