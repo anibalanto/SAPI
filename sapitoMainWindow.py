@@ -27,6 +27,10 @@ class WindowSapito(QtGui.QMainWindow):
 
     def initUI(self):
 
+        #self.buttonShape = QtGui.QPushButton()
+        #self.buttonShape.setIcon(QtGui.QIcon("sapito.png"))
+
+
         self.iniciadaUIResult = False
         self.iRadioChecked = -1
 

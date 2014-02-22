@@ -18,13 +18,23 @@ A32 = -30
 A30 = -30
 A03 = 30
 
-ANGLES = [[0, A01, 0, A03],
-        [A10, 0, A12, 0],
-        [0, A21, 0, A23],
-        [A30, 0, A32, 0]]
+POINTS_DEFAULT = [(200, 200),
+                  (400, 200),
+                  (400, 400),
+                  (200, 400)]
+
+ANGLES_DEFAULT = [[0, A01, 0, A03],
+                  [A10, 0, A12, 0],
+                  [0, A21, 0, A23],
+                  [A30, 0, A32, 0]]
 
 C1 = QtCore.Qt.red
 C2 = QtCore.Qt.green
+
+points_colors = [QtGui.QColor(57, 216, 173),
+                 QtGui.QColor(65, 216, 57),
+                 QtGui.QColor(216, 57, 197),
+                 QtGui.QColor(173, 216, 57)]
 
 WIDHT_DEST = 600
 HEIGHT_DEST = 600
@@ -42,6 +52,7 @@ class Points(object):
 
     def addPoint(self, scene, point):
         if (self.numberPoints < 4):
+            point.setColor(points_colors[self.numberPoints])
             self.points.append(point)
             self.numberPoints = self.numberPoints + 1
             scene.addItem(point)
@@ -253,7 +264,7 @@ class PointSimple(QtGui.QGraphicsItem):
         QtGui.QGraphicsItem.__init__(self)
         self.scale = 1.0
 
-        self.color = C1
+        #self.color = C1
         self.graph = weakref.ref(graphWidget)
         self.graphWidget = graphWidget
 
@@ -270,6 +281,9 @@ class PointSimple(QtGui.QGraphicsItem):
 
     def type(self):
         return Node.Type
+
+    def setColor(self, color):
+        self.color = color
 
     def setScale(self, scale):
         self.scale = scale
@@ -315,6 +329,9 @@ class Point(QtGui.QGraphicsItem):
         self.setCacheMode(self.DeviceCoordinateCache)
         self.setZValue(-1)
         self.setZValue(10)
+
+    def setColor(self, color):
+        self.color = color
 
     def proyect(self, mat):
         wi.proyect(self.pos(),mat)
@@ -607,7 +624,7 @@ class MyScene(QtGui.QGraphicsScene):
     def clickSelector(self, x, y):
         if (self.grap.isSetImage() and self.getDoAddPoint()):
             point = PointSimple(self, self.grap, QtCore.QPointF(x, y), self.grap.getScale())
-            self.grap.points.addPoint(self,point)
+            self.grap.points.addPoint(self, point)
             if (self.grap.points.getNumberPoints() == 4):
                 self.grap.createItems()
                 self.clicked.disconnect(self.clickSelector)
@@ -745,13 +762,17 @@ class SelectorWidget(QtGui.QGraphicsView):
     def getScale(self):
         return self.invfactor
 
-    def createNodesBase(self, points = None):
+    def createNodesBase(self, points = None, angles = None):
 
         node1 = Node(self, "n1")
+        node1.setColor(points_colors[0])
         node2 = Node(self, "n2")
+        node2.setColor(points_colors[1])
         node3 = Node(self, "n3")
+        node3.setColor(points_colors[2])
         node4 = Node(self, "n4")
-        #nodeC = Node(self, "nc")
+        node4.setColor(points_colors[3])
+
 
         if (points != None):
             node1.setPos(points[0].pos().x(), points[0].pos().y())
@@ -759,24 +780,24 @@ class SelectorWidget(QtGui.QGraphicsView):
             node3.setPos(points[2].pos().x(), points[2].pos().y())
             node4.setPos(points[3].pos().x(), points[3].pos().y())
         else:
-            node1.setPos(200, 200)
-            node2.setPos(400, 200)
-            node3.setPos(400, 400)
-            node4.setPos(200, 400)
+            node1.setPos(POINTS_DEFAULT[0][0], POINTS_DEFAULT[0][1])
+            node2.setPos(POINTS_DEFAULT[1][0], POINTS_DEFAULT[1][1])
+            node3.setPos(POINTS_DEFAULT[2][0], POINTS_DEFAULT[2][1])
+            node4.setPos(POINTS_DEFAULT[3][0], POINTS_DEFAULT[3][1])
 
 
-        bezier12, bezier21 = node1.vincule(node2,ANGLES[0][1],ANGLES[1][0],self)
-        bezier23, bezier32 = node2.vincule(node3,ANGLES[1][2],ANGLES[2][1],self)
-        bezier34, bezier43 = node3.vincule(node4,ANGLES[2][3],ANGLES[3][2],self)
-        bezier41, bezier14 = node4.vincule(node1,ANGLES[3][0],ANGLES[0][3],self)
-        """
-        node1.setZValue(10)
-        node2.setZValue(10)
-        node3.setZValue(10)
-        node4.setZValue(10)
-        """
+        if (angles != None):
+            bezier12, bezier21 = node1.vincule(node2, angles[0][1], angles[1][0], self)
+            bezier23, bezier32 = node2.vincule(node3, angles[1][2], angles[2][1], self)
+            bezier34, bezier43 = node3.vincule(node4, angles[2][3], angles[3][2], self)
+            bezier41, bezier14 = node4.vincule(node1, angles[3][0], angles[0][3], self)
+        else:
+            bezier12, bezier21 = node1.vincule(node2, ANGLES_DEFAULT[0][1], ANGLES_DEFAULT[1][0], self)
+            bezier23, bezier32 = node2.vincule(node3, ANGLES_DEFAULT[1][2], ANGLES_DEFAULT[2][1], self)
+            bezier34, bezier43 = node3.vincule(node4, ANGLES_DEFAULT[2][3], ANGLES_DEFAULT[3][2], self)
+            bezier41, bezier14 = node4.vincule(node1, ANGLES_DEFAULT[3][0], ANGLES_DEFAULT[0][3], self)
+
         return [node1, node2, node3, node4]
-        #return Shape(nodes, name, shapeDest)
 
 
     def createItems(self):
