@@ -44,7 +44,6 @@ class WindowSapito(QtGui.QMainWindow):
         self.selectorWidget = SelectorWidget()
 
         selectorLayout.addWidget(self.selectorWidget)
-        #selectorLayout.addWidget(self.buttonShape)
 
         centralWidget = QtGui.QWidget()
 
@@ -57,11 +56,13 @@ class WindowSapito(QtGui.QMainWindow):
 
         #Este widget muestra la imagen proyectada y segmentada.
         self.imageResult = QtGui.QLabel()
-        self.imageResult.resize(300, 300)
+        #self.imageResult.resize(300, 300)
+        self.imageResult.resize(100, 100)
 
         #Este widget muestra la imagen proyectada.
         self.imageTransform = QtGui.QLabel()
-        self.imageTransform.resize(300, 300)
+        #self.imageTransform.resize(300, 300)
+        self.imageTransform.resize(100, 100)
 
         self.showMaximized()
 
