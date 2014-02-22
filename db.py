@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, LargeBinary, PickleType, ForeignKey
+from sqlalchemy import Column, Integer, String, LargeBinary, PickleType, ForeignKey, DateTime, Float, Text
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,35 +20,69 @@ class ManagerBase(object):
     self.session = Session()
     Base.metadata.create_all(self.engine)#Las tablas que ya existen no se tocan
 
-  def crear_individuo(self, img_original, img_transformada, img_segmentada, vector_regiones, dicc_datos):
+  #TODO: refactorizar la forma de crear individuos
+  def crear_individuo(self, img_original, img_transformada, img_segmentada, vector_regiones, \
+      sexo, observaciones_individuo,\
+      fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
+      nombre, apellido, email):
     """
     Creamos un nuevo Individuo y una Captura asociada a este, a partir de las imagenes que recibimos como
     parametros.
     Las imagenes son del tipo QImage.
     """
-    nuevo_individuo = Individuo(dicc_datos["nombre"])
-    #TODO: pasar otros parametros del dicc
-    captura = Captura(
-        self.imagen_a_bytes(img_original),
-        self.imagen_a_bytes(img_transformada),
-        self.imagen_a_bytes(img_segmentada),
-        vector_regiones
+    nuevo_individuo = Individuo(sexo, observaciones_individuo)
+    captura = self.crear_captura(
+        nuevo_individuo,
+        img_original,
+        img_transformada,
+        img_segmentada,
+        vector_regiones,
+        fecha,
+        lat,
+        lon,
+        acompaniantes,
+        observaciones_captura,
+        nombre_imagen,
+        puntos,
+        angulos,
+        largos,
+        nombre,
+        apellido,
+        email
         )
     nuevo_individuo.capturas.append(captura)
     self.session.add(nuevo_individuo)
     self.session.commit()
 
-  def crear_captura(self, id_individuo, img_original, img_transformada, img_segmentadas, vector_regiones, dicc_datos):
+  def crear_captura(self, individuo, img_original, img_transformada, img_segmentadas, vector_regiones,\
+      fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
+      nombre, apellido, email):
     #TODO: dicc_datos no se usa para nada todavia
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
           self.imagen_a_bytes(img_transformada),
           self.imagen_a_bytes(img_segmentadas),
-          vector_regiones
+          vector_regiones,
+          fecha,
+          lat,
+          lon,
+          acompaniantes,
+          observaciones_captura,
+          nombre_imagen,
+          puntos,
+          angulos,
+          largos
           )
-    individuo = self.get_individuo(id_individuo)
-    individuo.capturas.append(nueva_captura)
+    fotografo = Fotografo(
+        nombre,
+        apellido,
+        email
+        )
+    fotografo.capturas.append(nueva_captura)
+    self.session.add(nueva_captura)
+    self.session.add(fotografo)
     self.session.commit()
+    return nueva_captura
 
   def get_individuo(self, individuo_id):
     """
@@ -66,10 +100,11 @@ class ManagerBase(object):
     if not ind is None:
       return {
           "imagenes_transformadas": [self.bytes_a_imagen(x.imagen_transformada) for x in capturas],
-          "nombre": ind.nombre
+          "sexo": ind.sexo,
+          "observaciones": ind.observaciones
           }
     else:
-      None
+      return None
 
   def bytes_a_imagen(self, datos_imagen):
     """ Crea un QImage a partir de un LargeBinary/QByteArray """
@@ -96,9 +131,10 @@ class ManagerBase(object):
     estructura de retorno: es una lista donde cada posicion tiene:
     {
     id: id individuo,
-    dicc_datos: datos del individuo,
     imagen: primer captura a mostrar del individuo
     lista_imagenes: lista de QImage de las capturas
+    sexo: el sexo del individuo
+    observaciones: las observaciones del individuo
     }
     """
     mejores = []
@@ -109,7 +145,6 @@ class ManagerBase(object):
     agregados = set()#Guardamos los ids que ya agregamos
     idx = 0
     while idx < len(mejores) and len(agregados) < 10:
-      #for i in mejores:
       i = mejores[idx]
       if not i[1].individuo.id in agregados:
         agregados.add(i[1].individuo.id)
@@ -119,7 +154,7 @@ class ManagerBase(object):
               "imagen" : self.bytes_a_imagen(i[1].imagen_transformada),
               #todas las capturas del individuo asociado a la captura
               "lista_imagenes" : [self.bytes_a_imagen(j.imagen_transformada) for j in i[1].individuo.capturas],
-              "dicc_datos" : {"nombre" : i[1].individuo.nombre},
+              "dicc_datos" : {"sexo" : i[1].individuo.sexo, "observaciones": i[1].individuo.observaciones},
               }
         )
       idx += 1
@@ -143,7 +178,7 @@ class ManagerBase(object):
           "imagen" : self.bytes_a_imagen(individuo.capturas[0].imagen_transformada),
           #todas las capturas del individuo asociado a la captura
           "lista_imagenes" : [self.bytes_a_imagen(j.imagen_transformada) for j in individuo.capturas],
-          "dicc_datos" : {"nombre" : individuo.nombre},
+          "dicc_datos" : {"sexo" : individuo.sexo, "observaciones": individuo.observaciones},
           }
     return ret
 
@@ -156,28 +191,64 @@ class Captura(Base):
   imagen_transformada = deferred(Column(LargeBinary))
   imagen_segmentada = deferred(Column(LargeBinary))
   area_por_region = Column(PickleType)#lista con la cantidad de area por region
-  #TODO: agregar otros atributos
-  #ubicacion
-  #hora de captura
+  fecha = Column(DateTime)
+  lat = Column(Float)
+  lon = Column(Float)
+  fotografo_id = Column(Integer, ForeignKey('fotografo.id'))
+  cantidad_acompaniantes = Column(Integer)
+  observaciones = Column(Text)
+  nombre_imagen = Column(String)
+  puntos = Column(PickleType)
+  angulos = Column(PickleType)
+  largos = Column(PickleType)
 
-  def __init__(self, img_original, img_trans, img_segmentada, area_por_region):
+  def __init__(self, img_original, img_trans, img_segmentada, area_por_region,\
+      fecha, lat, lon, acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos):
     self.imagen_original = img_original
     self.imagen_transformada = img_trans
     self.imagen_segmentada = img_segmentada
     self.area_por_region = area_por_region
+    self.fecha = fecha
+    self.lat = lat
+    self.lon = lon
+    self.cantidad_acompaniantes = acompaniantes
+    self.observaciones = observaciones
+    self.nombre_imagen = nombre_imagen
+    self.puntos = puntos
+    self.angulos = angulos
+    self.largos = largos
 
   def __repr__(self):
     return "<Captura('%s')>" % (self.id)
+
+class Fotografo(Base):
+  __tablename__ = 'fotografo'
+
+  id = Column(Integer, primary_key=True)
+  nombre = Column(String(100))
+  apellido = Column(String(100))
+  email = Column(String(100))
+  capturas = relationship("Captura", backref="fotografo")
+
+  def __init__(self, nombre, apellido, email):
+    self.nombre = nombre
+    self.apellido = apellido
+    self.email = email
+
+  def __repr__(self):
+    return "<Fotografo('%s','%s','%s')>" % (self.nombre, self.apellido, self.email)
 
 class Individuo(Base):
   __tablename__ = 'individuo'
 
   id = Column(Integer, primary_key=True)
-  nombre = Column(String(100))
   capturas = relationship("Captura", backref="individuo")
+  sexo = Column(String)
+  observaciones = Column(Text)
 
-  def __init__(self, nombre):
-    self.nombre = nombre
+  def __init__(self, sexo, observaciones):
+    self.sexo = sexo
+    self.observaciones = observaciones
 
   def __repr__(self):
-    return "<Individuo('%s')>" % (self.nombre)
+    return "<Individuo('%s')>" % (self.id)
