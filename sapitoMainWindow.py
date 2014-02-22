@@ -5,7 +5,8 @@ from PySide import QtCore, QtGui
 from transformedWidget import *
 from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
     WidgetBotonesAgregarCaptura, \
-    WidgetListaIndividuosStandaloneScroleable
+    WidgetListaIndividuosStandaloneScroleable, \
+    WidgetAgregarFotografo
 from db import ManagerBase
 from imagen import ImagenQImage
 import aplicar_algoritmos as algoritmos
@@ -182,6 +183,14 @@ class WindowSapito(QtGui.QMainWindow):
         self.lista_individuos = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
         self.lista_individuos.show()
 
+    def add_photographer(self):
+      """
+      Muestra el widget a usar para agregar un Fotografo
+      """
+      self.add_photographer_widget = WidgetAgregarFotografo()
+      self.add_photographer_widget.show()
+
+
     def createActions(self):
         self.openAct = QtGui.QAction("&Open...", self,
                 shortcut="Ctrl+O", enabled=True, triggered=self.open)
@@ -198,11 +207,13 @@ class WindowSapito(QtGui.QMainWindow):
                 shortcut="Ctrl+R", enabled=True, triggered=self.selectorWidget.rotateImage)
         self.transformAct = QtGui.QAction("&Transform", self,
                 shortcut="Ctrl+T", enabled=True, triggered=self.transform)
+        self.add_photographer_act = QtGui.QAction("Add Photographer", self, enabled=True, triggered=self.add_photographer)
 
     def createMenus(self):
         self.fileMenu = QtGui.QMenu("&File", self)
         self.fileMenu.addAction(self.openAct)
         self.fileMenu.addAction(self.view_all_act)
+        self.fileMenu.addAction(self.add_photographer_act)
 
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.exitAct)
