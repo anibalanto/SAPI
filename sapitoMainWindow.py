@@ -115,6 +115,7 @@ class WindowSapito(QtGui.QMainWindow):
                 if (self.iniciadaUIResult):
                     self.hideUIResult()
             self.selectorWidget.addImage(self.q_img)
+            self.setWindowTitle(self.filename)
 
 
     def open(self):
