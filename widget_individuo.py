@@ -300,7 +300,7 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     WidgetNuevoIndividuo(self.parent)
 
   def launchAgrCaptura(self):
-    WidgetAgregarCaptura(self.parent)
+    WidgetAgregarCapturaConBotonGuardar(self.parent)
     print self.parent.iRadioChecked
     if (self.parent.iRadioChecked != -1):
       self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
@@ -313,28 +313,59 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     self.iniciar_ui()
 
   def iniciar_ui(self):
-    self.labeld = QtGui.QLabel("Fecha: ")
-    self.labell = QtGui.QLabel("LatLon: ")
-    self.editd = QtGui.QCalendarWidget()
-    self.editl = QtGui.QLineEdit()
+    self.fecha = QtGui.QDateTimeEdit()
+    self.latitud = QtGui.QLineEdit()
+    self.longitud = QtGui.QLineEdit()
+    self.fotografos = QtGui.QListWidget()
+    self.fotografos.addItem("juanjo")
+    self.fotografos.addItem("juanjo2")
+    self.fotografos.addItem("juanjo3")
+    self.fotografos.addItem("juanjo4")
+    self.fotografos.addItem("juanjo5")
+    self.cantidadSapitos = QtGui.QLineEdit()
+    self.observaciones = QtGui.QTextEdit()
+    self.archivo = QtGui.QLineEdit()
 
     qgridLayout = QtGui.QGridLayout()
 
-    qgridLayout.addWidget(self.labeld, 0, 0)
-    qgridLayout.addWidget(self.editd, 0, 1)
-    qgridLayout.addWidget(self.labell, 1, 0)
-    qgridLayout.addWidget(self.editl, 1, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fecha: "), 0, 0)
+    qgridLayout.addWidget(self.fecha, 0, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 1, 0)
+    qgridLayout.addWidget(self.latitud, 1, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 2, 0)
+    qgridLayout.addWidget(self.longitud, 2, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 3, 0)
+    qgridLayout.addWidget(self.fotografos, 3, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 4, 0)
+    qgridLayout.addWidget(self.cantidadSapitos, 4, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 5, 0)
+    qgridLayout.addWidget(self.observaciones, 5, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 6, 0)
+    qgridLayout.addWidget(self.archivo, 6, 1)
 
     self.setLayout(qgridLayout)
-    self.setWindowFlags(QtCore.Qt.Window)
-    #self.setGeometry(300, 300, 600, 400)
+
+
+class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetAgregarCapturaConBotonGuardar, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    qHLayout = QtGui.QHBoxLayout()
+
+    self.setLayout(qHLayout)
+
     self.setWindowTitle("Formulario para agregar nueva captura")
 
     botonGuardar = QtGui.QPushButton("Guardar")
 
     botonGuardar.clicked.connect(self.agregarCaptura)
 
-    qgridLayout.addWidget(botonGuardar, 2, 1)
+    qHLayout.addWidget(WidgetAgregarCaptura(self.parent))
+    qHLayout.addWidget(botonGuardar)
 
     self.show()
 
@@ -342,6 +373,7 @@ class WidgetAgregarCaptura(QtGui.QWidget):
       #self.parent.save({ "nombre" : self.editn.text(), "zona" : self.editz.text()})
       self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
       self.close()
+
 
 class WidgetNuevoIndividuo(QtGui.QWidget):
 
@@ -351,19 +383,27 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     self.iniciar_ui()
 
   def iniciar_ui(self):
-    self.labeln = QtGui.QLabel("Nombre: ")
-    self.labelz = QtGui.QLabel("Zona: ")
-    self.editn = QtGui.QLineEdit()
-    self.editz = QtGui.QLineEdit()
 
+    self.labeln = QtGui.QLabel("Sexo: ")
+    self.labelz = QtGui.QLabel("Observaciones: ")
+    self.radioMasculino = QtGui.QRadioButton("Masculino")
+    self.radioFemenino = QtGui.QRadioButton("Femenino")
+    self.radioNoDeterminado = QtGui.QRadioButton("No determinado")
+    self.textz = QtGui.QTextEdit()
+
+    qHLayout = QtGui.QHBoxLayout()
     qgridLayout = QtGui.QGridLayout()
 
-    qgridLayout.addWidget(self.labeln, 0, 0)
-    qgridLayout.addWidget(self.editn, 0, 1)
-    qgridLayout.addWidget(self.labelz, 1, 0)
-    qgridLayout.addWidget(self.editz, 1, 1)
+    qHLayout.addLayout(qgridLayout)
 
-    self.setLayout(qgridLayout)
+    qgridLayout.addWidget(self.labeln, 0, 0)
+    qgridLayout.addWidget(self.radioMasculino, 0, 1)
+    qgridLayout.addWidget(self.radioFemenino, 1, 1)
+    qgridLayout.addWidget(self.radioNoDeterminado, 2, 1)
+    qgridLayout.addWidget(self.labelz, 3, 0)
+    qgridLayout.addWidget(self.textz, 3, 1)
+
+    self.setLayout(qHLayout)
     self.setWindowFlags(QtCore.Qt.Window)
     #self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Formulario para agregar nuevo individuo")
@@ -372,7 +412,10 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
     botonGuardar.clicked.connect(self.save)
 
-    qgridLayout.addWidget(botonGuardar, 2, 1)
+
+    qHLayout.addWidget(WidgetAgregarCaptura(self.parent))
+    qHLayout.addWidget(botonGuardar)
+
 
     self.show()
 
