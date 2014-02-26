@@ -20,6 +20,19 @@ class ManagerBase(object):
     self.session = Session()
     Base.metadata.create_all(self.engine)#Las tablas que ya existen no se tocan
 
+
+  #TODO: refactorizar la forma de crear individuos
+  def crear_individuo_ret_id(self, sexo, observaciones_individuo):
+    """
+    Creamos un nuevo Individuo y retorna el id del mismo
+    """
+    nuevo_individuo = Individuo(sexo, observaciones_individuo)
+    self.session.add(nuevo_individuo)
+    self.session.commit()
+    return nuevo_individuo.id
+
+
+
   #TODO: refactorizar la forma de crear individuos
   def crear_individuo(self, img_original, img_transformada, img_segmentada, vector_regiones, \
       sexo, observaciones_individuo,\
@@ -54,9 +67,9 @@ class ManagerBase(object):
     self.session.add(nuevo_individuo)
     self.session.commit()
 
-  def crear_captura(self, individuo, img_original, img_transformada, img_segmentadas, vector_regiones,\
+  def crear_captura(self, individuo_id, img_original, img_transformada, img_segmentadas, vector_regiones,\
       fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
-      nombre, apellido, email):
+      fotografo_id):
     #TODO: dicc_datos no se usa para nada todavia
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
@@ -73,14 +86,11 @@ class ManagerBase(object):
           angulos,
           largos
           )
-    fotografo = Fotografo(
-        nombre,
-        apellido,
-        email
-        )
+    fotografo = self.session.query(Fotografo).get(fotografo_id)
+    individuo = self.session.query(Individuo).get(individuo_id)
     fotografo.capturas.append(nueva_captura)
+    individuo.capturas.append(nueva_captura)
     self.session.add(nueva_captura)
-    self.session.add(fotografo)
     self.session.commit()
     return nueva_captura
 

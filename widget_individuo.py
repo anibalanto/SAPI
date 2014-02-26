@@ -202,6 +202,16 @@ class WidgetDatos(QtGui.QWidget):
 
     self.setLayout(grid_lay)
 
+class MyRadioButtonSexo(QtGui.QRadioButton):
+
+  def __init__(self, text, parent):
+    self.parent = parent
+    super(MyRadioButtonSexo, self).__init__(text)
+    self.clicked.connect(self.click)
+
+  def click(self):
+    self.parent.sexo = self.text()
+
 class MyRadioButton(QtGui.QRadioButton):
 
   def __init__(self, parent):
@@ -338,10 +348,10 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     WidgetNuevoIndividuo(self.parent)
 
   def launchAgrCaptura(self):
-    WidgetAgregarCapturaConBotonGuardar(self.parent)
-    print self.parent.iRadioChecked
-    if (self.parent.iRadioChecked != -1):
-      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
+    WidgetNuevaCaptura(self.parent)
+#    print self.parent.iRadioChecked
+#    if (self.parent.iRadioChecked != -1):
+#      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
 
 class WidgetAgregarCaptura(QtGui.QWidget):
 
@@ -350,16 +360,37 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     self.parent = parent
     self.iniciar_ui()
 
+  def guardar(self, individuo_id = None):
+    db_man = ManagerBase()
+    print(individuo_id)
+    if (individuo_id == None):
+      individuo_id = self.parent.radios[self.parent.iRadioChecked].id_individuo
+    img_original = self.parent.q_img
+    img_transformada = self.parent.qimage_transformada
+    img_segmentada = self.parent.qimage_segmentada
+    vector_regiones = self.parent.vector_regiones
+    fecha = self.fecha.dateTime().toPython()
+    lat = self.latitud.text()
+    lon = self.longitud.text()
+    acompaniantes = self.cantidadSapitos.text()
+    observaciones = self.observaciones.toPlainText()
+    nombre_imagen = self.archivo.text()
+    puntos = self.parent.getPoints()
+    angulos = self.parent.getAngles()
+    largos = self.parent.getLarges()
+    fotografo_id = self.fotografos.itemData(self.fotografos.currentIndex())
+    if (individuo_id and img_original and img_segmentada and img_transformada):
+      db_man.crear_captura(individuo_id, img_original, img_transformada, img_segmentada, vector_regiones, fecha, lat, lon,\
+                           acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos, fotografo_id)
+      self.close()
+
   def iniciar_ui(self):
     self.fecha = QtGui.QDateTimeEdit()
     self.latitud = QtGui.QLineEdit()
     self.longitud = QtGui.QLineEdit()
-    self.fotografos = QtGui.QListWidget()
-    self.fotografos.addItem("juanjo")
-    self.fotografos.addItem("juanjo2")
-    self.fotografos.addItem("juanjo3")
-    self.fotografos.addItem("juanjo4")
-    self.fotografos.addItem("juanjo5")
+    self.fotografos = QtGui.QComboBox()
+    for fotografo in ManagerBase().all_fotografos():
+        self.fotografos.addItem(fotografo.apellido + " " + fotografo.nombre, fotografo.id)
     self.cantidadSapitos = QtGui.QLineEdit()
     self.observaciones = QtGui.QTextEdit()
     self.archivo = QtGui.QLineEdit()
@@ -391,6 +422,7 @@ class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
     self.parent = parent
     self.iniciar_ui()
 
+
   def iniciar_ui(self):
     qHLayout = QtGui.QHBoxLayout()
 
@@ -400,17 +432,43 @@ class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
 
     botonGuardar = QtGui.QPushButton("Guardar")
 
-    botonGuardar.clicked.connect(self.agregarCaptura)
+    self.widgetCaptura = WidgetAgregarCaptura(self.parent)
 
-    qHLayout.addWidget(WidgetAgregarCaptura(self.parent))
+    botonGuardar.clicked.connect(self.widgetCaptura.guardar)
+
+    qHLayout.addWidget(self.widgetCaptura)
     qHLayout.addWidget(botonGuardar)
 
     self.show()
 
-  def agregarCaptura(self):
-      #self.parent.save({ "nombre" : self.editn.text(), "zona" : self.editz.text()})
-      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
-      self.close()
+class WidgetNuevaCaptura(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetNuevaCaptura, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def guardar(self):
+    self.widgetAgregarCaptura.guardar()
+    self.close()
+
+  def iniciar_ui(self):
+
+    qHLayout = QtGui.QHBoxLayout()
+    self.setLayout(qHLayout)
+    self.setWindowFlags(QtCore.Qt.Window)
+    self.setWindowTitle("Formulario para agregar nueva captura")
+
+    botonGuardar = QtGui.QPushButton("Guardar")
+
+    self.widgetAgregarCaptura = WidgetAgregarCaptura(self.parent)
+    botonGuardar.clicked.connect(self.guardar)
+    qHLayout.addWidget(self.widgetAgregarCaptura)
+    qHLayout.addWidget(botonGuardar)
+
+
+    self.show()
+
 
 
 class WidgetNuevoIndividuo(QtGui.QWidget):
@@ -420,14 +478,23 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     self.parent = parent
     self.iniciar_ui()
 
+  def guardar(self):
+    db_man = ManagerBase()
+    sexo = self.sexo
+    observaciones_individuo = self.texto.toPlainText()
+    individuo_id = db_man.crear_individuo_ret_id(sexo, observaciones_individuo)
+    self.widgetAgregarCaptura.guardar(individuo_id)
+    self.close()
+
   def iniciar_ui(self):
 
+    self.sexo = "Masculino"
     self.labeln = QtGui.QLabel("Sexo: ")
     self.labelz = QtGui.QLabel("Observaciones: ")
-    self.radioMasculino = QtGui.QRadioButton("Masculino")
-    self.radioFemenino = QtGui.QRadioButton("Femenino")
-    self.radioNoDeterminado = QtGui.QRadioButton("No determinado")
-    self.textz = QtGui.QTextEdit()
+    self.radioMasculino = MyRadioButtonSexo("Masculino", self)
+    self.radioFemenino = MyRadioButtonSexo("Femenino", self)
+    self.radioNoDeterminado = MyRadioButtonSexo("No determinado", self)
+    self.texto = QtGui.QTextEdit()
 
     qHLayout = QtGui.QHBoxLayout()
     qgridLayout = QtGui.QGridLayout()
@@ -439,7 +506,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     qgridLayout.addWidget(self.radioFemenino, 1, 1)
     qgridLayout.addWidget(self.radioNoDeterminado, 2, 1)
     qgridLayout.addWidget(self.labelz, 3, 0)
-    qgridLayout.addWidget(self.textz, 3, 1)
+    qgridLayout.addWidget(self.texto, 3, 1)
 
     self.setLayout(qHLayout)
     self.setWindowFlags(QtCore.Qt.Window)
@@ -448,18 +515,14 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
     botonGuardar = QtGui.QPushButton("Guardar")
 
-    botonGuardar.clicked.connect(self.save)
+    botonGuardar.clicked.connect(self.guardar)
 
-
-    qHLayout.addWidget(WidgetAgregarCaptura(self.parent))
+    self.widgetAgregarCaptura = WidgetAgregarCaptura(self.parent)
+    qHLayout.addWidget(self.widgetAgregarCaptura)
     qHLayout.addWidget(botonGuardar)
 
 
     self.show()
-
-  def save(self):
-    self.parent.saveIndividuo({"nombre" : self.editn.text(), "zona" : self.editz.text()})
-    self.close()
 
 def main():
   app = QtGui.QApplication(sys.argv)

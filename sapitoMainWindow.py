@@ -231,11 +231,20 @@ class WindowSapito(QtGui.QMainWindow):
         self.menuBar().addMenu(self.viewMenu)
         self.menuBar().addMenu(self.transformMenu)
 
-    def saveIndividuo(self, attr):
-        self.db_man.crear_individuo(self.q_img, self.qimage_transformada, self.qimage_segmentada, self.vector_regiones, attr)
+#    def saveIndividuo(self, attr):
+#        self.db_man.crear_individuo(self.q_img, self.qimage_transformada, self.qimage_segmentada, self.vector_regiones, attr)
 
-    def agregarCaptura(self, id_individuo, attr):
-        self.db_man.crear_captura(id_individuo, self.q_img, self.qimage_transformada, self.qimage_segmentada, self.vector_regiones, attr)
+#    def agregarCaptura(self, id_individuo, attr):
+#        self.db_man.crear_captura(id_individuo, self.q_img, self.qimage_transformada, self.qimage_segmentada, self.vector_regiones, attr)
+
+    def getPoints(self):
+        return self.selectorWidget.getPoints()
+
+    def getAngles(self):
+        return self.selectorWidget.getAngles()
+
+    def getLarges(self):
+        return self.selectorWidget.getLarges()
 
 def main():
     app = QtGui.QApplication(sys.argv)

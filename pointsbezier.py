@@ -384,12 +384,22 @@ class Point(QtGui.QGraphicsItem):
         painter.setPen(QtGui.QPen(self.color, 2 * self.graphWidget.getScale(), QtCore.Qt.SolidLine))
         painter.drawEllipse(-5 * self.graphWidget.getScale(), -5 * self.graphWidget.getScale(), 10 * self.graphWidget.getScale(), 10 * self.graphWidget.getScale())
 
+
+class BezierCero(object):
+  
+  def getAngle(self):
+     return 0
+
+  def getLarge(self):
+      return 0
+
 class Bezier(Point):
     Type = QtGui.QGraphicsItem.UserType + 5
 
     Pi = math.pi
     TwoPi = 2 * math.pi
     def __init__(self, graphWidget, node, nodeDest, definator = None):
+        self.setLarge(FACTOR_BEZIER)
         self.node = node
         self.name = "v" + node.name + nodeDest.name
         self.nodeDest = nodeDest
@@ -399,10 +409,8 @@ class Bezier(Point):
         self.define(definator)
         self.vectorToDest2 = self.vectorToDest
 
-    """
-    def setShape(self, shape):
-        self.shape = shape
-    """
+    def setLarge(self, large):
+        self.large = large
 
     def adjust(self):
         self.updateVector()
@@ -429,7 +437,7 @@ class Bezier(Point):
         super(Bezier, self).setPos(pos)
 
     def posDefault(self):
-        self.updateVector(self.getVectorToDest() * FACTOR_BEZIER)
+        self.updateVector(self.getVectorToDest() * self.large)
         return self.vector.toPointF()
 
     def getFactor(self):
@@ -511,6 +519,13 @@ class Bezier(Point):
         #self.scale = 1.0
         #adjust = 2000.0
         #return QtCore.QRectF(self.scale * (-10 - adjust), self.scale * (-10 - adjust), self.scale * (23 + adjust), self.scale * (23 + adjust))
+
+    def getAngle(self):
+        return self.getRadians()
+
+    def getLarge(self):
+        return self.large
+
 
 class AngleDefinator(object):
 
@@ -725,6 +740,20 @@ class SelectorWidget(QtGui.QGraphicsView):
             i += 1
         return points
 
+    def getAngles(self):
+        angles = [[0 for y in range(4)] for x in range(4)]
+        for i in range(3):
+            for j in range(3):
+                angles[i][j] = self.beziers[i][j].getAngle()
+        return angles
+
+    def getLarges(self):
+        larges = [[0 for y in range(4)] for x in range(4)]
+        for i in range(3):
+            for j in range(3):
+                larges[i][j] = self.beziers[i][j].getLarge()
+        return larges
+
     def getPointsDest(self):
         return self.shape.getPointsDest()
 
@@ -762,7 +791,8 @@ class SelectorWidget(QtGui.QGraphicsView):
     def getScale(self):
         return self.invfactor
 
-    def createNodesBase(self, points = None, angles = None):
+    def createNodesBase(self, points = None, angles = None, larges = None):
+        self.beziers = [[BezierCero() for y in range(4)] for x in range(4)]
 
         node1 = Node(self, "n1")
         node1.setColor(points_colors[0])
@@ -787,15 +817,26 @@ class SelectorWidget(QtGui.QGraphicsView):
 
 
         if (angles != None):
-            bezier12, bezier21 = node1.vincule(node2, angles[0][1], angles[1][0], self)
-            bezier23, bezier32 = node2.vincule(node3, angles[1][2], angles[2][1], self)
-            bezier34, bezier43 = node3.vincule(node4, angles[2][3], angles[3][2], self)
-            bezier41, bezier14 = node4.vincule(node1, angles[3][0], angles[0][3], self)
+            self.beziers[0][1], self.beziers[1][0] = node1.vincule(node2, angles[0][1], angles[1][0], self)
+            self.beziers[0][1].setLarge(larges[0][1])
+            self.beziers[1][0].setLarge(larges[1][0])
+
+            self.beziers[1][2], self.beziers[2][1] = node2.vincule(node3, angles[1][2], angles[2][1], self)
+            self.beziers[1][2].setLarge(larges[1][2])
+            self.beziers[2][1].setLarge(larges[2][1])
+
+            self.beziers[2][3], self.beziers[3][2] = node3.vincule(node4, angles[2][3], angles[3][2], self)
+            self.beziers[2][3].setLarge(larges[2][3])
+            self.beziers[3][2].setLarge(larges[3][2])
+
+            self.beziers[3][0], self.beziers[0][3] = node4.vincule(node1, angles[3][0], angles[0][3], self)
+            self.beziers[3][0].setLarge(larges[3][0])
+            self.beziers[0][3].setLarge(larges[0][3])
         else:
-            bezier12, bezier21 = node1.vincule(node2, ANGLES_DEFAULT[0][1], ANGLES_DEFAULT[1][0], self)
-            bezier23, bezier32 = node2.vincule(node3, ANGLES_DEFAULT[1][2], ANGLES_DEFAULT[2][1], self)
-            bezier34, bezier43 = node3.vincule(node4, ANGLES_DEFAULT[2][3], ANGLES_DEFAULT[3][2], self)
-            bezier41, bezier14 = node4.vincule(node1, ANGLES_DEFAULT[3][0], ANGLES_DEFAULT[0][3], self)
+            self.beziers[0][1], self.beziers[1][0] = node1.vincule(node2, ANGLES_DEFAULT[0][1], ANGLES_DEFAULT[1][0], self)
+            self.beziers[1][2], self.beziers[2][1] = node2.vincule(node3, ANGLES_DEFAULT[1][2], ANGLES_DEFAULT[2][1], self)
+            self.beziers[2][3], self.beziers[3][2] = node3.vincule(node4, ANGLES_DEFAULT[2][3], ANGLES_DEFAULT[3][2], self)
+            self.beziers[3][0], self.beziers[0][3] = node4.vincule(node1, ANGLES_DEFAULT[3][0], ANGLES_DEFAULT[0][3], self)
 
         return [node1, node2, node3, node4]
 
