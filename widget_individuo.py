@@ -362,7 +362,6 @@ class WidgetAgregarCaptura(QtGui.QWidget):
 
   def guardar(self, individuo_id = None):
     db_man = ManagerBase()
-    print(individuo_id)
     if (individuo_id == None):
       individuo_id = self.parent.radios[self.parent.iRadioChecked].id_individuo
     img_original = self.parent.q_img

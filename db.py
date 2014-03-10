@@ -13,7 +13,6 @@ from PySide import QtCore, QtGui
 #DBPATH = "sqlite:///database.db"
 DBPATH = "postgresql+psycopg2://postgres:postgres@localhost:5432/sapitosierra"
 
-
 Base = declarative_base()
 
 class ManagerBase(object):
@@ -33,8 +32,6 @@ class ManagerBase(object):
     self.session.add(nuevo_individuo)
     self.session.commit()
     return nuevo_individuo.id
-
-
 
   #TODO: refactorizar la forma de crear individuos
   def crear_individuo(self, img_original, img_transformada, img_segmentada, vector_regiones, \
@@ -121,7 +118,7 @@ class ManagerBase(object):
 
   def bytes_a_imagen(self, datos_imagen):
     """ Crea un QImage a partir de un LargeBinary/QByteArray """
-    ba = QtCore.QByteArray(datos_imagen)
+    ba = QtCore.QByteArray.fromBase64(datos_imagen)
     image = QtGui.QImage.fromData(ba)
     return image
 
@@ -132,7 +129,7 @@ class ManagerBase(object):
     buff.open(QtCore.QIODevice.WriteOnly)
     #TODO: Ojo con JPG!!
     imagen.save(buff, "JPG")
-    return ba
+    return ba.toBase64().data()
 
   def calc_distancia(self, v1, v2):
     #TODO: que no haga falta pasar a array
