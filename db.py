@@ -10,7 +10,10 @@ import numpy as np
 
 from PySide import QtCore, QtGui
 
-DBPATH = "sqlite:///database.db"
+#DBPATH = "sqlite:///database.db"
+DBPATH = "postgresql+psycopg2://postgres:postgres@localhost:5432/sapitosierra"
+
+
 Base = declarative_base()
 
 class ManagerBase(object):
