@@ -4,7 +4,6 @@ import sys
 from PySide import QtGui
 
 def warpImage(image, corners, target, width, height):
-    #print "warpImage: corn: %s, tar: %s, (w: %s, h: %s)"% (corners, target, width, height)
     mat_trans = getMat(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
     size = (width, height)
     return cv2.warpPerspective(image, M=mat_trans, dsize=size, flags=cv2.INTER_CUBIC)
@@ -12,11 +11,9 @@ def warpImage(image, corners, target, width, height):
 def getMat(corners, target):
     return cv2.getPerspectiveTransform(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))
 
-
 def proyectCoord(coord, mat):
     x = proyectX(coord.x(), coord.y(), mat)
     y = proyectY(coord.x(), coord.y(), mat)
-    #print "proyectPos: %s ----> (%f, %f)"% (coord.toTuple(), x, y)
     coord.setX(x)
     coord.setY(y)
     return coord
@@ -26,7 +23,6 @@ def proyectPolygon(polygon, mat):
     for coord in polygon.toList():
         newCoord = proyectCoord(coord, mat)
         newPolygon.append(newCoord)
-    #print "newPolygon: ", newPolygon.toList()
     return newPolygon
 
 def proyectX(x, y, mat):

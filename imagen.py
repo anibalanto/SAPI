@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import Image
-import tempfile
+#import Image
+#import tempfile
 from PySide.QtGui import QImage, qRgb, qRed, qGreen, qBlue
 import cv2
 
@@ -99,7 +99,7 @@ class ImagenQImage(BaseImagen):
     dst = cv2.cvtColor(img_opencv, cv2.COLOR_BGR2RGB)
     qim = QImage(dst.data, dst.shape[1], dst.shape[0], dst.strides[0], QImage.Format_RGB888)
     self.img = qim.copy()
-
+'''
 class ImagenPIL(BaseImagen):
   def __init__(self):
     super(ImagenPIL, self).__init__()
@@ -155,6 +155,7 @@ class ImagenPIL(BaseImagen):
   def tostring(self, arg1, arg2):
       return self.img.convert("RGBA").tostring(arg1, arg2)
 
+'''
 def ImagenArchivo(filename):
   ret = ImagenQImage()#_cls()
   #ret = ImagenPIL()
