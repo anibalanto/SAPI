@@ -1,9 +1,11 @@
-from PySide import QtCore, QtGui
+from PySide import QtGui
+#from PySide import QtCore
 import cv2 as cv
-import cStringIO
-import Image
+#import cStringIO
+#import Image
 
 
+"""
 def QImageToImagePIL(qimage):
     buff = QtCore.QBuffer()
     buff.open(QtCore.QIODevice.ReadWrite)
@@ -14,6 +16,7 @@ def QImageToImagePIL(qimage):
     buff.close()
     strio.seek(0)
     return Image.open(strio)
+"""
 
 
 def OpenCVImageToQImage(openCVImage):
