@@ -396,20 +396,21 @@ class WidgetAgregarCaptura(QtGui.QWidget):
 
     qgridLayout = QtGui.QGridLayout()
 
-    qgridLayout.addWidget(QtGui.QLabel("Fecha: "), 0, 0)
-    qgridLayout.addWidget(self.fecha, 0, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 1, 0)
-    qgridLayout.addWidget(self.latitud, 1, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 2, 0)
-    qgridLayout.addWidget(self.longitud, 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 3, 0)
-    qgridLayout.addWidget(self.fotografos, 3, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 4, 0)
-    qgridLayout.addWidget(self.cantidadSapitos, 4, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 5, 0)
-    qgridLayout.addWidget(self.observaciones, 5, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 6, 0)
-    qgridLayout.addWidget(self.archivo, 6, 1)
+    qgridLayout.addWidget(QtGui.QLabel("CAPTURA"), 0, 0)
+    qgridLayout.addWidget(QtGui.QLabel("fecha: "), 1, 0)
+    qgridLayout.addWidget(self.fecha, 1, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 2, 0)
+    qgridLayout.addWidget(self.latitud, 2, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 3, 0)
+    qgridLayout.addWidget(self.longitud, 3, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 4, 0)
+    qgridLayout.addWidget(self.fotografos, 4, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 5, 0)
+    qgridLayout.addWidget(self.cantidadSapitos, 5, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 6, 0)
+    qgridLayout.addWidget(self.observaciones, 6, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 7, 0)
+    qgridLayout.addWidget(self.archivo, 7, 1)
 
     self.setLayout(qgridLayout)
 
@@ -481,18 +482,22 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     db_man = ManagerBase()
     sexo = self.sexo
     observaciones_individuo = self.texto.toPlainText()
-    individuo_id = db_man.crear_individuo_ret_id(sexo, observaciones_individuo)
-    self.widgetAgregarCaptura.guardar(individuo_id)
-    self.close()
+    try:
+      individuo_id = db_man.crear_individuo_ret_id(sexo, observaciones_individuo)
+      self.widgetAgregarCaptura.guardar(individuo_id)
+      self.close()
+    except:
+      print("herror!")
 
   def iniciar_ui(self):
 
-    self.sexo = "Masculino"
+    self.sexo = "No determinado"
     self.labeln = QtGui.QLabel("Sexo: ")
     self.labelz = QtGui.QLabel("Observaciones: ")
     self.radioMasculino = MyRadioButtonSexo("Masculino", self)
     self.radioFemenino = MyRadioButtonSexo("Femenino", self)
     self.radioNoDeterminado = MyRadioButtonSexo("No determinado", self)
+    self.radioNoDeterminado.setChecked(True)
     self.texto = QtGui.QTextEdit()
 
     qHLayout = QtGui.QHBoxLayout()
@@ -500,12 +505,13 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
     qHLayout.addLayout(qgridLayout)
 
-    qgridLayout.addWidget(self.labeln, 0, 0)
-    qgridLayout.addWidget(self.radioMasculino, 0, 1)
-    qgridLayout.addWidget(self.radioFemenino, 1, 1)
-    qgridLayout.addWidget(self.radioNoDeterminado, 2, 1)
-    qgridLayout.addWidget(self.labelz, 3, 0)
-    qgridLayout.addWidget(self.texto, 3, 1)
+    qgridLayout.addWidget(QtGui.QLabel("INDIVIDUO"), 0, 0)
+    qgridLayout.addWidget(self.labeln, 1, 0)
+    qgridLayout.addWidget(self.radioMasculino, 1, 1)
+    qgridLayout.addWidget(self.radioFemenino, 2, 1)
+    qgridLayout.addWidget(self.radioNoDeterminado, 3, 1)
+    qgridLayout.addWidget(self.labelz, 4, 0)
+    qgridLayout.addWidget(self.texto, 4, 1)
 
     self.setLayout(qHLayout)
     self.setWindowFlags(QtCore.Qt.Window)
