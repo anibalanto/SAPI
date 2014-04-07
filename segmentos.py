@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from imagen import ImagenPIL
+from imagen import ImagenVacia
 
 class Segmento(object):
   def __init__(self):
@@ -174,7 +174,7 @@ class SegmentoManager(object):
     self.mat[x][y] = seg
 
   def toImage(self):
-    imagen = ImagenPIL()
+    imagen = ImagenVacia((self.ancho, self.alto))
     for segmento in self.get_segmentos():
       for xy in segmento.get_elementos_enteros():
         imagen.putpixel(xy, (255, 255, 255))

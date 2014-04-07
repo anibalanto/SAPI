@@ -11,8 +11,8 @@ from filtros import UNOS, Filtro
 from colores import BLUE
 import csv
 import sys
-import numpy as np
-import ImageDraw
+#import numpy as np
+#import ImageDraw
 
 
 def cargar(filename):
@@ -173,6 +173,7 @@ def ver_segmentos(img_segmentada, img_perimetros):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   runcode.mostrar_segmentos(segman, img_segmentada.size)
 
+"""
 def probar_momentos(img_original):
   img_segmentada = segmentar(img_original, False)
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
@@ -209,11 +210,10 @@ def probar_momentos(img_original):
 
   img_segmentada.show()
 
-  """
   print "los momentos son: "
   for h, k, i, j in sorted(momentos, key=lambda x: x[3]):
     print "centrales \n{}\n momentos \n{}\n normalizados \n{}\n{}\n".format(h,k,i,j)
-  """
+"""
 def probar_dimension_fractal(img_original):
   img_segmentada = segmentar(img_original, False)
   img_segmentada.show()
@@ -280,6 +280,7 @@ def probar_superficie_ocupada(img_original, img_sup_total):
         return
   superficie_ocupada = float(area_sum) / float(area_sup_total)
 
+"""
 def mostrar_segmentada(img):
   i = img.get_img()
   ancho, alto = img.size
@@ -292,6 +293,7 @@ def mostrar_segmentada(img):
   dr.line([(0, int(2*alto/3)), (ancho, int(2*alto/3))], fill=BLUE)
 
   i.show()
+"""
 
 
 def calcular_regiones(img_original):
@@ -316,7 +318,7 @@ def main():
     #probar_perimetro(original)
     #generar_csv(original, sys.argv[1], True, True, False)
     #probar_momentos(original)
-    probar_areas_regiones(original)
+    #probar_areas_regiones(original)
     #segmentada = segmentar(original, True)
     #ver_segmentos(segmentada, runcode.get_img_perimetros(segmentada))
 
