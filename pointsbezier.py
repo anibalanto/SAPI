@@ -866,7 +866,13 @@ class SelectorWidget(QtGui.QGraphicsView):
     def imageShapeDest(self):
         return self.shape.getShapeDest().getImage()
 
+
     def reset(self):
+        self.resetShape()
+        self.resetTransform()
+        self.resetScene()
+
+    def resetShape(self):
         if(self.shape != None):
             self.scene().removeItem(self.shape)
             for node in self.shape.getNodes():
@@ -883,7 +889,9 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.clicked.connect(self.clickSelector)
         self.clicked.disconnect(self.clickSelector)
         #print(self.transform())
-        self.resetTransform()
+
+
+    def resetScene(self):
         #print(self.transform())
         if (len(list(self.scene().items())) > 0):
             item = (list(self.scene().items()))[0]

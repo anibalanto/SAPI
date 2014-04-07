@@ -2,8 +2,47 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import traceback
 from PySide import QtGui, QtCore
-from db import ManagerBase
+from db import ManagerBase, Fotografo, Zona
+
+class WidgetAgregarZona(QtGui.QWidget):
+  def __init__(self, parent=None):
+    super(WidgetAgregarFotografo, self).__init__(parent)
+    self.setLayout(self.iniciar_ui())
+    self.show()
+
+  def guardar(self):
+    db_man = ManagerBase()
+    n = self.name_input.text()
+    ln = self.lastname_input.text()
+    em = self.email_input.text()
+    if (n and ln and em):
+      db_man.nuevo_fotografo(n, ln, em)
+      self.close()
+
+  def iniciar_ui(self):
+    #labels, inputs y boton guardar
+    self.name_label = QtGui.QLabel("Nombre")
+    self.name_input = QtGui.QLineEdit()
+    self.lastname_label = QtGui.QLabel("Latitud")
+    self.lastname_input = QtGui.QLineEdit()
+    self.email_label = QtGui.QLabel("Longitud")
+    self.email_input = QtGui.QLineEdit()
+    save_button = QtGui.QPushButton("Guardar")
+    save_button.clicked.connect(self.guardar)
+
+    #layout
+    lay = QtGui.QGridLayout()
+    lay.addWidget(self.name_label, 0, 0)
+    lay.addWidget(self.name_input, 0, 1)
+    lay.addWidget(self.lastname_label, 1, 0)
+    lay.addWidget(self.lastname_input, 1, 1)
+    lay.addWidget(self.email_label, 2, 0)
+    lay.addWidget(self.email_input, 2, 1)
+    lay.addWidget(save_button, 3, 1)
+    return lay
+
 
 class WidgetAgregarFotografo(QtGui.QWidget):
   def __init__(self, parent=None):
@@ -368,11 +407,11 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     img_transformada = self.parent.qimage_transformada
     img_segmentada = self.parent.qimage_segmentada
     vector_regiones = self.parent.vector_regiones
-    fecha = self.fecha.dateTime().toPython()
-    lat = self.latitud.text()
-    lon = self.longitud.text()
-    acompaniantes = self.cantidadSapitos.text()
-    observaciones = self.observaciones.toPlainText()
+    fecha = self.fecha.dateTime().toPython() if self.fecha.dateTime() != '01/01/2000 00:00:00' else None
+    lat = self.latitud.text() if self.latitud.text() != '' else None
+    lon = self.longitud.text() if self.longitud.text() != '' else None
+    acompaniantes = self.cantidadSapitos.text() if self.cantidadSapitos.text() != '' else None
+    observaciones = self.observaciones.toPlainText() if self.observaciones.toPlainText() != '' else None
     nombre_imagen = self.archivo.text()
     puntos = self.parent.getPoints()
     angulos = self.parent.getAngles()
@@ -387,9 +426,7 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     self.fecha = QtGui.QDateTimeEdit()
     self.latitud = QtGui.QLineEdit()
     self.longitud = QtGui.QLineEdit()
-    self.fotografos = QtGui.QComboBox()
-    for fotografo in ManagerBase().all_fotografos():
-        self.fotografos.addItem(fotografo.apellido + " " + fotografo.nombre, fotografo.id)
+    self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
     self.cantidadSapitos = QtGui.QLineEdit()
     self.observaciones = QtGui.QTextEdit()
     self.archivo = QtGui.QLineEdit()
@@ -414,6 +451,32 @@ class WidgetAgregarCaptura(QtGui.QWidget):
 
     self.setLayout(qgridLayout)
 
+
+class WidgetComboBoxExtensible(QtGui.QWidget):
+
+  def __init__(self, type, parent = None):
+    super(WidgetComboBoxExtensible, self).__init__(parent)
+    self.parent = parent
+    self.type = type
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    self.items = QtGui.QComboBox()
+    for item in ManagerBase().all(self.type):
+        self.items.addItem(item.description(), item.id)
+    self.add_item_button = QtGui.QPushButton("+")
+    self.add_item_button.clicked.connect(self.add_item)
+    self.add_item_button.setMaximumWidth(30)
+    self.hBox = QtGui.QHBoxLayout()
+    self.hBox.addWidget(self.items)
+    self.hBox.addWidget(self.add_item_button)
+    self.setLayout(self.hBox)
+
+  def extend(self, element):
+    self.elements.addItem(element.description(), element.id)
+
+  def add_item(self):
+    self.parent.add_item(self.type)
 
 class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
 
@@ -487,7 +550,9 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
       self.widgetAgregarCaptura.guardar(individuo_id)
       self.close()
     except:
-      print("herror!")
+      print("error!")
+      traceback.print_exc()
+
 
   def iniciar_ui(self):
 

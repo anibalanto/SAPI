@@ -178,6 +178,17 @@ class ManagerBase(object):
   def all_fotografos(self):
     return self.session.query(Fotografo).all()
 
+  def nueva_zona(self, nombre, lat, lon):
+    z = Zona(nombre, lat, lon)
+    self.session.add(z)
+    self.session.commit()
+
+  def all(self, type):
+    return self.session.query(type).all()
+  
+  def all_zonas(self):
+    return self.session.query(Zona).all()
+
   def all_individuos(self):
     """
     Retorna todos los individuos.
@@ -255,6 +266,28 @@ class Fotografo(Base):
 
   def __repr__(self):
     return "<Fotografo('%s','%s','%s')>" % (self.nombre, self.apellido, self.email)
+
+  def description(self):
+    return self.apellido + " " + self.nombre
+
+class Zona(Base):
+  __tablename__ = 'zona'
+
+  id = Column(Integer, primary_key=True)
+  nombre = Column(String(100))
+  lat = Column(Float)
+  lon = Column(Float)
+
+  def __init__(self, nombre, lat, lon):
+    self.nombre = nombre
+    self.lat = lat
+    self.lon = lon
+
+  def __repr__(self):
+    return "<Zona('%s')>" % (self.nombre)
+
+  def description(self):
+    return self.nombre
 
 class Individuo(Base):
   __tablename__ = 'individuo'
