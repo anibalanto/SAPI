@@ -19,9 +19,6 @@ from pointsbezier import *
 
 
 class WindowSapito(QtGui.QMainWindow):
-  add_item_widgets = {Fotografo: WidgetAgregarFotografo,
-                      Zona: WidgetAgregarZona
-  }
 
   def __init__(self, imagen_inicial=None):
     super(WindowSapito, self).__init__()
@@ -196,10 +193,6 @@ class WindowSapito(QtGui.QMainWindow):
       """
     self.add_photographer_widget = WidgetAgregarFotografo()
     self.add_photographer_widget.show()
-
-  def add_item(self, type):
-    self.add_item_widget = self.add_item_widgets[type]()
-    self.add_item_widget.show() 
 
 
   def createActions(self):

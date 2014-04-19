@@ -69,7 +69,7 @@ class ManagerBase(object):
 
   def crear_captura(self, individuo_id, img_original, img_transformada, img_segmentadas, vector_regiones,\
       fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
-      fotografo_id):
+      fotografo_id, zona_id):
     #TODO: dicc_datos no se usa para nada todavia
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
@@ -88,8 +88,10 @@ class ManagerBase(object):
           )
     fotografo = self.session.query(Fotografo).get(fotografo_id)
     individuo = self.session.query(Individuo).get(individuo_id)
+    zona = self.session.query(Zona).get(zona_id)
     fotografo.capturas.append(nueva_captura)
     individuo.capturas.append(nueva_captura)
+    zona.capturas.append(nueva_captura)
     self.session.add(nueva_captura)
     self.session.commit()
     return nueva_captura
@@ -174,6 +176,7 @@ class ManagerBase(object):
     f = Fotografo(nombre, apellido, email)
     self.session.add(f)
     self.session.commit()
+    return f
 
   def all_fotografos(self):
     return self.session.query(Fotografo).all()
@@ -182,9 +185,10 @@ class ManagerBase(object):
     z = Zona(nombre, lat, lon)
     self.session.add(z)
     self.session.commit()
+    return z
 
   def all(self, type):
-    return self.session.query(type).all()
+    return self.session.query(type).order_by(type.order())
   
   def all_zonas(self):
     return self.session.query(Zona).all()
@@ -224,6 +228,7 @@ class Captura(Base):
   lat = Column(Float)
   lon = Column(Float)
   fotografo_id = Column(Integer, ForeignKey('fotografo.id'))
+  zona_id = Column(Integer, ForeignKey('zona.id'))
   cantidad_acompaniantes = Column(Integer)
   observaciones = Column(Text)
   nombre_imagen = Column(String)
@@ -270,6 +275,10 @@ class Fotografo(Base):
   def description(self):
     return self.apellido + " " + self.nombre
 
+  @classmethod
+  def order(cls):
+    return "apellido"
+
 class Zona(Base):
   __tablename__ = 'zona'
 
@@ -277,6 +286,7 @@ class Zona(Base):
   nombre = Column(String(100))
   lat = Column(Float)
   lon = Column(Float)
+  capturas = relationship("Captura", backref="zona")
 
   def __init__(self, nombre, lat, lon):
     self.nombre = nombre
@@ -288,6 +298,10 @@ class Zona(Base):
 
   def description(self):
     return self.nombre
+
+  @classmethod
+  def order(cls):
+    return "nombre"
 
 class Individuo(Base):
   __tablename__ = 'individuo'

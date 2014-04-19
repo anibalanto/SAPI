@@ -7,10 +7,11 @@ from PySide import QtGui, QtCore
 from db import ManagerBase, Fotografo, Zona
 
 class WidgetAgregarZona(QtGui.QWidget):
-  def __init__(self, parent=None):
-    super(WidgetAgregarFotografo, self).__init__(parent)
+  def __init__(self, parent=None, widget_extend = None):
+    super(WidgetAgregarZona, self).__init__(parent)
     self.setLayout(self.iniciar_ui())
     self.show()
+    self.widget_extend = widget_extend
 
   def guardar(self):
     db_man = ManagerBase()
@@ -18,8 +19,10 @@ class WidgetAgregarZona(QtGui.QWidget):
     ln = self.lastname_input.text()
     em = self.email_input.text()
     if (n and ln and em):
-      db_man.nuevo_fotografo(n, ln, em)
+      zona = db_man.nueva_zona(n, ln, em)
       self.close()
+      if self.widget_extend != None:
+        self.widget_extend.extend(zona)
 
   def iniciar_ui(self):
     #labels, inputs y boton guardar
@@ -45,10 +48,11 @@ class WidgetAgregarZona(QtGui.QWidget):
 
 
 class WidgetAgregarFotografo(QtGui.QWidget):
-  def __init__(self, parent=None):
+  def __init__(self, parent=None, widget_extend = None):
     super(WidgetAgregarFotografo, self).__init__(parent)
     self.setLayout(self.iniciar_ui())
     self.show()
+    self.widget_extend = widget_extend
 
   def guardar(self):
     db_man = ManagerBase()
@@ -56,8 +60,10 @@ class WidgetAgregarFotografo(QtGui.QWidget):
     ln = self.lastname_input.text()
     em = self.email_input.text()
     if (n and ln and em):
-      db_man.nuevo_fotografo(n, ln, em)
+      fotografo = db_man.nuevo_fotografo(n, ln, em)
       self.close()
+      if self.widget_extend != None:
+        self.widget_extend.extend(fotografo)
 
   def iniciar_ui(self):
     #labels, inputs y boton guardar
@@ -416,46 +422,87 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     puntos = self.parent.getPoints()
     angulos = self.parent.getAngles()
     largos = self.parent.getLarges()
-    fotografo_id = self.fotografos.itemData(self.fotografos.currentIndex())
+    fotografo_id = self.fotografos.items.itemData(self.fotografos.items.currentIndex())
+    zona_id = self.zona.items.itemData(self.zona.items.currentIndex())
     if (individuo_id and img_original and img_segmentada and img_transformada):
       db_man.crear_captura(individuo_id, img_original, img_transformada, img_segmentada, vector_regiones, fecha, lat, lon,\
-                           acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos, fotografo_id)
+                           acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos, fotografo_id, zona_id)
       self.close()
 
   def iniciar_ui(self):
     self.fecha = QtGui.QDateTimeEdit()
+    self.zona = WidgetComboBoxExtensible(Zona, self.parent)
     self.latitud = QtGui.QLineEdit()
     self.longitud = QtGui.QLineEdit()
     self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
     self.cantidadSapitos = QtGui.QLineEdit()
     self.observaciones = QtGui.QTextEdit()
     self.archivo = QtGui.QLineEdit()
+    self.archivo.setText(self.parent.filename_nopath)
 
     qgridLayout = QtGui.QGridLayout()
 
     qgridLayout.addWidget(QtGui.QLabel("CAPTURA"), 0, 0)
     qgridLayout.addWidget(QtGui.QLabel("fecha: "), 1, 0)
     qgridLayout.addWidget(self.fecha, 1, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 2, 0)
-    qgridLayout.addWidget(self.latitud, 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 3, 0)
-    qgridLayout.addWidget(self.longitud, 3, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 4, 0)
-    qgridLayout.addWidget(self.fotografos, 4, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 5, 0)
-    qgridLayout.addWidget(self.cantidadSapitos, 5, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 6, 0)
-    qgridLayout.addWidget(self.observaciones, 6, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 7, 0)
-    qgridLayout.addWidget(self.archivo, 7, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 2, 0)
+    qgridLayout.addWidget(self.zona, 2, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 3, 0)
+    qgridLayout.addWidget(self.latitud, 3, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 4, 0)
+    qgridLayout.addWidget(self.longitud, 4, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 5, 0)
+    qgridLayout.addWidget(self.fotografos, 5, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 6, 0)
+    qgridLayout.addWidget(self.cantidadSapitos, 6, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
+    qgridLayout.addWidget(self.observaciones, 7, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 8, 0)
+    qgridLayout.addWidget(self.archivo, 8, 1)
 
     self.setLayout(qgridLayout)
 
+class WidgetBuscarIndividuo(QtGui.QWidget):
 
-class WidgetComboBoxExtensible(QtGui.QWidget):
+  def __init__(self, parent = None):
+    super(WidgetBuscarIndividuo, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def buscar(self, individuo_id = None):
+    db_man = ManagerBase()
+
+
+  def iniciar_ui(self):
+    vbox = QtGui.QVBoxLayout()
+    qgridLayout = QtGui.QGridLayout()
+    vbox.addWidget(qgridLayout)
+    self.table = QtGui.QTableWidget(5, 12, self)
+    vbox.addWidget(self.table)
+
+    qgridLayout.addWidget(QtGui.QLabel("id: "), 0, 0)
+    qgridLayout.addWidget(QtGui.QTextEdit(), 0, 1)
+    qgridLayout.addWidget(QtGui.QLabel("fecha inicio: "), 1, 0)
+    qgridLayout.addWidget(QtGui.QCalendarWidget(), 1, 1)
+    qgridLayout.addWidget(QtGui.QLabel("fecha fin: "), 1, 3)
+    qgridLayout.addWidget(QtGui.QCalendarWidget(), 1, 4)
+    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 2, 0)
+    qgridLayout.addWidget(WidgetComboBoxType(Zona, self.parent), 2, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 5, 0)
+    qgridLayout.addWidget(WidgetComboBoxType(Fotografo, self.parent), 5, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 6, 0)
+    qgridLayout.addWidget(QtGui.QTextEdit(), 6, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
+    qgridLayout.addWidget(QtGui.QTextEdit(), 7, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 8, 0)
+    qgridLayout.addWidget(QtGui.QTextEdit(), 8, 1)
+
+    self.setLayout(qgridLayout)
+
+class WidgetComboBoxType(QtGui.QWidget):
 
   def __init__(self, type, parent = None):
-    super(WidgetComboBoxExtensible, self).__init__(parent)
+    super(WidgetComboBoxType, self).__init__(parent)
     self.parent = parent
     self.type = type
     self.iniciar_ui()
@@ -464,19 +511,47 @@ class WidgetComboBoxExtensible(QtGui.QWidget):
     self.items = QtGui.QComboBox()
     for item in ManagerBase().all(self.type):
         self.items.addItem(item.description(), item.id)
+    self.setLayout(self.items)
+
+
+class WidgetComboBoxExtensible(QtGui.QWidget):
+
+  add_item_widgets = {Fotografo: WidgetAgregarFotografo,
+                      Zona: WidgetAgregarZona
+  }
+
+  def __init__(self, type, parent = None):
+    super(WidgetComboBoxExtensible, self).__init__(parent)
+    self.parent = parent
+    self.type = type
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    self.hBox = QtGui.QHBoxLayout()
+    self.load_items()
     self.add_item_button = QtGui.QPushButton("+")
     self.add_item_button.clicked.connect(self.add_item)
     self.add_item_button.setMaximumWidth(30)
-    self.hBox = QtGui.QHBoxLayout()
-    self.hBox.addWidget(self.items)
     self.hBox.addWidget(self.add_item_button)
     self.setLayout(self.hBox)
 
+  def load_items(self):
+    items = self.hBox.takeAt(0)
+    if items != None:
+      items.widget().deleteLater()
+    self.items = QtGui.QComboBox()
+    for item in ManagerBase().all(self.type):
+        self.items.addItem(item.description(), item.id)
+    self.hBox.insertWidget(0, self.items)
+
   def extend(self, element):
-    self.elements.addItem(element.description(), element.id)
+    self.load_items()
+    self.items.setCurrentIndex(self.items.findText(element.description()))
 
   def add_item(self):
-    self.parent.add_item(self.type)
+    self.add_item_widget = self.add_item_widgets[self.type](widget_extend = self)
+    self.add_item_widget.show()
+
 
 class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
 
