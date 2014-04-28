@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, LargeBinary, PickleType, ForeignKey, DateTime, Float, Text
+from sqlalchemy import func
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -101,6 +102,18 @@ class ManagerBase(object):
     Retorna un Individuo o None
     """
     return self.session.query(Individuo).get(individuo_id)
+
+  def get_fotografo(self, fotografo_id):
+    """
+    Retorna un Individuo o None
+    """
+    return self.session.query(Fotografo).get(fotografo_id)
+
+  def get_zona(self, zona_id):
+    """
+    Retorna un Individuo o None
+    """
+    return self.session.query(Zona).get(zona_id)
 
   def get_datos_individuo(self, individuo_id):
     """
@@ -214,6 +227,35 @@ class ManagerBase(object):
           "dicc_datos" : {"sexo" : individuo.sexo, "observaciones": individuo.observaciones},
           }
     return ret
+
+  def buscar_capturas(self, individuo_id, captura_id, date_time_inic, date_time_fin, zona_id, fotografo_id,\
+                        cant_sapitos_min, cant_sapitos_max, observaciones, archivo):
+    """
+    busca capturas en base a los campos de una captura
+    """
+    query = self.session.query(Captura)
+    if individuo_id:
+      query = query.filter(Captura.individuo_id == individuo_id)
+    if captura_id:
+      query = query.filter(Captura.id == captura_id)
+    if date_time_inic:
+      query = query.filter(Captura.fecha > date_time_inic)
+    if date_time_fin:
+      query = query.filter(Captura.fecha < date_time_fin)
+    if zona_id:
+      query = query.filter(Captura.zona_id == zona_id)
+    if fotografo_id:
+      query = query.filter(Captura.fotografo_id == fotografo_id)
+    if cant_sapitos_min:
+      query = query.filter(Captura.cantidad_acompaniantes > cant_sapitos_min)
+    if cant_sapitos_min:
+      query = query.filter(Captura.cantidad_acompaniantes < cant_sapitos_max)
+    if observaciones:
+      query = query.filter(Captura.observaciones.contains(observaciones))
+    if archivo:
+      query = query.filter(Captura.nombre_imagen.contains(archivo))
+    print(query)
+    return query
 
 class Captura(Base):
   __tablename__ = 'captura'

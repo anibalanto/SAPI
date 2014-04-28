@@ -7,7 +7,8 @@ from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
   WidgetBotonesAgregarCaptura, \
   WidgetListaIndividuosStandaloneScroleable, \
   WidgetAgregarFotografo, \
-  WidgetAgregarZona
+  WidgetAgregarZona, \
+  WidgetBuscarCaptura
 from db import ManagerBase, Fotografo, Zona
 from imagen import ImagenQImage
 import aplicar_algoritmos as algoritmos
@@ -192,8 +193,15 @@ class WindowSapito(QtGui.QMainWindow):
       Muestra el widget a usar para agregar un Fotografo
       """
     self.add_photographer_widget = WidgetAgregarFotografo()
-    self.add_photographer_widget.show()
+    #self.add_photographer_widget.show()
 
+  def search(self):
+    """
+      Llamamos al widget que muesstra el formulario de busqueda,
+      este meotodo se llama desde la barra de menu.
+      """
+    self.search_widget = WidgetBuscarCaptura()
+    self.search_widget.show()
 
   def createActions(self):
     self.openAct = QtGui.QAction("&Open...", self,
@@ -215,11 +223,14 @@ class WindowSapito(QtGui.QMainWindow):
                                     shortcut="Ctrl+E", enabled=True, triggered=self.selectorWidget.resetShape)
     self.add_photographer_act = QtGui.QAction("Add Photographer", self, enabled=True, triggered=self.add_photographer)
 
+    self.search_act = QtGui.QAction("Buscar", self, enabled=True, triggered=self.search)
+
   def createMenus(self):
     self.fileMenu = QtGui.QMenu("&File", self)
     self.fileMenu.addAction(self.openAct)
     self.fileMenu.addAction(self.view_all_act)
     self.fileMenu.addAction(self.add_photographer_act)
+    self.fileMenu.addAction(self.search_act)
 
     self.fileMenu.addSeparator()
     self.fileMenu.addAction(self.exitAct)

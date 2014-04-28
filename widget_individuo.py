@@ -462,42 +462,147 @@ class WidgetAgregarCaptura(QtGui.QWidget):
 
     self.setLayout(qgridLayout)
 
-class WidgetBuscarIndividuo(QtGui.QWidget):
+class WidgetBuscarCaptura(QtGui.QWidget):
 
+  table_header_labels = ["id individuo", "id captura", "fecha", "zona", "fotografo", "archivo", "segmentada", "transformada", "original", "observaciones"]
   def __init__(self, parent = None):
-    super(WidgetBuscarIndividuo, self).__init__(parent)
+    super(WidgetBuscarCaptura, self).__init__(parent)
     self.parent = parent
     self.iniciar_ui()
+    self.showMaximized()
+    self.default_date_time = QtGui.QDateTimeEdit().dateTime()
 
-  def buscar(self, individuo_id = None):
+  def buscar(self):
+    individuo_id = self.id_individuo.text() if self.id_individuo.text() != '' else None
+    captura_id = self.id_captura.text() if self.id_captura.text() != '' else None
+    date_time_inic = self.date_time_inic.dateTime().toPython() if self.date_time_inic.dateTime() != self.default_date_time else None
+    date_time_fin = self.date_time_fin.dateTime().toPython() if self.date_time_fin.dateTime() != self.default_date_time else None
+    zona_id = self.zona.items.itemData(self.zona.items.currentIndex())
+    zona_id = zona_id if zona_id != -1 else None
+    fotografo_id = self.fotografo.items.itemData(self.fotografo.items.currentIndex())
+    fotografo_id = fotografo_id if fotografo_id != -1 else None
+    cant_sapitos_min = self.cant_sapitos_min.text() if self.cant_sapitos_min.text() != '' else None
+    cant_sapitos_max = self.cant_sapitos_max.text() if self.cant_sapitos_max.text() != '' else None
+    observaciones = self.observaciones.text() if self.observaciones.text() != '' else None
+    archivo = self.archivo.text() if self.archivo.text() != '' else None
+
     db_man = ManagerBase()
+    capturas = db_man.buscar_capturas(individuo_id, captura_id, date_time_inic, date_time_fin, zona_id, fotografo_id,\
+                         cant_sapitos_min, cant_sapitos_max, observaciones, archivo)
+
+    self.load_table(capturas)
+
+
+  def load_table(self, capturas):
+    db_man = ManagerBase()
+
+    i = 0
+    self.table.clear()
+    self.table.setSortingEnabled(False)
+    self.table.horizontalHeader().resizeSection(5, 150)
+    self.table.horizontalHeader().resizeSection(6, 150)
+    self.table.horizontalHeader().resizeSection(7, 150)
+    self.table.horizontalHeader().resizeSection(8, 150)
+    self.table.horizontalHeader().resizeSection(9, 300)
+
+    while (self.table.rowCount() > 0):
+      self.table.removeRow(0)
+
+    for captura in capturas:
+      item_id_individuo = QtGui.QTableWidgetItem("%s" % (captura.individuo_id))
+      item_id = QtGui.QTableWidgetItem("%s" % (captura.id))
+      item_imagen = QtGui.QTableWidgetItem("%s" % (captura.nombre_imagen))
+      item_fecha = QtGui.QTableWidgetItem("%s" % (captura.fecha))
+      item_fotografo = QtGui.QTableWidgetItem("%s" % (db_man.get_fotografo(captura.fotografo_id).description()))
+      item_zona = QtGui.QTableWidgetItem("%s" % (db_man.get_zona(captura.zona_id).description()))
+      item_img_seg = QtGui.QTableWidgetItem()
+      item_img_seg.setData(QtCore.Qt.DecorationRole, QtGui.QPixmap.fromImage(db_man.bytes_a_imagen(captura.imagen_segmentada).scaled(150, 150)))
+      item_img_trans = QtGui.QTableWidgetItem()
+      item_img_trans.setData(QtCore.Qt.DecorationRole, QtGui.QPixmap.fromImage(db_man.bytes_a_imagen(captura.imagen_transformada).scaled(150, 150)))
+      item_img_origin = QtGui.QTableWidgetItem()
+      item_img_origin.setData(QtCore.Qt.DecorationRole, QtGui.QPixmap.fromImage(db_man.bytes_a_imagen(captura.imagen_original).scaled(150, 150)))
+      item_observaciones = QtGui.QTableWidgetItem("%s" % (captura.observaciones))
+
+      self.table.insertRow(i)
+      self.table.verticalHeader().resizeSection(i, 150)
+      self.table.setItem(i, 0, item_id_individuo)
+      self.table.setItem(i, 1, item_id)
+      self.table.setItem(i, 2, item_fecha)
+      self.table.setItem(i, 3, item_zona)
+      self.table.setItem(i, 4, item_fotografo)
+      self.table.setItem(i, 5, item_imagen)
+      self.table.setItem(i, 6, item_img_seg)
+      self.table.setItem(i, 7, item_img_trans)
+      self.table.setItem(i, 8, item_img_origin)
+      self.table.setItem(i, 9, item_observaciones)
+      i += 1
+    self.table.setSortingEnabled(True)
+    self.table.setHorizontalHeaderLabels(self.table_header_labels)
 
 
   def iniciar_ui(self):
     vbox = QtGui.QVBoxLayout()
     qgridLayout = QtGui.QGridLayout()
-    vbox.addWidget(qgridLayout)
-    self.table = QtGui.QTableWidget(5, 12, self)
+    vbox.addLayout(qgridLayout)
+
+    boton_buscar = QtGui.QPushButton("Buscar")
+    boton_buscar.clicked.connect(self.buscar)
+    vbox.addWidget(boton_buscar)
+
+    self.table = QtGui.QTableWidget(0, 10, self)
+    self.table.setSortingEnabled(True)
+    self.table.setHorizontalHeaderLabels(self.table_header_labels)
+
     vbox.addWidget(self.table)
 
-    qgridLayout.addWidget(QtGui.QLabel("id: "), 0, 0)
-    qgridLayout.addWidget(QtGui.QTextEdit(), 0, 1)
-    qgridLayout.addWidget(QtGui.QLabel("fecha inicio: "), 1, 0)
-    qgridLayout.addWidget(QtGui.QCalendarWidget(), 1, 1)
-    qgridLayout.addWidget(QtGui.QLabel("fecha fin: "), 1, 3)
-    qgridLayout.addWidget(QtGui.QCalendarWidget(), 1, 4)
-    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 2, 0)
-    qgridLayout.addWidget(WidgetComboBoxType(Zona, self.parent), 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 5, 0)
-    qgridLayout.addWidget(WidgetComboBoxType(Fotografo, self.parent), 5, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 6, 0)
-    qgridLayout.addWidget(QtGui.QTextEdit(), 6, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
-    qgridLayout.addWidget(QtGui.QTextEdit(), 7, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 8, 0)
-    qgridLayout.addWidget(QtGui.QTextEdit(), 8, 1)
+    db_man = ManagerBase()
 
-    self.setLayout(qgridLayout)
+    self.id_individuo = QtGui.QLineEdit()
+    self.id_individuo.setValidator(QtGui.QIntValidator())
+    self.id_captura = QtGui.QLineEdit()
+    self.id_captura.setValidator(QtGui.QIntValidator())
+    self.zona = WidgetComboBoxType(Zona, self.parent)
+    self.fotografo = WidgetComboBoxType(Fotografo, self.parent)
+    self.cant_sapitos_min = QtGui.QLineEdit()
+    self.cant_sapitos_min.setValidator(QtGui.QIntValidator())
+    self.cant_sapitos_max = QtGui.QLineEdit()
+    self.cant_sapitos_max.setValidator(QtGui.QIntValidator())
+    self.observaciones = QtGui.QLineEdit()
+    self.archivo = QtGui.QLineEdit()
+
+    self.date_time_inic = QtGui.QDateTimeEdit()
+    self.date_time_inic.setCalendarPopup(True)
+    self.date_time_inic.setCalendarWidget(QtGui.QCalendarWidget())
+
+    self.date_time_fin = QtGui.QDateTimeEdit()
+    self.date_time_fin.setCalendarPopup(True)
+    self.date_time_fin.setCalendarWidget(QtGui.QCalendarWidget())
+
+
+    qgridLayout.addWidget(QtGui.QLabel("id individuo: "), 0, 0)
+    qgridLayout.addWidget(self.id_individuo, 0, 1)
+    qgridLayout.addWidget(QtGui.QLabel("id captura: "), 0, 2)
+    qgridLayout.addWidget(self.id_captura, 0, 3)
+    qgridLayout.addWidget(QtGui.QLabel("fecha inicio: "), 0, 4)
+    qgridLayout.addWidget(self.date_time_inic, 0, 5)
+    qgridLayout.addWidget(QtGui.QLabel("fecha fin: "), 0, 6)
+    qgridLayout.addWidget(self.date_time_fin, 0, 7)
+    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 1, 0)
+    qgridLayout.addWidget(self.zona, 1, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 1, 2)
+    qgridLayout.addWidget(self.fotografo, 1, 3)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp min: "), 1, 4)
+    qgridLayout.addWidget(self.cant_sapitos_min, 1, 5)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp max: "), 1, 6)
+    qgridLayout.addWidget(self.cant_sapitos_max, 1, 7)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 2, 0)
+    qgridLayout.addWidget(self.observaciones, 2, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 2, 2)
+    qgridLayout.addWidget(self.archivo, 2, 3)
+
+    self.setLayout(vbox)
+
+    self.show()
 
 class WidgetComboBoxType(QtGui.QWidget):
 
@@ -509,9 +614,12 @@ class WidgetComboBoxType(QtGui.QWidget):
 
   def iniciar_ui(self):
     self.items = QtGui.QComboBox()
+    self.items.addItem("...", -1)
     for item in ManagerBase().all(self.type):
         self.items.addItem(item.description(), item.id)
-    self.setLayout(self.items)
+    layout = QtGui.QHBoxLayout()
+    layout.addWidget(self.items)
+    self.setLayout(layout)
 
 
 class WidgetComboBoxExtensible(QtGui.QWidget):
