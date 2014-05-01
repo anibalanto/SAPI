@@ -64,6 +64,12 @@ class BaseImagen(object):
     """
     raise NotImplementedError
 
+  def check_binary(self):
+    for i in range(self.size[0]):
+      for j in range(self.size[1]):
+        if (not (self.getpixel((i,j)) in [(255,255,255), (0,0,0)])):
+            print "No binaria %s - %s,%s" % (self.getpixel((i,j)), i, j)
+
 class ImagenQImage(BaseImagen):
   def __init__(self):
     super(ImagenQImage, self).__init__()
@@ -81,6 +87,7 @@ class ImagenQImage(BaseImagen):
 
   def empty(self, size, mode=QImage.Format_RGB888):
     self.img = QImage(size[0], size[1], mode)
+    self.img.fill(qRgb(0,0,0))#Rellenamos la imagen con negro
 
   def getpixel(self, xy):
     color = self.img.pixel(xy[0], xy[1])

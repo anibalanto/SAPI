@@ -150,6 +150,8 @@ def segmentar(img_original, mostrar_pasos):
   histo = histograma.crear_histograma_no_normalizado(grayscale)
   umbralada = transformador.Transformador.aplicar([colors.AlgortimoUmbralAutomatico(histo, grayscale.size[0], grayscale.size[1]),],
       grayscale, mostrar_pasos)
+  #umbralada.check_binary()
+  #umbralada.save("umbralada.bmp")
   opening = transformador.Transformador.aplicar(
       [
         colors.AlgoritmoErosion(Filtro(UNOS, 3)),
@@ -280,20 +282,20 @@ def probar_superficie_ocupada(img_original, img_sup_total):
         return
   superficie_ocupada = float(area_sum) / float(area_sup_total)
 
-"""
 def mostrar_segmentada(img):
   i = img.get_img()
   ancho, alto = img.size
 
+  """
   dr = ImageDraw.Draw(i)
   dr.line([(int(ancho/3),0), (int(ancho/3),alto)], fill=BLUE)
   dr.line([(int(2 * ancho/3),0), (int( 2 * ancho/3),alto)], fill=BLUE)
 
   dr.line([(0, int(alto/3)), (ancho, int(alto/3))], fill=BLUE)
   dr.line([(0, int(2*alto/3)), (ancho, int(2*alto/3))], fill=BLUE)
+  """
 
   i.show()
-"""
 
 
 def calcular_regiones(img_original):
@@ -305,8 +307,6 @@ def calcular_regiones(img_original):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   regiones = medidas.MedidaAreasPorRegiones(segman, img_original).get_valor()
   #mostrar_segmentada(img_segmentada)
-  print "Las regiones son:"
-  print regiones
   return img_segmentada, regiones
 
 def main():

@@ -126,7 +126,7 @@ class ManagerBase(object):
     buff = QtCore.QBuffer(ba)
     buff.open(QtCore.QIODevice.WriteOnly)
     #TODO: Ojo con JPG!!
-    imagen.save(buff, "JPG")
+    imagen.save(buff, "BMP")
     return ba.toBase64().data()
 
   def calc_distancia(self, v1, v2):

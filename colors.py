@@ -157,7 +157,6 @@ class AlgortimoUmbralAutomatico(Algoritmo):
   def __init__(self, histo, ancho, alto):
     self.histo = histo
     self.umbral = self.get_umbral(histo, ancho, alto)
-    print self.umbral
 
   def get_umbral(self, histo, ancho, alto):
     total = ancho * alto
@@ -211,6 +210,12 @@ class AlgoritmoErosion(Algoritmo):
     """
     self.str_elem = str_elem
 
+  def ancho(self, size):
+    return (1, size[0]-1)
+
+  def alto(self, size):
+    return (1, size[1]-1)
+
   def aplicar_en_pixel(self, x, y, img):
     r, _, _ = img.getpixel((x, y))
     #Si es fondo, lo dejamos como esta.
@@ -230,6 +235,12 @@ class AlgoritmoDilatacion(Algoritmo):
     str_elem: Filtro para erosionar. Tambien se lo llama elemento estructurante.
     """
     self.str_elem = str_elem
+
+  def ancho(self, size):
+    return (1, size[0]-1)
+
+  def alto(self, size):
+    return (1, size[1]-1)
 
   def aplicar_en_pixel(self, x, y, img):
     r, _, _ = img.getpixel((x, y))

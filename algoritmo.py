@@ -7,3 +7,9 @@ class Algoritmo(object):
     ej: return (34, 233, 10)
     """
     raise NotImplementedError
+
+  def ancho(self, size):
+    return (0,size[0])
+
+  def alto(self, size):
+    return (0, size[1])
