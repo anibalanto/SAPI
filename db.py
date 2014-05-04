@@ -70,7 +70,7 @@ class ManagerBase(object):
 
   def crear_captura(self, individuo_id, img_original, img_transformada, img_segmentadas, vector_regiones,\
       fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
-      fotografo_id, zona_id):
+      fotografo_id, zona_id, superficie_ocupada):
     #TODO: dicc_datos no se usa para nada todavia
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
@@ -85,7 +85,8 @@ class ManagerBase(object):
           nombre_imagen,
           puntos,
           angulos,
-          largos
+          largos,
+          superficie_ocupada
           )
     fotografo = self.session.query(Fotografo).get(fotografo_id)
     individuo = self.session.query(Individuo).get(individuo_id)
@@ -257,6 +258,22 @@ class ManagerBase(object):
     print(query)
     return query
 
+  def buscar_individuos(self, individuo_id, sexo, observaciones):
+    """
+    busca capturas en base a los campos de una captura
+    """
+    query = self.session.query(Individuo)
+    if individuo_id:
+      query = query.filter(Individuo.id == individuo_id)
+    if sexo:
+      query = query.filter(Individuo.sexo == sexo)
+    if observaciones:
+      query = query.filter(Individuo.observaciones.contains(observaciones))
+    print(query)
+    return query
+
+
+
 class Captura(Base):
   __tablename__ = 'captura'
 
@@ -277,9 +294,11 @@ class Captura(Base):
   puntos = Column(PickleType)
   angulos = Column(PickleType)
   largos = Column(PickleType)
+  superficie_ocupada = Column(Float)
 
   def __init__(self, img_original, img_trans, img_segmentada, area_por_region,\
-      fecha, lat, lon, acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos):
+      fecha, lat, lon, acompaniantes, observaciones, nombre_imagen, puntos, angulos,\
+      largos, superficie_ocupada):
     self.imagen_original = img_original
     self.imagen_transformada = img_trans
     self.imagen_segmentada = img_segmentada
@@ -293,6 +312,7 @@ class Captura(Base):
     self.puntos = puntos
     self.angulos = angulos
     self.largos = largos
+    self.superficie_ocupada = superficie_ocupada
 
   def __repr__(self):
     return "<Captura('%s')>" % (self.id)
@@ -349,7 +369,9 @@ class Individuo(Base):
   __tablename__ = 'individuo'
 
   id = Column(Integer, primary_key=True)
+  imagen = deferred(Column(LargeBinary))
   capturas = relationship("Captura", backref="individuo")
+  #captura_base = relationship("Captura", uselist=False)
   sexo = Column(String)
   observaciones = Column(Text)
 

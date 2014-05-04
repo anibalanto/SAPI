@@ -8,7 +8,9 @@ from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
   WidgetListaIndividuosStandaloneScroleable, \
   WidgetAgregarFotografo, \
   WidgetAgregarZona, \
-  WidgetBuscarCaptura
+  WidgetBuscarCaptura, \
+  WidgetIndividuoConCapturas, \
+  WidgetBuscarIndividuo
 from db import ManagerBase, Fotografo, Zona
 from imagen import ImagenQImage
 import aplicar_algoritmos as algoritmos
@@ -39,6 +41,7 @@ class WindowSapito(QtGui.QMainWindow):
     self.iRadioChecked = -1
 
     self.filename = None
+    self.filename_path = None
 
     self.mainLayout = QtGui.QHBoxLayout()
     selectorLayout = QtGui.QVBoxLayout()
@@ -130,7 +133,7 @@ class WindowSapito(QtGui.QMainWindow):
 
 
   def open(self):
-    path = QtCore.QDir.currentPath() if self.filename == None else QtCore.QDir.absolutePath(
+    path = QtCore.QDir.currentPath() if self.filename_path == None else QtCore.QDir.absolutePath(
       QtCore.QDir(self.filename_path))
     filename, _ = QtGui.QFileDialog.getOpenFileName(self, "Open File", path)
     self.loadImage(filename)
@@ -165,7 +168,7 @@ class WindowSapito(QtGui.QMainWindow):
     #Por ahora pasamos las imagenes en el wrapper
     trans = ImagenQImage()
     trans.from_instance(self.qimage_transformada)
-    imagen_wrapper, self.vector_regiones = algoritmos.calcular_regiones(trans)
+    imagen_wrapper, self.vector_regiones, self.superficie_ocupada = algoritmos.calcular_regiones(trans)
     self.qimage_segmentada = imagen_wrapper.get_img() # Sacamos la imagen del wrapper.
 
     #Cargamos los widgets de la barra de costado con las imagenes obtenidas.
@@ -180,13 +183,16 @@ class WindowSapito(QtGui.QMainWindow):
     self.widget_listado = WidgetListaIndividuosRadiosScroleable(similares, self)
     self.resultLayout.addWidget(self.widget_listado)
 
-  def view_all(self):
+  def individuos(self):
     """
         Llamamos al widget que muestra todos los individuos.
         Este metodo se llama desde la barra de menu.
         """
-    self.lista_individuos = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
-    self.lista_individuos.show()
+
+    self.widget_individuos = WidgetBuscarIndividuo()
+    self.widget_individuos.show()
+    #self.lista_individuos = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
+    #self.lista_individuos.show()
 
   def add_photographer(self):
     """
@@ -195,7 +201,23 @@ class WindowSapito(QtGui.QMainWindow):
     self.add_photographer_widget = WidgetAgregarFotografo()
     #self.add_photographer_widget.show()
 
-  def search(self):
+  def capturas(self):
+    """
+      Llamamos al widget que muesstra el formulario de busqueda,
+      este meotodo se llama desde la barra de menu.
+      """
+    self.search_widget = WidgetBuscarCaptura()
+    self.search_widget.show()
+
+  def fotografos(self):
+    """
+      Llamamos al widget que muesstra el formulario de busqueda,
+      este meotodo se llama desde la barra de menu.
+      """
+    self.search_widget = WidgetBuscarCaptura()
+    self.search_widget.show()
+
+  def zonas(self):
     """
       Llamamos al widget que muesstra el formulario de busqueda,
       este meotodo se llama desde la barra de menu.
@@ -204,48 +226,52 @@ class WindowSapito(QtGui.QMainWindow):
     self.search_widget.show()
 
   def createActions(self):
-    self.openAct = QtGui.QAction("&Open...", self,
-                                 shortcut="Ctrl+O", enabled=True, triggered=self.open)
-    self.view_all_act = QtGui.QAction("&View All", self, triggered=self.view_all)
-    self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
+    self.openAct = QtGui.QAction("Abrir Imagen", self,
+                                 shortcut="Ctrl+A", enabled=True, triggered=self.open)
+    self.exitAct = QtGui.QAction("Salir", self, shortcut="Ctrl+Q",
                                  triggered=self.close)
-    self.zoomOutAct = QtGui.QAction("Zoom &Out", self,
+    self.zoomOutAct = QtGui.QAction("Zoom -", self,
                                     shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
-    self.zoomInAct = QtGui.QAction("Zoom &In", self,
+    self.zoomInAct = QtGui.QAction("Zoom +", self,
                                    shortcut="Ctrl++", enabled=True, triggered=self.selectorWidget.zoomIn)
-    self.resetSizeAct = QtGui.QAction("Reset Size", self,
-                                      shortcut="Ctrl+0", enabled=True, triggered=self.selectorWidget.resetSizeImage)
-    self.rotateAct = QtGui.QAction("&Rotate", self,
+    self.resetSizeAct = QtGui.QAction("Original", self,
+                                      shortcut="Ctrl+O", enabled=True, triggered=self.selectorWidget.resetSizeImage)
+    self.rotateAct = QtGui.QAction("&Rotar Imagen", self,
                                    shortcut="Ctrl+R", enabled=True, triggered=self.selectorWidget.rotateImage)
-    self.transformAct = QtGui.QAction("&Transform", self,
+    self.transformAct = QtGui.QAction("&Transformar", self,
                                       shortcut="Ctrl+T", enabled=True, triggered=self.transform)
-    self.resetShape = QtGui.QAction("&Reset Shape", self,
+    self.resetShape = QtGui.QAction("&Resetear", self,
                                     shortcut="Ctrl+E", enabled=True, triggered=self.selectorWidget.resetShape)
-    self.add_photographer_act = QtGui.QAction("Add Photographer", self, enabled=True, triggered=self.add_photographer)
-
-    self.search_act = QtGui.QAction("Buscar", self, enabled=True, triggered=self.search)
+    #self.add_photographer_act = QtGui.QAction("Agregar &fotografo", self, shortcut="Ctrl+F", enabled=True, triggered=self.add_photographer)
+    self.individuos_act = QtGui.QAction("Individuos", self, triggered=self.individuos)
+    self.capturas_act = QtGui.QAction("Capturas", self, enabled=True, triggered=self.capturas)
+    self.fotografos_act = QtGui.QAction("Fotografos", self, enabled=True, triggered=self.fotografos)
+    self.zonas_act = QtGui.QAction("Zonas", self, enabled=True, triggered=self.zonas)
 
   def createMenus(self):
-    self.fileMenu = QtGui.QMenu("&File", self)
+    self.fileMenu = QtGui.QMenu("&Archivo", self)
     self.fileMenu.addAction(self.openAct)
-    self.fileMenu.addAction(self.view_all_act)
-    self.fileMenu.addAction(self.add_photographer_act)
-    self.fileMenu.addAction(self.search_act)
-
     self.fileMenu.addSeparator()
     self.fileMenu.addAction(self.exitAct)
 
-    self.viewMenu = QtGui.QMenu("&View", self)
+    self.datosMenu = QtGui.QMenu("&Datos", self)
+    self.datosMenu.addAction(self.individuos_act)
+    self.datosMenu.addAction(self.capturas_act)
+    self.datosMenu.addAction(self.fotografos_act)
+    self.datosMenu.addAction(self.zonas_act)
+
+    self.viewMenu = QtGui.QMenu("&Vista", self)
     self.viewMenu.addAction(self.zoomInAct)
     self.viewMenu.addAction(self.zoomOutAct)
     self.viewMenu.addAction(self.resetSizeAct)
     self.viewMenu.addAction(self.rotateAct)
 
-    self.transformMenu = QtGui.QMenu("&Transform", self)
+    self.transformMenu = QtGui.QMenu("&Forma", self)
     self.transformMenu.addAction(self.transformAct)
     self.transformMenu.addAction(self.resetShape)
 
     self.menuBar().addMenu(self.fileMenu)
+    self.menuBar().addMenu(self.datosMenu)
     self.menuBar().addMenu(self.viewMenu)
     self.menuBar().addMenu(self.transformMenu)
 

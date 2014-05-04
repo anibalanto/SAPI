@@ -404,7 +404,7 @@ class DimensionFractal(MedidaSegmento):
 class MedidaAreasPorRegiones(object):
   """
   Calculamos la suma de las areas de los segmentos que caen en las 9 regiones definidas.
-  Para ver donde cae un segmento, usamos su centro de masa.
+  Para ver donde cae un segmento, usamos su centro de masa. (esto ya no (pixel por pixel))
   """
   def __init__(self, segman, img_trans):
     """
@@ -430,3 +430,21 @@ class MedidaAreasPorRegiones(object):
 
   def get_valor(self):
     return self.porcentajes
+
+class SuperficieOcupada(object):
+  """
+  Calculamos la suma de las areas de los segmentos.
+  """
+  def __init__(self, segman, img_trans):
+    """
+    img_trans: es la imagen de destino. La que ya fue transformada/proyectada.
+    segman: el SegmentosManager de la imagen
+    """
+    self.ancho, self.alto = img_trans.size
+    self.area = 0
+    for segmento in segman.get_segmentos():
+      self.area += AreaSegmento(segmento).get_valor()
+
+
+  def get_valor(self):
+        return self.area / (self.ancho*self.alto)

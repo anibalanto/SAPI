@@ -304,10 +304,11 @@ def calcular_regiones(img_original):
   img_perimetros = runcode.get_img_perimetros(img_segmentada)
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   regiones = medidas.MedidaAreasPorRegiones(segman, img_original).get_valor()
+  superficie_ocupada = medidas.SuperficieOcupada(segman, img_original).get_valor()
   #mostrar_segmentada(img_segmentada)
   print "Las regiones son:"
   print regiones
-  return img_segmentada, regiones
+  return img_segmentada, regiones, superficie_ocupada
 
 def main():
   if len(sys.argv) <= 1:

@@ -715,7 +715,8 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.invfactor = 1.0/factor
 
     def resetFactor(self):
-        self.setFactor(700.0/float(max(self.image.width(),self.image.height())))
+        if hasattr(self, 'image'):
+            self.setFactor(700.0/float(max(self.image.width(), self.image.height())))
 
     def isSetImage(self):
         return self.factor != None
