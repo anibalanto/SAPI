@@ -5,27 +5,10 @@ import sys
 import traceback
 from PySide import QtGui, QtCore
 from db import ManagerBase, Fotografo, Zona
+from widget_table import *
 
+sexo = ["Macho", "Hembra", "No determinado"]
 
-def export_csv(table):
-  file = QtCore.QFile("export.csv")
-  if file.open(QtCore.QFile.WriteOnly | QtCore.QFile.Truncate):
-    data = QtCore.QTextStream(file)
-    str_list = []
-    for i in xrange(table.columnCount()):
-      str_list.append("\""+table.horizontalHeaderItem(i).data(QtCore.Qt.DisplayRole)+"\"")
-    data << ";".join(str_list) << "\n"
-    for r in xrange(table.rowCount()):
-      str_list = []
-      for c in xrange(table.columnCount()):
-        #item = table.item(r, c)
-        #if (not item or not item.text()):
-          #self.setItem(r, c, QtGui.QTableWidgetItem("0"))
-        str_list.append("\""+table.item(r, c).text()+"\"")
-      data << ";".join(str_list) << "\n"
-    file.close()
-
-sexo = ["Masculino", "Femenino", "No determinado"]
 
 class WidgetAgregarZona(QtGui.QWidget):
   def __init__(self, parent=None, widget_extend = None):
@@ -37,10 +20,10 @@ class WidgetAgregarZona(QtGui.QWidget):
   def guardar(self):
     db_man = ManagerBase()
     n = self.name_input.text()
-    ln = self.lastname_input.text()
-    em = self.email_input.text()
-    if (n and ln and em):
-      zona = db_man.nueva_zona(n, ln, em)
+    la = self.lat_input.text() if self.lat_input.text() != '' else None
+    lo = self.lon_input.text() if self.lon_input.text() != '' else None
+    if (n):
+      zona = db_man.nueva_zona(n, la, lo)
       self.close()
       if self.widget_extend != None:
         self.widget_extend.extend(zona)
@@ -49,10 +32,10 @@ class WidgetAgregarZona(QtGui.QWidget):
     #labels, inputs y boton guardar
     self.name_label = QtGui.QLabel("Nombre")
     self.name_input = QtGui.QLineEdit()
-    self.lastname_label = QtGui.QLabel("Latitud")
-    self.lastname_input = QtGui.QLineEdit()
-    self.email_label = QtGui.QLabel("Longitud")
-    self.email_input = QtGui.QLineEdit()
+    self.lat_label = QtGui.QLabel("Latitud")
+    self.lat_input = QtGui.QLineEdit()
+    self.lon_label = QtGui.QLabel("Longitud")
+    self.lon_input = QtGui.QLineEdit()
     save_button = QtGui.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
@@ -60,10 +43,10 @@ class WidgetAgregarZona(QtGui.QWidget):
     lay = QtGui.QGridLayout()
     lay.addWidget(self.name_label, 0, 0)
     lay.addWidget(self.name_input, 0, 1)
-    lay.addWidget(self.lastname_label, 1, 0)
-    lay.addWidget(self.lastname_input, 1, 1)
-    lay.addWidget(self.email_label, 2, 0)
-    lay.addWidget(self.email_input, 2, 1)
+    lay.addWidget(self.lat_label, 1, 0)
+    lay.addWidget(self.lat_input, 1, 1)
+    lay.addWidget(self.lon_label, 2, 0)
+    lay.addWidget(self.lon_input, 2, 1)
     lay.addWidget(save_button, 3, 1)
     return lay
 
@@ -106,19 +89,44 @@ class WidgetAgregarFotografo(QtGui.QWidget):
     lay.addWidget(self.email_label, 2, 0)
     lay.addWidget(self.email_input, 2, 1)
     lay.addWidget(save_button, 3, 1)
+
+    self.setWindowFlags(QtCore.Qt.Window)
     return lay
 
-class WidgetIndividuoConCapturas(QtGui.QWidget):
+class WidgetIndividuoConCapturas(CalleableWindow):
   """
   Widget que contiene una imagen del individuo con sus respectivas capturas
   las capturas se encuentran dentro de una tabla
+  Hereda de CalleableWindow la cual es creada desde una tabla
   """
-  def __init__(self, individuo, parent=None):
-    super(WidgetIndividuoConCapturas, self).__init__(parent, QtCore.Qt.Window)
-    self.parent = parent
-    self.id_individuo = individuo.id
+  def __init__(self, parent, id_individuo, ident):
+    super(WidgetIndividuoConCapturas, self).__init__(parent, ident)
+    self.id_individuo = id_individuo
+    individuo = ManagerBase().get_individuo(id_individuo)
     self.setLayout(self.iniciar_ui(individuo))
     self.show()
+
+  def guardar(self):
+    sexo = self.sexo_input.itemText(self.sexo_input.currentIndex())
+    observaciones = self.observaciones_input.toPlainText() if self.observaciones_input.toPlainText() != '' else None
+    #print ("el sexo: ", sexo)
+    ManagerBase().modificar_individuo(self.id_input.text(), sexo, observaciones)
+    self.close()
+    self.refresh_table()
+
+
+  def refresh_table(self):
+    self.parent.buscar()
+
+  def borrar(self):
+    reply = QtGui.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar este individuo?", QtGui.QMessageBox.Yes |
+            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+
+    if reply == QtGui.QMessageBox.Yes:
+      ManagerBase().borrar_individuo(self.id_individuo)
+      self.close()
+      self.refresh_table()
 
   def iniciar_ui(self, individuo):
 
@@ -126,13 +134,19 @@ class WidgetIndividuoConCapturas(QtGui.QWidget):
     self.id_input = QtGui.QLabel(str(individuo.id))
     self.sexo = QtGui.QLabel("sexo")
     self.sexo_input = ComboBoxSexo()
-    self.sexo_input.setDisabled(True)
+    #self.sexo_input.setDisabled(True)
     self.sexo_input.setCurrentIndex(sexo.index(individuo.sexo))
     self.observaciones = QtGui.QLabel("Observaciones")
     self.observaciones_input = QtGui.QTextEdit(individuo.observaciones)
-    self.observaciones_input.setDisabled(True)
+    #self.observaciones_input.setDisabled(True)
 
-    self.table = WidgetTableCapturas(capturas=individuo.capturas)
+    self.boton_borrar = QtGui.QPushButton("Borrar")
+    self.boton_borrar.clicked.connect(self.borrar)
+
+    self.boton_guardar = QtGui.QPushButton("Guardar")
+    self.boton_guardar.clicked.connect(self.guardar)
+
+    self.table = WidgetTableCapturasDeIndividuo(self, individuo.capturas)
     self.vbox = QtGui.QVBoxLayout()
 
     #layout
@@ -146,11 +160,12 @@ class WidgetIndividuoConCapturas(QtGui.QWidget):
     #lay.addWidget(save_button, 3, # 1)
 
     self.vbox.addLayout(lay)
+    hbox = QtGui.QHBoxLayout()
+    hbox.addWidget(self.boton_borrar)
+    hbox.addWidget(self.boton_guardar)
+    self.vbox.addLayout(hbox)
     self.vbox.addWidget(self.table)
     return self.vbox
-
-  def closeEvent(self, a):
-    del self.parent.opened_windows[unicode(self.id_individuo)]
 
 
 class WidgetIndividuo(QtGui.QWidget):
@@ -472,12 +487,14 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
 #    if (self.parent.iRadioChecked != -1):
 #      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
 
+
 class WidgetAgregarCaptura(QtGui.QWidget):
 
-  def __init__(self, parent = None):
+  def __init__(self, parent):
     super(WidgetAgregarCaptura, self).__init__(parent)
     self.parent = parent
     self.iniciar_ui()
+
 
   def guardar(self, individuo_id = None):
     db_man = ManagerBase()
@@ -492,7 +509,7 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     lon = self.longitud.text() if self.longitud.text() != '' else None
     acompaniantes = self.cantidadSapitos.text() if self.cantidadSapitos.text() != '' else None
     observaciones = self.observaciones.toPlainText() if self.observaciones.toPlainText() != '' else None
-    nombre_imagen = self.archivo.text()
+    nombre_imagen = self.parent.filename_nopath
     puntos = self.parent.getPoints()
     angulos = self.parent.getAngles()
     largos = self.parent.getLarges()
@@ -500,9 +517,11 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     zona_id = self.zona.items.itemData(self.zona.items.currentIndex())
     superficie_ocupada = self.parent.superficie_ocupada
     if (individuo_id and img_original and img_segmentada and img_transformada):
-      db_man.crear_captura(individuo_id, img_original, img_transformada, img_segmentada, vector_regiones, fecha, lat, lon,\
+      ManagerBase().crear_captura(individuo_id, img_original, img_transformada, img_segmentada, vector_regiones, fecha, lat, lon,\
                            acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos, fotografo_id, zona_id, superficie_ocupada)
+
       self.close()
+
 
   def iniciar_ui(self):
     self.fecha = QtGui.QDateTimeEdit()
@@ -512,8 +531,6 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
     self.cantidadSapitos = QtGui.QLineEdit()
     self.observaciones = QtGui.QTextEdit()
-    self.archivo = QtGui.QLineEdit()
-    self.archivo.setText(self.parent.filename_nopath)
 
     qgridLayout = QtGui.QGridLayout()
 
@@ -532,10 +549,111 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     qgridLayout.addWidget(self.cantidadSapitos, 6, 1)
     qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
     qgridLayout.addWidget(self.observaciones, 7, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 8, 0)
-    qgridLayout.addWidget(self.archivo, 8, 1)
 
     self.setLayout(qgridLayout)
+
+class WidgetEditarCaptura(CalleableWindow):
+
+  def __init__(self, parent, id_captura, ident):
+    print("WidgetEditarCaptura0"+ ident)
+    super(WidgetEditarCaptura, self).__init__(parent, ident)
+    print("WidgetEditarCaptura1"+ ident)
+    self.id_captura = id_captura
+    print("WidgetEditarCaptura2"+ ident)
+    self.iniciar_ui()
+    print("WidgetEditarCaptura3"+ ident)
+    self.show()
+    print("WidgetEditarCaptura4"+ ident)
+    self.llenar()
+    print("WidgetEditarCaptura5"+ ident)
+
+  def guardar(self):
+    db_man = ManagerBase()
+
+    fecha = self.fecha.dateTime().toPython() if self.fecha.dateTime() != '01/01/2000 00:00:00' else None
+    lat = self.latitud.text() if self.latitud.text() != '' else None
+    lon = self.longitud.text() if self.longitud.text() != '' else None
+    acompaniantes = self.cantidadSapitos.text() if self.cantidadSapitos.text() != '' else None
+    observaciones = self.observaciones.toPlainText() if self.observaciones.toPlainText() != '' else None
+    fotografo_id = self.fotografos.items.itemData(self.fotografos.items.currentIndex())
+    zona_id = self.zona.items.itemData(self.zona.items.currentIndex())
+    db_man.modificar_captura(self.id_captura,fecha, lat, lon, acompaniantes, observaciones, fotografo_id, zona_id)
+
+    self.close()
+    self.refresh_table()
+
+
+  def refresh_table(self):
+    self.parent.buscar()
+
+  def borrar(self):
+    reply = QtGui.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar esta captura?", QtGui.QMessageBox.Yes |
+            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+
+    if reply == QtGui.QMessageBox.Yes:
+      ManagerBase().borrar_captura(self.id_captura)
+      self.close()
+      self.refresh_table()
+
+  def iniciar_ui(self):
+    self.fecha = QtGui.QDateTimeEdit()
+    self.zona = WidgetComboBoxExtensible(Zona, self.parent)
+    self.latitud = QtGui.QLineEdit()
+    self.longitud = QtGui.QLineEdit()
+    self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
+    self.cantidadSapitos = QtGui.QLineEdit()
+    self.observaciones = QtGui.QTextEdit()
+
+    qgridLayout = QtGui.QGridLayout()
+
+    qgridLayout.addWidget(QtGui.QLabel("CAPTURA"), 0, 0)
+    qgridLayout.addWidget(QtGui.QLabel("fecha: "), 1, 0)
+    qgridLayout.addWidget(self.fecha, 1, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 2, 0)
+    qgridLayout.addWidget(self.zona, 2, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 3, 0)
+    qgridLayout.addWidget(self.latitud, 3, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 4, 0)
+    qgridLayout.addWidget(self.longitud, 4, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 5, 0)
+    qgridLayout.addWidget(self.fotografos, 5, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 6, 0)
+    qgridLayout.addWidget(self.cantidadSapitos, 6, 1)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
+    qgridLayout.addWidget(self.observaciones, 7, 1)
+
+    self.boton_borrar = QtGui.QPushButton("Borrar")
+    self.boton_borrar.clicked.connect(self.borrar)
+
+    self.boton_guardar = QtGui.QPushButton("Guardar")
+    self.boton_guardar.clicked.connect(self.guardar)
+
+    self.vbox = QtGui.QVBoxLayout()
+
+    hbox = QtGui.QHBoxLayout()
+    hbox.addWidget(self.boton_borrar)
+    hbox.addWidget(self.boton_guardar)
+    self.vbox.addLayout(qgridLayout)
+    self.vbox.addLayout(hbox)
+    self.setLayout(self.vbox)
+
+  def llenar(self):
+    if self.id_captura:
+      captura = ManagerBase().get_captura(self.id_captura)
+      date_time = QtCore.QDateTime(QtCore.QDateTime.fromString(str(captura.fecha), "yyyy-MM-dd hh:mm:ss"))
+      self.fecha.setDateTime(date_time)
+
+      index = self.fotografos.items.findData(captura.fotografo_id)
+      self.fotografos.items.setCurrentIndex(index)
+
+      index = self.zona.items.findData(captura.zona_id)
+      self.zona.items.setCurrentIndex(index)
+
+      self.latitud.setText(str(captura.lat))
+      self.longitud.setText(str(captura.lon))
+      self.cantidadSapitos.setText(str(captura.cantidad_acompaniantes))
+      self.observaciones.setText(captura.observaciones)
 
 class WidgetBuscarCaptura(QtGui.QWidget):
 
@@ -549,6 +667,8 @@ class WidgetBuscarCaptura(QtGui.QWidget):
   def buscar(self):
     individuo_id = self.id_individuo.text() if self.id_individuo.text() != '' else None
     captura_id = self.id_captura.text() if self.id_captura.text() != '' else None
+    sexo = self.sexo.items.itemText(self.sexo.items.currentIndex())
+    sexo = sexo if sexo != "..." else None
     date_time_inic = self.date_time_inic.dateTime().toPython() if self.date_time_inic.dateTime() != self.default_date_time else None
     date_time_fin = self.date_time_fin.dateTime().toPython() if self.date_time_fin.dateTime() != self.default_date_time else None
     zona_id = self.zona.items.itemData(self.zona.items.currentIndex())
@@ -558,13 +678,14 @@ class WidgetBuscarCaptura(QtGui.QWidget):
     cant_sapitos_min = self.cant_sapitos_min.text() if self.cant_sapitos_min.text() != '' else None
     cant_sapitos_max = self.cant_sapitos_max.text() if self.cant_sapitos_max.text() != '' else None
     observaciones = self.observaciones.text() if self.observaciones.text() != '' else None
+    observaciones_individuo = self.observaciones_individuo.text() if self.observaciones_individuo.text() != '' else None
     archivo = self.archivo.text() if self.archivo.text() != '' else None
 
     db_man = ManagerBase()
-    capturas = db_man.buscar_capturas(individuo_id, captura_id, date_time_inic, date_time_fin, zona_id, fotografo_id,\
-                         cant_sapitos_min, cant_sapitos_max, observaciones, archivo)
+    capturas_individuos = db_man.buscar_capturas_join_individuos(individuo_id, captura_id, sexo, date_time_inic, date_time_fin, zona_id, fotografo_id,\
+                         cant_sapitos_min, cant_sapitos_max, observaciones, observaciones_individuo, archivo)
 
-    self.table.set_capturas(capturas)
+    self.table.set_data(capturas_individuos)
 
   def iniciar_ui(self):
     vbox = QtGui.QVBoxLayout()
@@ -575,7 +696,7 @@ class WidgetBuscarCaptura(QtGui.QWidget):
     boton_buscar.clicked.connect(self.buscar)
     vbox.addWidget(boton_buscar)
 
-    self.table = WidgetTableCapturas(self)
+    self.table = WidgetTableCapturasIndividuosJoin(self)
 
     vbox.addWidget(self.table)
 
@@ -593,6 +714,7 @@ class WidgetBuscarCaptura(QtGui.QWidget):
     self.cant_sapitos_max = QtGui.QLineEdit()
     self.cant_sapitos_max.setValidator(QtGui.QIntValidator())
     self.observaciones = QtGui.QLineEdit()
+    self.observaciones_individuo = QtGui.QLineEdit()
     self.archivo = QtGui.QLineEdit()
 
     self.date_time_inic = QtGui.QDateTimeEdit()
@@ -622,8 +744,13 @@ class WidgetBuscarCaptura(QtGui.QWidget):
     qgridLayout.addWidget(self.cant_sapitos_max, 1, 7)
     qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 2, 0)
     qgridLayout.addWidget(self.observaciones, 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 2, 2)
-    qgridLayout.addWidget(self.archivo, 2, 3)
+    qgridLayout.addWidget(QtGui.QLabel("Observaciones Individuo: "), 2, 2)
+    qgridLayout.addWidget(self.observaciones_individuo, 2, 3)
+    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 2, 4)
+    qgridLayout.addWidget(self.archivo, 2, 5)
+    qgridLayout.addWidget(QtGui.QLabel("Sexo: "), 2, 6)
+    qgridLayout.addWidget(self.sexo, 2, 7)
+
 
     self.setLayout(vbox)
 
@@ -645,7 +772,7 @@ class WidgetBuscarIndividuo(QtGui.QWidget):
     db_man = ManagerBase()
     individuos = db_man.buscar_individuos(individuo_id, sexo, observaciones)
 
-    self.table.set_individuos(individuos)
+    self.table.set_data(individuos)
 
   def iniciar_ui(self):
     vbox = QtGui.QVBoxLayout()
@@ -678,127 +805,87 @@ class WidgetBuscarIndividuo(QtGui.QWidget):
 
     self.show()
 
-class WidgetTableIndividuos(QtGui.QTableWidget):
-  table_header_labels = ["id individuo", "sexo", "observaciones"]
-
-  def __init__(self, parent, individuos = None):
-    super(WidgetTableIndividuos, self).__init__(0, 3, parent)
-    self.individuos = individuos
-    self.setSortingEnabled(True)
-    self.setHorizontalHeaderLabels(self.table_header_labels)
-    self.horizontalHeader().resizeSection(1, 150)
-    self.horizontalHeader().resizeSection(2, 500)
-    self.id = None
-    self.opened_windows = {}
-    if self.individuos:
-      self.load()
-
-  def set_individuos(self, individuos):
-    self.individuos = individuos
-    self.load()
-
-  def load(self):
-    db_man = ManagerBase()
-
-    i = 0
-    self.clear()
-    self.setSortingEnabled(False)
-
-    while (self.rowCount() > 0):
-      self.removeRow(0)
-
-    for individuo in self.individuos:
-      item_id = QtGui.QTableWidgetItem("%s" % (individuo.id))
-      item_sexo = QtGui.QTableWidgetItem("%s" % (individuo.sexo))
-      item_observaciones = QtGui.QTableWidgetItem("%s" % (individuo.observaciones))
-
-      item_id.setFlags(item_id.flags() & ~QtCore.Qt.ItemIsEditable)
-
-      self.insertRow(i)
-      self.cellClicked.connect(self.cell_was_clicked)
-      self.setItem(i, 0, item_id)
-      self.setItem(i, 1, item_sexo)
-      self.setItem(i, 2, item_observaciones)
-      i += 1
-    self.setSortingEnabled(True)
-    self.setHorizontalHeaderLabels(self.table_header_labels)
-
-  def cell_was_clicked(self, row, column):
-    item = self.item(row, column)
-    if column == 0:
-      if item.text() not in self.opened_windows:
-        self.opened_windows[item.text()] = WidgetIndividuoConCapturas(ManagerBase().get_individuo(item.text()), self)
-      else:
-        self.opened_windows[item.text()].activateWindow()
 
 
+class WidgetFotografos(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetFotografos, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def iniciar_ui(self):
+    self.table = WidgetTableFotografos(self)
+    self.table.set_data(ManagerBase().all_fotografos())
+    self.button_nuevo = QtGui.QPushButton("Nuevo")
+    self.button_nuevo.clicked.connect(self.launch_nuevo_fotografo)
+
+    vbox = QtGui.QVBoxLayout()
+    vbox.addWidget(self.table)
+    vbox.addWidget(self.button_nuevo)
+    self.setLayout(vbox)
+
+  def launch_nuevo_fotografo(self):
+    WidgetAgregarFotografo()
 
 
-class WidgetTableCapturas(QtGui.QTableWidget):
-  table_header_labels = ["id individuo", "id captura", "fecha", "zona", "fotografo", "archivo", "segmentada",  "transformada", "original", "observaciones"]
+class WidgetTableCapturasIndividuosJoin(WidgetTableTemplateQueryJoin):
+  columns_open_window = {0: WidgetIndividuoConCapturas,
+                         1: WidgetEditarCaptura}
 
-  def __init__(self, parent = None, capturas = None):
-    super(WidgetTableCapturas, self).__init__(0, 10, parent)
-    self.capturas = capturas
-    self.setSortingEnabled(True)
-    self.setHorizontalHeaderLabels(self.table_header_labels)
-    self.horizontalHeader().resizeSection(5, 150)
-    self.horizontalHeader().resizeSection(6, 150)
-    self.horizontalHeader().resizeSection(7, 150)
-    self.horizontalHeader().resizeSection(8, 150)
-    self.horizontalHeader().resizeSection(9, 300)
+  columns_open_window_str = {0: "WidgetIndividuoConCapturas",
+                         1: "WidgetEditarCaptura"}
 
-    if self.capturas:
-      self.load()
+  table_constructs = [TableConstruct(HeaderLabelIndex("id individuo", 0), ConstructorItemString("individuo_id")),
+                      TableConstruct(HeaderLabelIndex("id captura", 0), ConstructorItemString("id")),
+                      TableConstruct(HeaderLabelIndex("sexo", 1), ConstructorItemString("sexo")),
+                      TableConstruct(HeaderLabelIndex("fecha", 0), ConstructorItemString("fecha")),
+                      TableConstruct(HeaderLabelIndex("zona", 0), ConstructorItemString("zona_description")),
+                      TableConstruct(HeaderLabelIndex("lat", 0), ConstructorItemString("lat", replace_empty=True)),
+                      TableConstruct(HeaderLabelIndex("lon", 0), ConstructorItemString("lon", replace_empty=True)),
+                      TableConstruct(HeaderLabelIndex("fotografo", 0), ConstructorItemString("fotografo_description")),
+                      TableConstruct(HeaderLabelIndex("archivo", 0), ConstructorItemString("nombre_imagen")),
+                      TableConstruct(HeaderLabelIndex("segmentada", 0, 150), ConstructorItemImage("imagen_segmentada")),
+                      TableConstruct(HeaderLabelIndex("transformada", 0, 150), ConstructorItemImage("imagen_transformada")),
+                      TableConstruct(HeaderLabelIndex("original", 0, 150), ConstructorItemImage("imagen_original")),
+                      TableConstruct(HeaderLabelIndex("observaciones", 0, 300), ConstructorItemString("observaciones", replace_empty=True)),
+                      TableConstruct(HeaderLabelIndex("observacones individuo", 1, 300), ConstructorItemString("observaciones", replace_empty=True))]
+  size_rows = 150
 
-  def set_capturas(self, capturas):
-    self.capturas = capturas
-    self.load()
+class WidgetTableCapturasDeIndividuo(WidgetTableTemplate):
 
-  def load(self):
-    db_man = ManagerBase()
+  columns_open_window = {0: WidgetEditarCaptura}
 
-    i = 0
-    self.clear()
-    self.setSortingEnabled(False)
+  table_constructs = [TableConstruct(HeaderLabel("id captura"), ConstructorItemString("id")),
+                      TableConstruct(HeaderLabel("fecha"), ConstructorItemString("fecha")),
+                      TableConstruct(HeaderLabel("zona"), ConstructorItemString("zona_description")),
+                      TableConstruct(HeaderLabel("lat"), ConstructorItemString("lat", replace_empty=True)),
+                      TableConstruct(HeaderLabel("lon"), ConstructorItemString("lon", replace_empty=True)),
+                      TableConstruct(HeaderLabel("fotografo"), ConstructorItemString("fotografo_description")),
+                      TableConstruct(HeaderLabel("archivo"), ConstructorItemString("nombre_imagen")),
+                      TableConstruct(HeaderLabel("observaciones", 300), ConstructorItemString("observaciones", replace_empty=True))]
 
-    while (self.rowCount() > 0):
-      self.removeRow(0)
 
-    for captura in self.capturas:
-      item_id_individuo = QtGui.QTableWidgetItem("%s" % (captura.individuo_id))
-      item_id = QtGui.QTableWidgetItem("%s" % (captura.id))
-      item_imagen = QtGui.QTableWidgetItem("%s" % (captura.nombre_imagen))
-      item_fecha = QtGui.QTableWidgetItem("%s" % (captura.fecha))
-      item_fotografo = QtGui.QTableWidgetItem("%s" % (db_man.get_fotografo(captura.fotografo_id).description()))
-      item_zona = QtGui.QTableWidgetItem("%s" % (db_man.get_zona(captura.zona_id).description()))
-      item_img_seg = QtGui.QTableWidgetItem()
-      item_img_seg.setData(QtCore.Qt.DecorationRole, QtGui.QPixmap.fromImage(db_man.bytes_a_imagen(captura.imagen_segmentada).scaled(150, 150)))
-      item_img_trans = QtGui.QTableWidgetItem()
-      item_img_trans.setData(QtCore.Qt.DecorationRole, QtGui.QPixmap.fromImage(db_man.bytes_a_imagen(captura.imagen_transformada).scaled(150, 150)))
-      item_img_origin = QtGui.QTableWidgetItem()
-      item_img_origin.setData(QtCore.Qt.DecorationRole, QtGui.QPixmap.fromImage(db_man.bytes_a_imagen(captura.imagen_original).scaled(150, 150)))
-      item_observaciones = QtGui.QTableWidgetItem("%s" % (captura.observaciones))
+class WidgetTableIndividuos(WidgetTableTemplate):
 
-      item_id_individuo.setFlags(item_id_individuo.flags() & ~QtCore.Qt.ItemIsEditable)
-      item_id.setFlags(item_id.flags() & ~QtCore.Qt.ItemIsEditable)
+  columns_open_window = {0: WidgetIndividuoConCapturas}
 
-      self.insertRow(i)
-      self.verticalHeader().resizeSection(i, 150)
-      self.setItem(i, 0, item_id_individuo)
-      self.setItem(i, 1, item_id)
-      self.setItem(i, 2, item_fecha)
-      self.setItem(i, 3, item_zona)
-      self.setItem(i, 4, item_fotografo)
-      self.setItem(i, 5, item_imagen)
-      self.setItem(i, 6, item_img_seg)
-      self.setItem(i, 7, item_img_trans)
-      self.setItem(i, 8, item_img_origin)
-      self.setItem(i, 9, item_observaciones)
-      i += 1
-    self.setSortingEnabled(True)
-    self.setHorizontalHeaderLabels(self.table_header_labels)
-    export_csv(self)
+  table_constructs = [TableConstruct(HeaderLabel("id"), ConstructorItemString("id")),
+                      TableConstruct(HeaderLabel("sexo"), ConstructorItemString("sexo")),
+                      TableConstruct(HeaderLabel("observaciones", 300), ConstructorItemString("observaciones", replace_empty=True))]
+
+class WidgetTableFotografos(WidgetTableTemplate):
+
+  columns_open_window = {0: WidgetAgregarFotografo}
+
+  table_constructs = [TableConstruct(HeaderLabel("id"), ConstructorItemString("id")),
+                      TableConstruct(HeaderLabel("nombre"), ConstructorItemString("nombre")),
+                      TableConstruct(HeaderLabel("apellido"), ConstructorItemString("apellido")),
+                      TableConstruct(HeaderLabel("email"), ConstructorItemString("email"))]
+
+
+
+
 
 class WidgetComboBoxList(QtGui.QWidget):
 
@@ -910,6 +997,7 @@ class WidgetNuevaCaptura(QtGui.QWidget):
   def guardar(self):
     self.widgetAgregarCaptura.guardar()
     self.close()
+    self.parent.hideUIResult()
 
   def iniciar_ui(self):
 
@@ -945,6 +1033,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
       individuo_id = db_man.crear_individuo_ret_id(sexo, observaciones_individuo)
       self.widgetAgregarCaptura.guardar(individuo_id)
       self.close()
+      self.parent.hideUIResult()
     except:
       print("error!")
       traceback.print_exc()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, LargeBinary, PickleType, ForeignKey, DateTime, Float, Text
-from sqlalchemy import func
+from sqlalchemy import func, update
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -68,14 +68,14 @@ class ManagerBase(object):
     self.session.add(nuevo_individuo)
     self.session.commit()
 
-  def crear_captura(self, individuo_id, img_original, img_transformada, img_segmentadas, vector_regiones,\
+  def crear_captura(self, individuo_id, img_original, img_transformada, img_segmentada, vector_regiones,\
       fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
       fotografo_id, zona_id, superficie_ocupada):
     #TODO: dicc_datos no se usa para nada todavia
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
           self.imagen_a_bytes(img_transformada),
-          self.imagen_a_bytes(img_segmentadas),
+          self.imagen_a_bytes(img_segmentada),
           vector_regiones,
           fecha,
           lat,
@@ -88,21 +88,58 @@ class ManagerBase(object):
           largos,
           superficie_ocupada
           )
-    fotografo = self.session.query(Fotografo).get(fotografo_id)
+    if fotografo_id:
+      fotografo = self.session.query(Fotografo).get(fotografo_id)
+      fotografo.capturas.append(nueva_captura)
+    if zona_id:
+      zona = self.session.query(Zona).get(zona_id)
+      zona.capturas.append(nueva_captura)
     individuo = self.session.query(Individuo).get(individuo_id)
-    zona = self.session.query(Zona).get(zona_id)
-    fotografo.capturas.append(nueva_captura)
     individuo.capturas.append(nueva_captura)
-    zona.capturas.append(nueva_captura)
     self.session.add(nueva_captura)
     self.session.commit()
     return nueva_captura
+
+  def modificar_individuo(self, individuo_id, sexo, observaciones):
+    #individuo =
+    #stmt = update(Individuo).where(Individuo.id == individuo_id).values(sexo=sexo, observaciones=observaciones)
+    #print(stmt)
+    self.session.query(Individuo).filter_by(id=individuo_id).update({"sexo":sexo, "observaciones":observaciones}, synchronize_session=False)
+    self.session.commit()
+
+  def borrar_individuo(self, individuo_id):
+    self.session.query(Individuo).filter_by(id=individuo_id).delete()
+    self.session.commit()
+
+  def modificar_captura(self, captura_id, fecha, lat, lon, acompaniantes, observaciones, fotografo_id, zona_id):
+    #individuo =
+    #stmt = update(Individuo).where(Individuo.id == individuo_id).values(sexo=sexo, observaciones=observaciones)
+    #print(stmt)
+    #captura = self.get_captura(captura_id)
+    #viejo_fotografo = self.get_fotografo(captura.)
+    self.session.query(Captura).filter_by(id=captura_id).update({"fecha":fecha, "lat":lat, "lon":lon, "cantidad_acompaniantes":acompaniantes, "observaciones":observaciones, "fotografo_id":fotografo_id, "zona_id":zona_id}, synchronize_session=False)
+    self.session.commit()
+
+  def borrar_captura(self, captura_id):
+    captura = self.get_captura(captura_id)
+    individuo = self.get_individuo(captura.individuo_id)
+    self.session.query(Captura).filter_by(id=captura_id).delete()
+    if len(individuo.capturas) == 0:
+      self.borrar_individuo(individuo.id)
+    self.session.commit()
+
 
   def get_individuo(self, individuo_id):
     """
     Retorna un Individuo o None
     """
     return self.session.query(Individuo).get(individuo_id)
+
+  def get_captura(self, captura_id):
+    """
+    Retorna un Captura o None
+    """
+    return self.session.query(Captura).get(captura_id)
 
   def get_fotografo(self, fotografo_id):
     """
@@ -229,16 +266,19 @@ class ManagerBase(object):
           }
     return ret
 
-  def buscar_capturas(self, individuo_id, captura_id, date_time_inic, date_time_fin, zona_id, fotografo_id,\
-                        cant_sapitos_min, cant_sapitos_max, observaciones, archivo):
+  def buscar_capturas_join_individuos(self, individuo_id, captura_id, sexo, date_time_inic, date_time_fin, zona_id, fotografo_id,\
+                        cant_sapitos_min, cant_sapitos_max, observaciones, observaciones_individuo, archivo):
     """
     busca capturas en base a los campos de una captura
     """
-    query = self.session.query(Captura)
+    query = self.session.query(Captura, Individuo).join(Individuo)
+    #query = self.session.query(Captura)
     if individuo_id:
       query = query.filter(Captura.individuo_id == individuo_id)
     if captura_id:
       query = query.filter(Captura.id == captura_id)
+    if sexo:
+      query = query.filter(Individuo.sexo == sexo)
     if date_time_inic:
       query = query.filter(Captura.fecha > date_time_inic)
     if date_time_fin:
@@ -253,9 +293,11 @@ class ManagerBase(object):
       query = query.filter(Captura.cantidad_acompaniantes < cant_sapitos_max)
     if observaciones:
       query = query.filter(Captura.observaciones.contains(observaciones))
+    if observaciones_individuo:
+      query = query.filter(Individuo.observaciones.contains(observaciones_individuo))
     if archivo:
       query = query.filter(Captura.nombre_imagen.contains(archivo))
-    print(query)
+    #print(query)
     return query
 
   def buscar_individuos(self, individuo_id, sexo, observaciones):
@@ -278,7 +320,7 @@ class Captura(Base):
   __tablename__ = 'captura'
 
   id = Column(Integer, primary_key=True)
-  individuo_id = Column(Integer, ForeignKey('individuo.id'))
+  individuo_id = Column(Integer, ForeignKey('individuo.id', ondelete='CASCADE'))
   imagen_original = deferred(Column(LargeBinary))
   imagen_transformada = deferred(Column(LargeBinary))
   imagen_segmentada = deferred(Column(LargeBinary))
@@ -316,6 +358,14 @@ class Captura(Base):
 
   def __repr__(self):
     return "<Captura('%s')>" % (self.id)
+
+  @property
+  def fotografo_description(self):
+    return ManagerBase().get_fotografo(self.fotografo_id).description()
+
+  @property
+  def zona_description(self):
+    return ManagerBase().get_zona(self.zona_id).description()
 
 class Fotografo(Base):
   __tablename__ = 'fotografo'
@@ -370,7 +420,7 @@ class Individuo(Base):
 
   id = Column(Integer, primary_key=True)
   imagen = deferred(Column(LargeBinary))
-  capturas = relationship("Captura", backref="individuo")
+  capturas = relationship("Captura", cascade="all,delete", backref="individuo")
   #captura_base = relationship("Captura", uselist=False)
   sexo = Column(String)
   observaciones = Column(Text)
