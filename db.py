@@ -74,6 +74,7 @@ class ManagerBase(object):
     #TODO: dicc_datos no se usa para nada todavia
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
+          self.imagen_a_bytes(img_original.scaled(150, 150)),
           self.imagen_a_bytes(img_transformada),
           self.imagen_a_bytes(img_segmentada),
           vector_regiones,
@@ -126,6 +127,23 @@ class ManagerBase(object):
     self.session.query(Captura).filter_by(id=captura_id).delete()
     if len(individuo.capturas) == 0:
       self.borrar_individuo(individuo.id)
+    self.session.commit()
+
+  def modificar_fotografo(self, fotografo_id, nombre, apellido, email):
+    self.session.query(Fotografo).filter_by(id=fotografo_id).update({"nombre":nombre, "apellido":apellido, "email":email}, synchronize_session=False)
+    self.session.commit()
+
+  def borrar_fotografo(self, fotografo_id):
+    self.session.query(Fotografo).filter_by(id=fotografo_id).delete()
+    self.session.commit()
+
+  def modificar_zona(self, zona_id, nombre, lat, lon):
+    self.session.query(Zona).filter_by(id=zona_id).update({"nombre":nombre, "lat":lat, "lon":lon}, synchronize_session=False)
+    self.session.commit()
+
+
+  def borrar_zona(self, zona_id):
+    self.session.query(Zona).filter_by(id=zona_id).delete()
     self.session.commit()
 
 
@@ -322,6 +340,7 @@ class Captura(Base):
   id = Column(Integer, primary_key=True)
   individuo_id = Column(Integer, ForeignKey('individuo.id', ondelete='CASCADE'))
   imagen_original = deferred(Column(LargeBinary))
+  imagen_original_thumbnail = deferred(Column(LargeBinary))
   imagen_transformada = deferred(Column(LargeBinary))
   imagen_segmentada = deferred(Column(LargeBinary))
   area_por_region = Column(PickleType)#lista con la cantidad de area por region
@@ -338,10 +357,11 @@ class Captura(Base):
   largos = Column(PickleType)
   superficie_ocupada = Column(Float)
 
-  def __init__(self, img_original, img_trans, img_segmentada, area_por_region,\
+  def __init__(self, img_original, img_original_thumbnail, img_trans, img_segmentada, area_por_region,\
       fecha, lat, lon, acompaniantes, observaciones, nombre_imagen, puntos, angulos,\
       largos, superficie_ocupada):
     self.imagen_original = img_original
+    self.imagen_original_thumbnail = img_original_thumbnail
     self.imagen_transformada = img_trans
     self.imagen_segmentada = img_segmentada
     self.area_por_region = area_por_region
@@ -361,11 +381,15 @@ class Captura(Base):
 
   @property
   def fotografo_description(self):
-    return ManagerBase().get_fotografo(self.fotografo_id).description()
+    if self.fotografo_id:
+      return ManagerBase().get_fotografo(self.fotografo_id).description()
+    return None
 
   @property
   def zona_description(self):
-    return ManagerBase().get_zona(self.zona_id).description()
+    if self.zona_id:
+      return ManagerBase().get_zona(self.zona_id).description()
+    return None
 
 class Fotografo(Base):
   __tablename__ = 'fotografo'
