@@ -7,7 +7,7 @@ from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
   WidgetBotonesAgregarCaptura, \
   WidgetListaIndividuosStandaloneScroleable, \
   WidgetAgregarFotografo, \
-  WidgetAgregarZona, \
+  WidgetZonas, \
   WidgetBuscarCaptura, \
   WidgetFotografos, \
   WidgetBuscarIndividuo
@@ -222,7 +222,7 @@ class WindowSapito(QtGui.QMainWindow):
       Llamamos al widget que muesstra el formulario de busqueda,
       este meotodo se llama desde la barra de menu.
       """
-    self.search_widget = WidgetBuscarCaptura()
+    self.search_widget = WidgetZonas()
     self.search_widget.show()
 
   def createActions(self):

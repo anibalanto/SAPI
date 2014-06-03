@@ -11,8 +11,10 @@ sexo = ["Macho", "Hembra", "No determinado"]
 
 
 class WidgetAgregarZona(QtGui.QWidget):
-  def __init__(self, parent=None, widget_extend = None):
-    super(WidgetAgregarZona, self).__init__(parent)
+
+  def __init__(self, parent, widget_extend = None):
+    super(WidgetAgregarZona, self).__init__(parent, QtCore.Qt.Window)
+    self.parent = parent
     self.setLayout(self.iniciar_ui())
     self.show()
     self.widget_extend = widget_extend
@@ -27,6 +29,8 @@ class WidgetAgregarZona(QtGui.QWidget):
       self.close()
       if self.widget_extend != None:
         self.widget_extend.extend(zona)
+      return True
+    return False
 
   def iniciar_ui(self):
     #labels, inputs y boton guardar
@@ -51,10 +55,19 @@ class WidgetAgregarZona(QtGui.QWidget):
     lay.addWidget(save_button, 3, 1)
     return lay
 
+class WidgetAgregarZonaRefreshTable(WidgetAgregarZona):
+
+  def __init__(self, parent, widget_extend = None):
+    super(WidgetAgregarZonaRefreshTable, self).__init__(parent, widget_extend)
+
+  def guardar(self):
+    if (super(WidgetAgregarZonaRefreshTable, self).guardar()):
+      self.parent.refresh()
 
 class WidgetAgregarFotografo(QtGui.QWidget):
-  def __init__(self, parent=None, widget_extend = None):
+  def __init__(self, parent, widget_extend = None):
     super(WidgetAgregarFotografo, self).__init__(parent, QtCore.Qt.Window)
+    self.parent = parent
     self.setLayout(self.iniciar_ui())
     self.show()
     self.widget_extend = widget_extend
@@ -69,6 +82,8 @@ class WidgetAgregarFotografo(QtGui.QWidget):
       self.close()
       if self.widget_extend != None:
         self.widget_extend.extend(fotografo)
+      return True
+    return False
 
   def iniciar_ui(self):
     #labels, inputs y boton guardar
@@ -95,6 +110,15 @@ class WidgetAgregarFotografo(QtGui.QWidget):
     self.setWindowFlags(QtCore.Qt.Window)
     return lay
 
+class WidgetAgregarFotografoRefreshTable(WidgetAgregarFotografo ):
+
+  def __init__(self, parent, widget_extend = None):
+    super(WidgetAgregarFotografoRefreshTable, self).__init__(parent, widget_extend)
+
+  def guardar(self):
+    if (super(WidgetAgregarFotografoRefreshTable, self).guardar()):
+      self.parent.refresh()
+
 class WidgetIndividuoConCapturas(CalleableWindow):
   """
   Widget que contiene una imagen del individuo con sus respectivas capturas
@@ -111,14 +135,17 @@ class WidgetIndividuoConCapturas(CalleableWindow):
   def guardar(self):
     sexo = self.sexo_input.itemText(self.sexo_input.currentIndex())
     observaciones = self.observaciones_input.toPlainText() if self.observaciones_input.toPlainText() != '' else None
-    #print ("el sexo: ", sexo)
     ManagerBase().modificar_individuo(self.id_input.text(), sexo, observaciones)
     self.close()
     self.parent.refresh()
 
   def refresh(self):
     individuo = ManagerBase().get_individuo(self.id_individuo)
-    self.table.set_data(individuo.capturas)
+    if individuo:
+      self.table.set_data(individuo.capturas)
+    else:
+      self.parent.refresh()
+      self.close()
 
   def borrar(self):
     reply = QtGui.QMessageBox.question(self, 'Message',
@@ -718,7 +745,69 @@ class WidgetEditarFotografo(CalleableWindow):
       self.lastname_input.setText(str(fotografo.apellido if fotografo.apellido != None else ""))
       self.email_input.setText(str(fotografo.email if fotografo.email != None else ""))
 
+class WidgetEditarZona(CalleableWindow):
 
+  def __init__(self, parent, id_zona, ident):
+    super(WidgetEditarZona, self).__init__(parent, ident)
+    self.id_zona = id_zona
+    self.iniciar_ui()
+    self.show()
+    self.llenar()
+
+
+  def guardar(self):
+    db_man = ManagerBase()
+    n = self.name_input.text()
+    la = self.lat_input.text() if self.lat_input.text() != '' else None
+    lo = self.lon_input.text() if self.lon_input.text() != '' else None
+    if (n):
+      db_man.modificar_zona(self.id_zona, n, la, lo)
+      self.close()
+      self.refresh_table()
+
+  def refresh_table(self):
+    self.parent.refresh()
+
+  def borrar(self):
+    reply = QtGui.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar esta zona?", QtGui.QMessageBox.Yes |
+            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+
+    if reply == QtGui.QMessageBox.Yes:
+      ManagerBase().borrar_fotografo(self.id_fotografo)
+      self.close()
+      self.refresh_table()
+
+  def iniciar_ui(self):
+        #labels, inputs y boton guardar
+    self.setWindowTitle("Editar Zona")
+    self.name_label = QtGui.QLabel("Nombre")
+    self.name_input = QtGui.QLineEdit()
+    self.lat_label = QtGui.QLabel("Latitud")
+    self.lat_input = QtGui.QLineEdit()
+    self.lon_label = QtGui.QLabel("Longitud")
+    self.lon_input = QtGui.QLineEdit()
+    save_button = QtGui.QPushButton("Guardar")
+    save_button.clicked.connect(self.guardar)
+
+    #layout
+    lay = QtGui.QGridLayout()
+    lay.addWidget(self.name_label, 0, 0)
+    lay.addWidget(self.name_input, 0, 1)
+    lay.addWidget(self.lat_label, 1, 0)
+    lay.addWidget(self.lat_input, 1, 1)
+    lay.addWidget(self.lon_label, 2, 0)
+    lay.addWidget(self.lon_input, 2, 1)
+    lay.addWidget(save_button, 3, 1)
+    self.setWindowFlags(QtCore.Qt.Window)
+    self.setLayout(lay)
+
+  def llenar(self):
+    if self.id_zona:
+      zona = ManagerBase().get_zona(self.id_zona)
+      self.name_input.setText(str(zona.nombre if zona.nombre != None else ""))
+      self.lat_input.setText(str(zona.lat if zona.lat != None else ""))
+      self.lon_input.setText(str(zona.lon if zona.lon != None else ""))
 
 class WidgetBuscarCaptura(QtGui.QWidget):
 
@@ -885,6 +974,9 @@ class WidgetFotografos(QtGui.QWidget):
     self.parent = parent
     self.iniciar_ui()
 
+  def refresh(self):
+    self.table.set_data(ManagerBase().all_fotografos())
+
   def iniciar_ui(self):
     self.setWindowTitle("Fotografos")
     self.table = WidgetTableFotografos(self)
@@ -898,55 +990,86 @@ class WidgetFotografos(QtGui.QWidget):
     self.setLayout(vbox)
 
   def launch_nuevo_fotografo(self):
-    self.widget = WidgetAgregarFotografo()
+    self.widget = WidgetAgregarFotografoRefreshTable(self)
     self.widget.show()
 
 
+class WidgetZonas(QtGui.QWidget):
+
+  def __init__(self, parent = None):
+    super(WidgetZonas, self).__init__(parent)
+    self.parent = parent
+    self.iniciar_ui()
+
+  def refresh(self):
+    self.table.set_data(ManagerBase().all_zonas())
+
+  def iniciar_ui(self):
+    self.setWindowTitle("Zonas")
+    self.table = WidgetTableZonas(self)
+    self.table.set_data(ManagerBase().all_zonas())
+    self.button_nuevo = QtGui.QPushButton("Nuevo")
+    self.button_nuevo.clicked.connect(self.launch_nueva_zona)
+
+    vbox = QtGui.QVBoxLayout()
+    vbox.addWidget(self.table)
+    vbox.addWidget(self.button_nuevo)
+    self.setLayout(vbox)
+
+  def launch_nueva_zona(self):
+    self.widget = WidgetAgregarZonaRefreshTable(self)
+    self.widget.show()
+
 class WidgetTableCapturasIndividuosJoin(WidgetTableTemplateQueryJoin):
 
-  table_constructs = [TableConstruct(HeaderLabelIndex("id individuo", 0), ConstructorItemString("individuo_id"), open_window=True, widget=WidgetIndividuoConCapturas),
-                      TableConstruct(HeaderLabelIndex("id captura", 0), ConstructorItemString("id"), open_window=True, widget=WidgetEditarCaptura),
-                      TableConstruct(HeaderLabelIndex("sexo", 1), ConstructorItemString("sexo")),
-                      TableConstruct(HeaderLabelIndex("fecha", 0), ConstructorItemString("fecha")),
-                      TableConstruct(HeaderLabelIndex("zona", 0), ConstructorItemString("zona_description", replace_empty=True)),
-                      TableConstruct(HeaderLabelIndex("lat", 0), ConstructorItemString("lat", replace_empty=True)),
-                      TableConstruct(HeaderLabelIndex("lon", 0), ConstructorItemString("lon", replace_empty=True)),
-                      TableConstruct(HeaderLabelIndex("fotografo", 0), ConstructorItemString("fotografo_description", replace_empty=True)),
-                      TableConstruct(HeaderLabelIndex("archivo", 0), ConstructorItemString("nombre_imagen")),
-                      TableConstruct(HeaderLabelIndex("segmentada", 0, 150), ConstructorItemImage("imagen_segmentada")),
-                      TableConstruct(HeaderLabelIndex("transformada", 0, 150), ConstructorItemImage("imagen_transformada")),
-                      TableConstruct(HeaderLabelIndex("original", 0, 150), ConstructorItemImage("imagen_original_thumbnail")),
-                      TableConstruct(HeaderLabelIndex("observaciones", 0, 300), ConstructorItemString("observaciones", replace_empty=True)),
-                      TableConstruct(HeaderLabelIndex("observacones individuo", 1, 300), ConstructorItemString("observaciones", replace_empty=True))]
+  column_constructs = [ColumnConstruct(HeaderLabelIndex("id individuo", 0), ConstructorItemString("individuo_id"), open_window=True, widget=WidgetIndividuoConCapturas),
+                      ColumnConstruct(HeaderLabelIndex("id captura", 0), ConstructorItemString("id"), open_window=True, widget=WidgetEditarCaptura),
+                      ColumnConstruct(HeaderLabelIndex("sexo", 1), ConstructorItemString("sexo")),
+                      ColumnConstruct(HeaderLabelIndex("fecha", 0), ConstructorItemString("fecha")),
+                      ColumnConstruct(HeaderLabelIndex("zona", 0), ConstructorItemString("zona_description", replace_empty=True)),
+                      ColumnConstruct(HeaderLabelIndex("lat", 0), ConstructorItemString("lat", replace_empty=True)),
+                      ColumnConstruct(HeaderLabelIndex("lon", 0), ConstructorItemString("lon", replace_empty=True)),
+                      ColumnConstruct(HeaderLabelIndex("fotografo", 0), ConstructorItemString("fotografo_description", replace_empty=True)),
+                      ColumnConstruct(HeaderLabelIndex("archivo", 0), ConstructorItemString("nombre_imagen")),
+                      ColumnConstruct(HeaderLabelIndex("segmentada", 0, 150), ConstructorItemImage("imagen_segmentada")),
+                      ColumnConstruct(HeaderLabelIndex("transformada", 0, 150), ConstructorItemImage("imagen_transformada")),
+                      ColumnConstruct(HeaderLabelIndex("original", 0, 150), ConstructorItemImage("imagen_original_thumbnail")),
+                      ColumnConstruct(HeaderLabelIndex("observaciones", 0, 300), ConstructorItemString("observaciones", replace_empty=True)),
+                      ColumnConstruct(HeaderLabelIndex("observacones individuo", 1, 300), ConstructorItemString("observaciones", replace_empty=True))]
   size_rows = 150
 
 class WidgetTableCapturasDeIndividuo(WidgetTableTemplate):
 
-  table_constructs = [TableConstruct(HeaderLabel("id captura"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarCaptura),
-                      TableConstruct(HeaderLabel("fecha"), ConstructorItemString("fecha")),
-                      TableConstruct(HeaderLabel("zona"), ConstructorItemString("zona_description")),
-                      TableConstruct(HeaderLabel("lat"), ConstructorItemString("lat", replace_empty=True)),
-                      TableConstruct(HeaderLabel("lon"), ConstructorItemString("lon", replace_empty=True)),
-                      TableConstruct(HeaderLabel("fotografo"), ConstructorItemString("fotografo_description")),
-                      TableConstruct(HeaderLabel("archivo"), ConstructorItemString("nombre_imagen")),
-                      TableConstruct(HeaderLabel("observaciones", 300), ConstructorItemString("observaciones", replace_empty=True))]
+  column_constructs = [ColumnConstruct(HeaderLabel("id captura"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarCaptura),
+                      ColumnConstruct(HeaderLabel("fecha"), ConstructorItemString("fecha")),
+                      ColumnConstruct(HeaderLabel("zona"), ConstructorItemString("zona_description")),
+                      ColumnConstruct(HeaderLabel("lat"), ConstructorItemString("lat", replace_empty=True)),
+                      ColumnConstruct(HeaderLabel("lon"), ConstructorItemString("lon", replace_empty=True)),
+                      ColumnConstruct(HeaderLabel("fotografo"), ConstructorItemString("fotografo_description")),
+                      ColumnConstruct(HeaderLabel("archivo"), ConstructorItemString("nombre_imagen")),
+                      ColumnConstruct(HeaderLabel("observaciones", 300), ConstructorItemString("observaciones", replace_empty=True))]
 
 
 class WidgetTableIndividuos(WidgetTableTemplate):
 
-  table_constructs = [TableConstruct(HeaderLabel("id"), ConstructorItemString("id"), open_window=True, widget=WidgetIndividuoConCapturas),
-                      TableConstruct(HeaderLabel("sexo"), ConstructorItemString("sexo")),
-                      TableConstruct(HeaderLabel("observaciones", 300), ConstructorItemString("observaciones", replace_empty=True))]
+  column_constructs = [ColumnConstruct(HeaderLabel("id"), ConstructorItemString("id"), open_window=True, widget=WidgetIndividuoConCapturas),
+                      ColumnConstruct(HeaderLabel("sexo"), ConstructorItemString("sexo")),
+                      ColumnConstruct(HeaderLabel("observaciones", 300), ConstructorItemString("observaciones", replace_empty=True))]
 
 class WidgetTableFotografos(WidgetTableTemplate):
 
-  table_constructs = [TableConstruct(HeaderLabel("id"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarFotografo),
-                      TableConstruct(HeaderLabel("nombre"), ConstructorItemString("nombre")),
-                      TableConstruct(HeaderLabel("apellido"), ConstructorItemString("apellido")),
-                      TableConstruct(HeaderLabel("email"), ConstructorItemString("email"))]
+  column_constructs = [ColumnConstruct(HeaderLabel("id"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarFotografo),
+                      ColumnConstruct(HeaderLabel("nombre"), ConstructorItemString("nombre")),
+                      ColumnConstruct(HeaderLabel("apellido"), ConstructorItemString("apellido")),
+                      ColumnConstruct(HeaderLabel("email"), ConstructorItemString("email"))]
 
 
+class WidgetTableZonas(WidgetTableTemplate):
 
+  column_constructs = [ColumnConstruct(HeaderLabel("id"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarZona),
+                      ColumnConstruct(HeaderLabel("nombre"), ConstructorItemString("nombre")),
+                      ColumnConstruct(HeaderLabel("latitud"), ConstructorItemString("lat", replace_empty=True)),
+                      ColumnConstruct(HeaderLabel("longitud"), ConstructorItemString("lon", replace_empty=True  ))]
 
 
 class WidgetComboBoxList(QtGui.QWidget):
