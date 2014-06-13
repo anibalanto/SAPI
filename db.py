@@ -6,6 +6,7 @@ from sqlalchemy import func, update
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+import ConfigParser as cp
 
 import numpy as np
 
@@ -18,11 +19,26 @@ Base = declarative_base()
 
 class ManagerBase(object):
   def __init__(self):
-    self.engine = create_engine(DBPATH)
+    self.engine = create_engine(ManagerBase.get_dbpath())
     Session = sessionmaker(bind=self.engine)
     self.session = Session()
     Base.metadata.create_all(self.engine)#Las tablas que ya existen no se tocan
 
+  @classmethod
+  def get_dbpath(cls):
+    config = cp.ConfigParser()
+    config.read("config/config.ini")
+    dbtype = config.get("database", "type")
+    if dbtype == "postgresql":
+      dbhost = config.get("database", "host")
+      dbport = config.get("database", "port")
+      dbuser = config.get("database", "user")
+      dbpass = config.get("database", "pass")
+      dbname = config.get("database", "name")
+      return "postgresql+psycopg2://%s:%s@%s:%s/%s" % (dbuser, dbpass, dbhost, dbport, dbname)
+    if dbtype == "sqlite":
+      filename = config.get("database", "filename")
+      return "sqlite:///%s" % filename
 
   #TODO: refactorizar la forma de crear individuos
   def crear_individuo_ret_id(self, sexo, observaciones_individuo):
@@ -70,11 +86,17 @@ class ManagerBase(object):
 
   def crear_captura(self, individuo_id, img_original, img_transformada, img_segmentada, vector_regiones,\
       fecha, lat, lon, acompaniantes, observaciones_captura, nombre_imagen, puntos, angulos, largos,\
-      fotografo_id, zona_id, superficie_ocupada):
+      fotografo_id, zona_id, superficie_ocupada, posicion_algoritmo):
     #TODO: dicc_datos no se usa para nada todavia
+
+    width_thumbnail_1 = 150
+    height_thumbnail_1 = 150
+    width_thumbnail_2 = 650
+    height_thumbnail_2 = int ((float(width_thumbnail_2) / float(img_original.width())) * img_original.height())
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
-          self.imagen_a_bytes(img_original.scaled(150, 150)),
+          self.imagen_a_bytes(img_original.scaled(width_thumbnail_1, height_thumbnail_1)),
+          self.imagen_a_bytes(img_original.scaled(width_thumbnail_2, height_thumbnail_2)),
           self.imagen_a_bytes(img_transformada),
           self.imagen_a_bytes(img_segmentada),
           vector_regiones,
@@ -87,7 +109,8 @@ class ManagerBase(object):
           puntos,
           angulos,
           largos,
-          superficie_ocupada
+          superficie_ocupada,
+          posicion_algoritmo
           )
     if fotografo_id:
       fotografo = self.session.query(Fotografo).get(fotografo_id)
@@ -102,9 +125,6 @@ class ManagerBase(object):
     return nueva_captura
 
   def modificar_individuo(self, individuo_id, sexo, observaciones):
-    #individuo =
-    #stmt = update(Individuo).where(Individuo.id == individuo_id).values(sexo=sexo, observaciones=observaciones)
-    #print(stmt)
     self.session.query(Individuo).filter_by(id=individuo_id).update({"sexo":sexo, "observaciones":observaciones}, synchronize_session=False)
     self.session.commit()
 
@@ -113,11 +133,6 @@ class ManagerBase(object):
     self.session.commit()
 
   def modificar_captura(self, captura_id, fecha, lat, lon, acompaniantes, observaciones, fotografo_id, zona_id):
-    #individuo =
-    #stmt = update(Individuo).where(Individuo.id == individuo_id).values(sexo=sexo, observaciones=observaciones)
-    #print(stmt)
-    #captura = self.get_captura(captura_id)
-    #viejo_fotografo = self.get_fotografo(captura.)
     self.session.query(Captura).filter_by(id=captura_id).update({"fecha":fecha, "lat":lat, "lon":lon, "cantidad_acompaniantes":acompaniantes, "observaciones":observaciones, "fotografo_id":fotografo_id, "zona_id":zona_id}, synchronize_session=False)
     self.session.commit()
 
@@ -159,6 +174,13 @@ class ManagerBase(object):
     """
     return self.session.query(Captura).get(captura_id)
 
+
+  def get_captura_por_nombre_imagen(self, nombre_imagen):
+    """
+    Retorna un Captura o None
+    """
+    return self.session.query(Captura).filter(Captura.nombre_imagen == nombre_imagen)
+
   def get_fotografo(self, fotografo_id):
     """
     Retorna un Individuo o None
@@ -199,7 +221,7 @@ class ManagerBase(object):
     buff = QtCore.QBuffer(ba)
     buff.open(QtCore.QIODevice.WriteOnly)
     #TODO: Ojo con JPG!!
-    imagen.save(buff, "JPG")
+    imagen.save(buff, "BMP")
     return ba.toBase64().data()
 
   def calc_distancia(self, v1, v2):
@@ -236,6 +258,7 @@ class ManagerBase(object):
               #todas las capturas del individuo asociado a la captura
               "lista_imagenes" : [self.bytes_a_imagen(j.imagen_transformada) for j in i[1].individuo.capturas],
               "dicc_datos" : {"sexo" : i[1].individuo.sexo, "observaciones": i[1].individuo.observaciones},
+              "porcentaje_similitud" : 100 * (1 - i[0])
               }
         )
       idx += 1
@@ -315,7 +338,6 @@ class ManagerBase(object):
       query = query.filter(Individuo.observaciones.contains(observaciones_individuo))
     if archivo:
       query = query.filter(Captura.nombre_imagen.contains(archivo))
-    #print(query)
     return query
 
   def buscar_individuos(self, individuo_id, sexo, observaciones):
@@ -329,7 +351,6 @@ class ManagerBase(object):
       query = query.filter(Individuo.sexo == sexo)
     if observaciones:
       query = query.filter(Individuo.observaciones.contains(observaciones))
-    print(query)
     return query
 
 
@@ -339,8 +360,9 @@ class Captura(Base):
 
   id = Column(Integer, primary_key=True)
   individuo_id = Column(Integer, ForeignKey('individuo.id', ondelete='CASCADE'))
-  imagen_original = deferred(Column(LargeBinary))
+  #imagen_original = deferred(Column(LargeBinary))
   imagen_original_thumbnail = deferred(Column(LargeBinary))
+  imagen_original_thumbnail_mediana = deferred(Column(LargeBinary))
   imagen_transformada = deferred(Column(LargeBinary))
   imagen_segmentada = deferred(Column(LargeBinary))
   area_por_region = Column(PickleType)#lista con la cantidad de area por region
@@ -356,12 +378,14 @@ class Captura(Base):
   angulos = Column(PickleType)
   largos = Column(PickleType)
   superficie_ocupada = Column(Float)
+  posicion_algoritmo = Column(Integer)
 
-  def __init__(self, img_original, img_original_thumbnail, img_trans, img_segmentada, area_por_region,\
+  def __init__(self, img_original, img_original_thumbnail, img_original_thumbnail_mediana, img_trans, img_segmentada, area_por_region,\
       fecha, lat, lon, acompaniantes, observaciones, nombre_imagen, puntos, angulos,\
-      largos, superficie_ocupada):
-    self.imagen_original = img_original
+      largos, superficie_ocupada, posicion_algoritmo):
+    #self.imagen_original = img_original
     self.imagen_original_thumbnail = img_original_thumbnail
+    self.imagen_original_thumbnail_mediana = img_original_thumbnail_mediana
     self.imagen_transformada = img_trans
     self.imagen_segmentada = img_segmentada
     self.area_por_region = area_por_region
@@ -375,6 +399,7 @@ class Captura(Base):
     self.angulos = angulos
     self.largos = largos
     self.superficie_ocupada = superficie_ocupada
+    self.posicion_algoritmo = posicion_algoritmo
 
   def __repr__(self):
     return "<Captura('%s')>" % (self.id)

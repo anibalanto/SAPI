@@ -1,0 +1,6 @@
+[database]
+# si el tipo de base de datos es sqlite las varibles a setear son
+# type: sqlite
+# filename: nombre del archivo
+type: sqlite
+filename: sapitosierras.db

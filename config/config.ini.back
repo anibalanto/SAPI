@@ -1,0 +1,10 @@
+[database]
+# si el tipo de base de datos es sqlite las varibles a setear son
+# type: sqlite
+# filename: nombre del archivo
+type: postgresql
+host: localhost
+port: 5432
+user: postgres
+pass: postgres
+name: sapitosierra

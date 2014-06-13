@@ -5,7 +5,7 @@ from PySide import QtCore, QtGui
 from transformedWidget import *
 from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
   WidgetBotonesAgregarCaptura, \
-  WidgetListaIndividuosStandaloneScroleable, \
+  WidgetArchivoConMismoNombre, \
   WidgetAgregarFotografo, \
   WidgetZonas, \
   WidgetBuscarCaptura, \
@@ -101,17 +101,20 @@ class WindowSapito(QtGui.QMainWindow):
 
   def hideUIResult(self):
     resultLayout = self.mainLayout.takeAt(1)
-    resultLayout.deleteLater()
+    if resultLayout:
+      resultLayout.deleteLater()
 
-    image1 = self.imageResultLayout.takeAt(1)
-    image2 = self.imageResultLayout.takeAt(0)
-    image1.widget().setVisible(False)
-    image2.widget().setVisible(False)
+      image1 = self.imageResultLayout.takeAt(1)
+      image2 = self.imageResultLayout.takeAt(0)
+      image1.widget().setVisible(False)
+      image2.widget().setVisible(False)
 
-    self.widget_listado.deleteLater()
-    self.widget_botones.deleteLater()
+      self.widget_listado.deleteLater()
+      self.widget_botones.deleteLater()
 
-    self.iniciadaUIResult = False
+      self.iniciadaUIResult = False
+
+      self.selectorWidget.resetShape()
 
   def loadImage(self, filename):
     self.filename = filename
@@ -130,13 +133,24 @@ class WindowSapito(QtGui.QMainWindow):
       self.setWindowTitle(self.filename)
     self.filename_nopath = self.filename.split("/")[-1]
     self.filename_path = self.filename[:-len(self.filename_nopath) - 1]
+    self.verificar_nombre_imagen(self.filename_nopath)
+
+  def verificar_nombre_imagen(self, nombre_imagen):
+    db_man = ManagerBase()
+    capturas = db_man.get_captura_por_nombre_imagen(nombre_imagen)
+    if capturas.count() > 0:
+      self.widget = WidgetArchivoConMismoNombre(self, nombre_imagen, capturas)
+      #self.hide()
+      self.widget.show()
+      #self.widget.activateWindow()
 
 
   def open(self):
     path = QtCore.QDir.currentPath() if self.filename_path == None else QtCore.QDir.absolutePath(
       QtCore.QDir(self.filename_path))
     filename, _ = QtGui.QFileDialog.getOpenFileName(self, "Open File", path)
-    self.loadImage(filename)
+    if filename:
+      self.loadImage(filename)
 
   def transform(self):
     """
@@ -164,17 +178,24 @@ class WindowSapito(QtGui.QMainWindow):
     segm.from_instance(qimage_resta)
     self.qimage_transformada = algoritmos.borrar(proy, segm).get_img()
 
-    #Obtenemos la segemntada y el vector de regiones a partir de la resta que hicimos antes.
+    #Obtenemos la segmentada y el vector de regiones a partir de la resta que hicimos antes.
     #Por ahora pasamos las imagenes en el wrapper
     trans = ImagenQImage()
     trans.from_instance(self.qimage_transformada)
     imagen_wrapper, self.vector_regiones, self.superficie_ocupada = algoritmos.calcular_regiones(trans)
-    self.qimage_segmentada = imagen_wrapper.get_img() # Sacamos la imagen del wrapper.
+
+    self.qimage_segmentada  = imagen_wrapper.get_img() # Sacamos la imagen del wrapper.
 
     #Cargamos los widgets de la barra de costado con las imagenes obtenidas.
     self.initUIResult(self.qimage_transformada, self.qimage_segmentada)
 
     self.completar_similares(self.vector_regiones)
+
+
+  def resetShape(self):
+    self.selectorWidget.resetShape()
+    self.hideUIResult()
+
 
   def completar_similares(self, regiones):
     #buscar en la bd a partir del vector generado para la imagen
@@ -185,10 +206,9 @@ class WindowSapito(QtGui.QMainWindow):
 
   def individuos(self):
     """
-        Llamamos al widget que muestra todos los individuos.
-        Este metodo se llama desde la barra de menu.
-        """
-
+    Llamamos al widget que muestra todos los individuos.
+    Este metodo se llama desde la barra de menu.
+    """
     self.widget_individuos = WidgetBuscarIndividuo()
     self.widget_individuos.show()
     #self.lista_individuos = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())
@@ -240,8 +260,8 @@ class WindowSapito(QtGui.QMainWindow):
                                    shortcut="Ctrl+R", enabled=True, triggered=self.selectorWidget.rotateImage)
     self.transformAct = QtGui.QAction("&Transformar", self,
                                       shortcut="Ctrl+T", enabled=True, triggered=self.transform)
-    self.resetShape = QtGui.QAction("&Resetear", self,
-                                    shortcut="Ctrl+E", enabled=True, triggered=self.selectorWidget.resetShape)
+    self.resetShapeAct = QtGui.QAction("&Resetear", self,
+                                    shortcut="Ctrl+E", enabled=True, triggered=self.resetShape)
     #self.add_photographer_act = QtGui.QAction("Agregar &fotografo", self, shortcut="Ctrl+F", enabled=True, triggered=self.add_photographer)
     self.individuos_act = QtGui.QAction("Individuos", self, triggered=self.individuos)
     self.capturas_act = QtGui.QAction("Capturas", self, enabled=True, triggered=self.capturas)
@@ -268,7 +288,7 @@ class WindowSapito(QtGui.QMainWindow):
 
     self.transformMenu = QtGui.QMenu("&Forma", self)
     self.transformMenu.addAction(self.transformAct)
-    self.transformMenu.addAction(self.resetShape)
+    self.transformMenu.addAction(self.resetShapeAct)
 
     self.menuBar().addMenu(self.fileMenu)
     self.menuBar().addMenu(self.datosMenu)

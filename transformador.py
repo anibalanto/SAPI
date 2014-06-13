@@ -8,9 +8,12 @@ class Transformador(object):
   def recorrer_imagen(ancho, alto):
     """
     genera tuplas (x,y) entre 0..ancho y 0..alto
-    """
     for x in range(1,ancho-1):
       for y in range(1,alto-1):
+        yield (x,y)
+    """
+    for x in range(*ancho):
+      for y in range(*alto):
         yield (x,y)
 
   @staticmethod
@@ -21,7 +24,7 @@ class Transformador(object):
     ancho, alto = img.size
     for algoritmo in algoritmos:
       ret = ImagenVacia(img.size)
-      for x,y in Transformador.recorrer_imagen(ancho, alto):
+      for x,y in Transformador.recorrer_imagen(algoritmo.ancho(img.size), algoritmo.alto(img.size)):
           ret.putpixel(
               (x, y),
               algoritmo.aplicar_en_pixel(x, y, img)

@@ -155,7 +155,7 @@ class WidgetIndividuoConCapturas(CalleableWindow):
     if reply == QtGui.QMessageBox.Yes:
       ManagerBase().borrar_individuo(self.id_individuo)
       self.close()
-      self.refresh_table()
+      self.parent.refresh()
 
   def iniciar_ui(self, individuo):
     self.setWindowTitle("Individuo")
@@ -430,7 +430,9 @@ class WidgetListaIndividuos(QtGui.QWidget):
       boton_mostrar.id_individuo = sapo_id
       boton_mostrar.datos_individuo = dicc_sapo["dicc_datos"]
       boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
+      porcentaje_similitud = QtGui.QLabel(dicc_sapo["porcentaje_similitud"])
       horizontal_lay.addWidget(boton_mostrar)
+      horizontal_lay.addWidget(porcentaje_similitud)
       vertical_lay.addLayout(horizontal_lay)
     return vertical_lay
 
@@ -483,7 +485,9 @@ class WidgetListaIndividuosRadios(WidgetListaIndividuos):
       boton_mostrar.id_individuo = sapo_id
       boton_mostrar.datos_individuo = dicc_sapo["dicc_datos"]
       boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
+      porcentaje_similitud = QtGui.QLabel(str(dicc_sapo["porcentaje_similitud"]))
       horizontal_lay.addWidget(boton_mostrar)
+      horizontal_lay.addWidget(porcentaje_similitud)
       vertical_lay.addLayout(horizontal_lay)
     return vertical_lay
 
@@ -511,7 +515,7 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     WidgetNuevoIndividuo(self.parent)
 
   def launchAgrCaptura(self):
-    WidgetNuevaCaptura(self.parent)
+    WidgetNuevaCaptura(self.parent, self.parent.iRadioChecked)
 #    print self.parent.iRadioChecked
 #    if (self.parent.iRadioChecked != -1):
 #      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
@@ -519,9 +523,10 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
 
 class WidgetAgregarCaptura(QtGui.QWidget):
 
-  def __init__(self, parent):
+  def __init__(self, parent, posicion_algoritmo=-1):
     super(WidgetAgregarCaptura, self).__init__(parent)
     self.parent = parent
+    self.posicion_algoritmo = posicion_algoritmo
     self.iniciar_ui()
 
 
@@ -545,9 +550,10 @@ class WidgetAgregarCaptura(QtGui.QWidget):
     fotografo_id = self.fotografos.items.itemData(self.fotografos.items.currentIndex())
     zona_id = self.zona.items.itemData(self.zona.items.currentIndex())
     superficie_ocupada = self.parent.superficie_ocupada
+    posicion_algoritmo = self.posicion_algoritmo
     if (individuo_id and img_original and img_segmentada and img_transformada):
       ManagerBase().crear_captura(individuo_id, img_original, img_transformada, img_segmentada, vector_regiones, fecha, lat, lon,\
-                           acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos, fotografo_id, zona_id, superficie_ocupada)
+                           acompaniantes, observaciones, nombre_imagen, puntos, angulos, largos, fotografo_id, zona_id, superficie_ocupada, posicion_algoritmo)
 
       self.close()
 
@@ -628,6 +634,7 @@ class WidgetEditarCaptura(CalleableWindow):
     self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
     self.cantidadSapitos = QtGui.QLineEdit()
     self.observaciones = QtGui.QTextEdit()
+    self.imagen_label = QtGui.QLabel()
 
     qgridLayout = QtGui.QGridLayout()
 
@@ -660,7 +667,12 @@ class WidgetEditarCaptura(CalleableWindow):
     hbox.addWidget(self.boton_guardar)
     self.vbox.addLayout(qgridLayout)
     self.vbox.addLayout(hbox)
-    self.setLayout(self.vbox)
+
+    hbox_principal = QtGui.QHBoxLayout()
+    hbox_principal.addLayout(self.vbox)
+    hbox_principal.addWidget(self.imagen_label)
+
+    self.setLayout(hbox_principal)
 
   def llenar(self):
     if self.id_captura:
@@ -678,6 +690,12 @@ class WidgetEditarCaptura(CalleableWindow):
       self.longitud.setText(str(captura.lon if captura.lon != None else ""))
       self.cantidadSapitos.setText(str(captura.cantidad_acompaniantes if captura.cantidad_acompaniantes != None else ""))
       self.observaciones.setText(captura.observaciones)
+
+      db_man = ManagerBase()
+      otra_captura = db_man.get_captura(captura.id)
+      qimage = ManagerBase().bytes_a_imagen(otra_captura.imagen_original_thumbnail_mediana)
+
+      self.imagen_label.setPixmap(QtGui.QPixmap.fromImage(qimage))
 
 
 class WidgetEditarFotografo(CalleableWindow):
@@ -722,6 +740,8 @@ class WidgetEditarFotografo(CalleableWindow):
     self.lastname_input = QtGui.QLineEdit()
     self.email_label = QtGui.QLabel("e-mail")
     self.email_input = QtGui.QLineEdit()
+    delete_button = QtGui.QPushButton("Borrar")
+    delete_button.clicked.connect(self.borrar)
     save_button = QtGui.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
@@ -736,7 +756,14 @@ class WidgetEditarFotografo(CalleableWindow):
     lay.addWidget(save_button, 3, 1)
 
     self.setWindowFlags(QtCore.Qt.Window)
-    self.setLayout(lay)
+
+    self.vbox = QtGui.QVBoxLayout()
+    self.vbox.addLayout(lay)
+    hbox = QtGui.QHBoxLayout()
+    hbox.addWidget(delete_button)
+    hbox.addWidget(save_button)
+    self.vbox.addLayout(hbox)
+    self.setLayout(self.vbox)
 
   def llenar(self):
     if self.id_fotografo:
@@ -774,7 +801,7 @@ class WidgetEditarZona(CalleableWindow):
             QtGui.QMessageBox.No, QtGui.QMessageBox.No)
 
     if reply == QtGui.QMessageBox.Yes:
-      ManagerBase().borrar_fotografo(self.id_fotografo)
+      ManagerBase().borrar_zona(self.id_zona)
       self.close()
       self.refresh_table()
 
@@ -787,6 +814,8 @@ class WidgetEditarZona(CalleableWindow):
     self.lat_input = QtGui.QLineEdit()
     self.lon_label = QtGui.QLabel("Longitud")
     self.lon_input = QtGui.QLineEdit()
+    delete_button = QtGui.QPushButton("Borrar")
+    delete_button.clicked.connect(self.borrar)
     save_button = QtGui.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
@@ -800,7 +829,15 @@ class WidgetEditarZona(CalleableWindow):
     lay.addWidget(self.lon_input, 2, 1)
     lay.addWidget(save_button, 3, 1)
     self.setWindowFlags(QtCore.Qt.Window)
-    self.setLayout(lay)
+
+
+    self.vbox = QtGui.QVBoxLayout()
+    self.vbox.addLayout(lay)
+    hbox = QtGui.QHBoxLayout()
+    hbox.addWidget(delete_button)
+    hbox.addWidget(save_button)
+    self.vbox.addLayout(hbox)
+    self.setLayout(self.vbox)
 
   def llenar(self):
     if self.id_zona:
@@ -1031,12 +1068,13 @@ class WidgetTableCapturasIndividuosJoin(WidgetTableTemplateQueryJoin):
                       ColumnConstruct(HeaderLabelIndex("lon", 0), ConstructorItemString("lon", replace_empty=True)),
                       ColumnConstruct(HeaderLabelIndex("fotografo", 0), ConstructorItemString("fotografo_description", replace_empty=True)),
                       ColumnConstruct(HeaderLabelIndex("archivo", 0), ConstructorItemString("nombre_imagen")),
-                      ColumnConstruct(HeaderLabelIndex("segmentada", 0, 150), ConstructorItemImage("imagen_segmentada")),
-                      ColumnConstruct(HeaderLabelIndex("transformada", 0, 150), ConstructorItemImage("imagen_transformada")),
-                      ColumnConstruct(HeaderLabelIndex("original", 0, 150), ConstructorItemImage("imagen_original_thumbnail")),
+                      ColumnConstruct(HeaderLabelIndex("orig", 0), ConstructorItemImage("imagen_original_thumbnail", width=100, height=100)),
+                      ColumnConstruct(HeaderLabelIndex("seg", 0), ConstructorItemImage("imagen_segmentada", width=100, height=100)),
+                      ColumnConstruct(HeaderLabelIndex("trans", 0), ConstructorItemImage("imagen_transformada", width=100, height=100)),
                       ColumnConstruct(HeaderLabelIndex("observaciones", 0, 300), ConstructorItemString("observaciones", replace_empty=True)),
                       ColumnConstruct(HeaderLabelIndex("observacones individuo", 1, 300), ConstructorItemString("observaciones", replace_empty=True))]
-  size_rows = 150
+
+  size_rows = 100
 
 class WidgetTableCapturasDeIndividuo(WidgetTableTemplate):
 
@@ -1071,6 +1109,11 @@ class WidgetTableZonas(WidgetTableTemplate):
                       ColumnConstruct(HeaderLabel("latitud"), ConstructorItemString("lat", replace_empty=True)),
                       ColumnConstruct(HeaderLabel("longitud"), ConstructorItemString("lon", replace_empty=True  ))]
 
+class WidgetTableImagenCapturas(WidgetTableTemplate):
+
+  column_constructs = [ColumnConstruct(HeaderLabel("id individuo"), ConstructorItemString("individuo_id"), open_window=True, widget=WidgetIndividuoConCapturas),
+                      ColumnConstruct(HeaderLabel("id captura"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarCaptura),
+                      ColumnConstruct(HeaderLabel("imagen", 650), ConstructorItemImage("imagen_original_thumbnail_mediana", set_size_row=True))]
 
 class WidgetComboBoxList(QtGui.QWidget):
 
@@ -1142,7 +1185,7 @@ class WidgetComboBoxExtensible(QtGui.QWidget):
     self.items.setCurrentIndex(self.items.findText(element.description()))
 
   def add_item(self):
-    self.add_item_widget = self.add_item_widgets[self.type](widget_extend = self)
+    self.add_item_widget = self.add_item_widgets[self.type](self.parent, widget_extend = self)
     self.add_item_widget.show()
 
 
@@ -1174,9 +1217,18 @@ class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
 
 class WidgetNuevaCaptura(QtGui.QWidget):
 
-  def __init__(self, parent = None):
+  def __init__(self, parent = None, position=-1):
+    """
+    @param parent:
+    @param position: acierto del algoritmo.
+                -1 implica que el algoritmo no encontro parecido
+                0 implica que el algoritmo encontro el parecido en la primer posicion
+                1 en la segunda posicion
+                etc
+    """
     super(WidgetNuevaCaptura, self).__init__(parent)
     self.parent = parent
+    self.position = position
     self.iniciar_ui()
 
   def guardar(self):
@@ -1193,7 +1245,7 @@ class WidgetNuevaCaptura(QtGui.QWidget):
 
     botonGuardar = QtGui.QPushButton("Guardar")
 
-    self.widgetAgregarCaptura = WidgetAgregarCaptura(self.parent)
+    self.widgetAgregarCaptura = WidgetAgregarCaptura(self.parent, self.position)
     botonGuardar.clicked.connect(self.guardar)
     qHLayout.addWidget(self.widgetAgregarCaptura)
     qHLayout.addWidget(botonGuardar)
@@ -1263,6 +1315,26 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
 
 
     self.show()
+
+
+class WidgetArchivoConMismoNombre(QtGui.QWidget):
+
+  def __init__(self, parent, nombre_imagen, capturas):
+    super(WidgetArchivoConMismoNombre, self).__init__(parent, QtCore.Qt.Window)
+    self.iniciar_ui(nombre_imagen, capturas)
+    self.setFixedSize(800, 600)
+
+  def iniciar_ui(self, nombre_imagen, capturas):
+    message = "Ya existe una imagen con el nombre de archivo %s en la base de datos." if capturas.count() == 1 else\
+              "Ya existen imagenes con el nombre de archivo %s en la base de datos."
+    message_label = QtGui.QLabel(message % nombre_imagen)
+    image_widget = WidgetTableImagenCapturas(self, capturas)
+
+    vbox = QtGui.QVBoxLayout()
+    vbox.addWidget(message_label)
+    vbox.addWidget(image_widget)
+
+    self.setLayout(vbox)
 
 def main():
   app = QtGui.QApplication(sys.argv)
