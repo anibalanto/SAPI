@@ -91,8 +91,12 @@ class ManagerBase(object):
 
     width_thumbnail_1 = 150
     height_thumbnail_1 = 150
-    width_thumbnail_2 = 650
-    height_thumbnail_2 = int ((float(width_thumbnail_2) / float(img_original.width())) * img_original.height())
+    if img_original.width() > img_original.height() and img_original:
+      width_thumbnail_2 = 650
+      height_thumbnail_2 = int ((float(width_thumbnail_2) / float(img_original.width())) * img_original.height())
+    else:
+      height_thumbnail_2 = 650
+      width_thumbnail_2 = int ((float(height_thumbnail_2) / float(img_original.height())) * img_original.width())
     nueva_captura = Captura(
           self.imagen_a_bytes(img_original),
           self.imagen_a_bytes(img_original.scaled(width_thumbnail_1, height_thumbnail_1)),
