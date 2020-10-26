@@ -92,7 +92,7 @@ class AlgoritmoRotacion(Algoritmo):
   """
   def __init__(self, grados):
     self.offset = grados / 360
-    print self.offset
+    print (self.offset)
 
   def aplicar_en_pixel(self, x, y, img):
     r, g, b = img.getpixel((x, y))

@@ -47,7 +47,7 @@ class GenMedidasImagen(GeneradorMedidas):
     a = self.gen_xy(img.size)
     return super(GenMedidasImagen, self).generar(img, a, chequeo_color)
 
-  def gen_xy(self, (ancho, alto)):
+  def gen_xy(self, ancho, alto):
     for x in range(ancho):
       for y in range(alto):
         yield (x, y)
@@ -378,10 +378,10 @@ class DimensionFractal(MedidaSegmento):
     i = self.segmento.get_minx()
     j = self.segmento.get_miny()
 
-    #print "DimensionFractal.get_valor: minx: %s miny: %s maxx: %s maxy: %s"% (self.segmento.get_minx(), self.segmento.get_miny(), self.segmento.get_maxx(), self.segmento.get_maxy())
-    for i in xrange(self.segmento.get_minx(), self.segmento.get_maxx(), self.size):
-        for j in xrange(self.segmento.get_miny(), self.segmento.get_maxy(), self.size):
-            #print "DimensionFractal.get_valor: ", (i, j)
+    #print ("DimensionFractal.get_valor: minx: %s miny: %s maxx: %s maxy: %s"% (self.segmento.get_minx(), self.segmento.get_miny(), self.segmento.get_maxx(), self.segmento.get_maxy()) )
+    for i in range(self.segmento.get_minx(), self.segmento.get_maxx(), self.size):
+        for j in range(self.segmento.get_miny(), self.segmento.get_maxy(), self.size):
+            #print ( "DimensionFractal.get_valor: ", (i, j) )
             if self.tiene_borde(i, j):
                 box_count += 1
             M += 1
@@ -389,8 +389,8 @@ class DimensionFractal(MedidaSegmento):
     return self.calcular_dimension(box_count, M * N)
 
   def tiene_borde(self, i, j):
-    for k in xrange(i, i + self.size):
-        for l in xrange(j, j + self.size):
+    for k in range(i, i + self.size):
+        for l in range(j, j + self.size):
             if (k, l) in self.segmento.get_elementos_enteros_hash():
                 return True
     return False

@@ -41,7 +41,7 @@ def pintar_segmentos(segmentos_manager, size):
   Muestra los segmentos, del SegmentoManager pasado como parametro, en una imagen. Cada segmento se muestra con un
   color elegido al azar.
   """
-  print "hay {0} segmentos".format(len(segmentos_manager.segmentos))
+  print ( "hay {0} segmentos".format(len(segmentos_manager.segmentos)) )
   img = ImagenVacia(size)
   for seg in segmentos_manager.segmentos:
 
@@ -67,8 +67,8 @@ def get_img_perimetros(binaria):
 
 def cargar(filename):
   img = ImagenArchivo(filename)
-  print "mode: %s" % img.mode
-  print "size: %s" % str(img.size)
+  print ( "mode: %s" % img.mode )
+  print ( "size: %s" % str(img.size) )
   return img
 
 if __name__ == '__main__':

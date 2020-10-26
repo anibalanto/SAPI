@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import sys
-from PySide import QtGui
+from PySide2 import QtGui
 
 def warpImage(image, corners, target, width, height):
     mat_trans = getMat(np.asarray(corners, dtype=np.float32), np.asarray(target, dtype=np.float32))

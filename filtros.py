@@ -40,7 +40,7 @@ class Filtro(object):
   def __repr__(self):
     return repr(self.matriz)
 
-  def next(self):
+  def __next__(self):
     if self.current < (self.ancho * self.ancho):
       ret = self.offsets[self.current][0], self.offsets[self.current][1], self.matriz[self.current]
       self.current += 1

@@ -6,11 +6,11 @@ from sqlalchemy import func, update
 from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-import ConfigParser as cp
+import configparser as cp
 
 import numpy as np
 
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
 
 #DBPATH = "sqlite:///database.db"
 DBPATH = "postgresql+psycopg2://postgres:postgres@localhost:5432/sapitosierra"

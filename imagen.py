@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #import Image
 #import tempfile
-from PySide.QtGui import QImage, qRgb, qRed, qGreen, qBlue
+from PySide2.QtGui import QImage, qRgb, qRed, qGreen, qBlue
 import cv2
 
 class MyException(Exception):
@@ -68,7 +68,7 @@ class BaseImagen(object):
     for i in range(self.size[0]):
       for j in range(self.size[1]):
         if (not (self.getpixel((i,j)) in [(255,255,255), (0,0,0)])):
-            print "No binaria %s - %s,%s" % (self.getpixel((i,j)), i, j)
+            print ("No binaria %s - %s,%s" % (self.getpixel((i,j)), i, j) )
 
 class ImagenQImage(BaseImagen):
   def __init__(self):
@@ -130,7 +130,7 @@ class ImagenPIL(BaseImagen):
     try:
       self.pix[xy[0],xy[1]] = value
     except:
-      print "Fuera de rango? %s" % str(xy)
+      print ( "Fuera de rango? %s" % str(xy) )
       raise
 
   def show(self):
@@ -196,5 +196,4 @@ if __name__ == "__main__":
     for j in range(600,700):
       s.add(im.getpixel((i,j)))
 
-  print s
 

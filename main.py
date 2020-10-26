@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtWidgets
 from transformedWidget import *
 from widget_individuo import WidgetListaIndividuosRadiosScroleable, \
   WidgetBotonesAgregarCaptura, \
@@ -21,7 +21,7 @@ import warp_image as wi
 from pointsbezier import *
 
 
-class WindowSapito(QtGui.QMainWindow):
+class WindowSapito(QtWidgets.QMainWindow):
 
   def __init__(self, imagen_inicial=None):
     super(WindowSapito, self).__init__()
@@ -33,8 +33,8 @@ class WindowSapito(QtGui.QMainWindow):
 
   def initUI(self):
 
-    #self.buttonShape = QtGui.QPushButton()
-    #self.buttonShape.setIcon(QtGui.QIcon("sapito.png"))
+    #self.buttonShape = QtWidgets.QPushButton()
+    #self.buttonShape.setIcon(QtWidgets.QIcon("sapito.png"))
 
 
     self.iniciadaUIResult = False
@@ -43,8 +43,8 @@ class WindowSapito(QtGui.QMainWindow):
     self.filename = None
     self.filename_path = None
 
-    self.mainLayout = QtGui.QHBoxLayout()
-    selectorLayout = QtGui.QVBoxLayout()
+    self.mainLayout = QtWidgets.QHBoxLayout()
+    selectorLayout = QtWidgets.QVBoxLayout()
 
     self.mainLayout.addLayout(selectorLayout)
 
@@ -52,7 +52,7 @@ class WindowSapito(QtGui.QMainWindow):
 
     selectorLayout.addWidget(self.selectorWidget)
 
-    centralWidget = QtGui.QWidget()
+    centralWidget = QtWidgets.QWidget()
 
     centralWidget.setLayout(self.mainLayout)
 
@@ -62,12 +62,12 @@ class WindowSapito(QtGui.QMainWindow):
     self.createMenus()
 
     #Este widget muestra la imagen proyectada y segmentada.
-    self.imageResult = QtGui.QLabel()
+    self.imageResult = QtWidgets.QLabel()
     #self.imageResult.resize(300, 300)
     self.imageResult.resize(100, 100)
 
     #Este widget muestra la imagen proyectada.
-    self.imageTransform = QtGui.QLabel()
+    self.imageTransform = QtWidgets.QLabel()
     #self.imageTransform.resize(300, 300)
     self.imageTransform.resize(100, 100)
 
@@ -80,8 +80,8 @@ class WindowSapito(QtGui.QMainWindow):
     self.imageTransform.setPixmap(QtGui.QPixmap.fromImage(qimage_transformada.scaled(150, 150)))
     self.imageResult.setPixmap(QtGui.QPixmap.fromImage(qimage_segmentada.scaled(150, 150)))
 
-    self.resultLayout = QtGui.QVBoxLayout()
-    self.imageResultLayout = QtGui.QHBoxLayout()
+    self.resultLayout = QtWidgets.QVBoxLayout()
+    self.imageResultLayout = QtWidgets.QHBoxLayout()
 
     self.resultLayout.addLayout(self.imageResultLayout)
 
@@ -123,7 +123,7 @@ class WindowSapito(QtGui.QMainWindow):
     self.q_img = QtGui.QImage(self.filename) # Abrimos la imagen con qt
 
     if not (self.cv_img.any() and self.cv_img.size):
-      QtGui.QMessageBox.information(self, "Image Viewer", "Error al cargar la imagen %s." % filename)
+        QtWidgets.QMessageBox.information(self, "Image Viewer", "Error al cargar la imagen %s." % filename)
     else:
       if (self.filename != None):
         self.selectorWidget.reset()
@@ -148,7 +148,7 @@ class WindowSapito(QtGui.QMainWindow):
   def open(self):
     path = QtCore.QDir.currentPath() if self.filename_path == None else QtCore.QDir.absolutePath(
       QtCore.QDir(self.filename_path))
-    filename, _ = QtGui.QFileDialog.getOpenFileName(self, "Open File", path)
+    filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", path)
     if filename:
       self.loadImage(filename)
 
@@ -246,47 +246,47 @@ class WindowSapito(QtGui.QMainWindow):
     self.search_widget.show()
 
   def createActions(self):
-    self.openAct = QtGui.QAction("Abrir Imagen", self,
+    self.openAct = QtWidgets.QAction("Abrir Imagen", self,
                                  shortcut="Ctrl+A", enabled=True, triggered=self.open)
-    self.exitAct = QtGui.QAction("Salir", self, shortcut="Ctrl+Q",
+    self.exitAct = QtWidgets.QAction("Salir", self, shortcut="Ctrl+Q",
                                  triggered=self.close)
-    self.zoomOutAct = QtGui.QAction("Zoom -", self,
+    self.zoomOutAct = QtWidgets.QAction("Zoom -", self,
                                     shortcut="Ctrl+-", enabled=True, triggered=self.selectorWidget.zoomOut)
-    self.zoomInAct = QtGui.QAction("Zoom +", self,
+    self.zoomInAct = QtWidgets.QAction("Zoom +", self,
                                    shortcut="Ctrl++", enabled=True, triggered=self.selectorWidget.zoomIn)
-    self.resetSizeAct = QtGui.QAction("Original", self,
+    self.resetSizeAct = QtWidgets.QAction("Original", self,
                                       shortcut="Ctrl+O", enabled=True, triggered=self.selectorWidget.resetSizeImage)
-    self.rotateAct = QtGui.QAction("&Rotar Imagen", self,
+    self.rotateAct = QtWidgets.QAction("&Rotar Imagen", self,
                                    shortcut="Ctrl+R", enabled=True, triggered=self.selectorWidget.rotateImage)
-    self.transformAct = QtGui.QAction("&Transformar", self,
+    self.transformAct = QtWidgets.QAction("&Transformar", self,
                                       shortcut="Ctrl+T", enabled=True, triggered=self.transform)
-    self.resetShapeAct = QtGui.QAction("&Resetear", self,
+    self.resetShapeAct = QtWidgets.QAction("&Resetear", self,
                                     shortcut="Ctrl+E", enabled=True, triggered=self.resetShape)
-    #self.add_photographer_act = QtGui.QAction("Agregar &fotografo", self, shortcut="Ctrl+F", enabled=True, triggered=self.add_photographer)
-    self.individuos_act = QtGui.QAction("Individuos", self, triggered=self.individuos)
-    self.capturas_act = QtGui.QAction("Capturas", self, enabled=True, triggered=self.capturas)
-    self.fotografos_act = QtGui.QAction("Fotografos", self, enabled=True, triggered=self.fotografos)
-    self.zonas_act = QtGui.QAction("Zonas", self, enabled=True, triggered=self.zonas)
+    #self.add_photographer_act = QtWidgets.QAction("Agregar &fotografo", self, shortcut="Ctrl+F", enabled=True, triggered=self.add_photographer)
+    self.individuos_act = QtWidgets.QAction("Individuos", self, triggered=self.individuos)
+    self.capturas_act = QtWidgets.QAction("Capturas", self, enabled=True, triggered=self.capturas)
+    self.fotografos_act = QtWidgets.QAction("Fotografos", self, enabled=True, triggered=self.fotografos)
+    self.zonas_act = QtWidgets.QAction("Zonas", self, enabled=True, triggered=self.zonas)
 
   def createMenus(self):
-    self.fileMenu = QtGui.QMenu("&Archivo", self)
+    self.fileMenu = QtWidgets.QMenu("&Archivo", self)
     self.fileMenu.addAction(self.openAct)
     self.fileMenu.addSeparator()
     self.fileMenu.addAction(self.exitAct)
 
-    self.datosMenu = QtGui.QMenu("&Datos", self)
+    self.datosMenu = QtWidgets.QMenu("&Datos", self)
     self.datosMenu.addAction(self.individuos_act)
     self.datosMenu.addAction(self.capturas_act)
     self.datosMenu.addAction(self.fotografos_act)
     self.datosMenu.addAction(self.zonas_act)
 
-    self.viewMenu = QtGui.QMenu("&Vista", self)
+    self.viewMenu = QtWidgets.QMenu("&Vista", self)
     self.viewMenu.addAction(self.zoomInAct)
     self.viewMenu.addAction(self.zoomOutAct)
     self.viewMenu.addAction(self.resetSizeAct)
     self.viewMenu.addAction(self.rotateAct)
 
-    self.transformMenu = QtGui.QMenu("&Forma", self)
+    self.transformMenu = QtWidgets.QMenu("&Forma", self)
     self.transformMenu.addAction(self.transformAct)
     self.transformMenu.addAction(self.resetShapeAct)
 
@@ -312,7 +312,7 @@ class WindowSapito(QtGui.QMainWindow):
 
 
 def main():
-  app = QtGui.QApplication(sys.argv)
+  app = QtWidgets.QApplication(sys.argv)
   try:
     ex = WindowSapito(sys.argv[1])
   except:

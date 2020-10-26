@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PySide import QtGui, QtCore
+from PySide2 import QtWidgets, QtCore, QtGui
 from collections import namedtuple
 from db import ManagerBase
 
@@ -11,20 +11,20 @@ def export_csv(table, filename = None):
   if file.open(QtCore.QFile.WriteOnly | QtCore.QFile.Truncate):
     data = QtCore.QTextStream(file)
     str_list = []
-    for i in xrange(table.columnCount()):
+    for i in range(table.columnCount()):
       str_list.append("\""+table.horizontalHeaderItem(i).data(QtCore.Qt.DisplayRole)+"\"")
     data << ";".join(str_list) << "\n"
-    for r in xrange(table.rowCount()):
+    for r in range(table.rowCount()):
       str_list = []
-      for c in xrange(table.columnCount()):
+      for c in range(table.columnCount()):
         #item = table.item(r, c)
         #if (not item or not item.text()):
-          #self.setItem(r, c, QtGui.QTableWidgetItem("0"))
+          #self.setItem(r, c, QtWidgets.QTableWidgetItem("0"))
         str_list.append("\""+table.item(r, c).text()+"\"")
       data << ";".join(str_list) << "\n"
     file.close()
 
-class CalleableWindow(QtGui.QWidget):
+class CalleableWindow(QtWidgets.QWidget):
 
   def __init__(self, parent, ident):
     super(CalleableWindow, self).__init__(parent, QtCore.Qt.Window)
@@ -34,7 +34,7 @@ class CalleableWindow(QtGui.QWidget):
   def closeEvent(self, a):
     self.parent.close_window(self)
 
-class WidgetTableTemplate(QtGui.QTableWidget):
+class WidgetTableTemplate(QtWidgets.QTableWidget):
 
   size_rows = None
 
@@ -71,7 +71,7 @@ class WidgetTableTemplate(QtGui.QTableWidget):
     i = 0
     for item_data in self.data:
       self.insertRow(i)
-      for j in xrange(len(self.column_constructs)):
+      for j in range(len(self.column_constructs)):
         item_table = self.extract_item_table(j, item_data)
         self.setItem(i, j, item_table)
         if hasattr(item_table, "size_row"):
@@ -143,7 +143,7 @@ class ConstructorItemString(ConstructorItemTable):
     self.replace_empty = replace_empty
 
   def _get_item_table(self, data_contain):
-    item_string = QtGui.QTableWidgetItem("%s" % (self.extract_data(data_contain)))
+    item_string = QtWidgets.QTableWidgetItem("%s" % (self.extract_data(data_contain)))
     item_string.setFlags(item_string.flags() & ~QtCore.Qt.ItemIsEditable)
     return item_string
 
@@ -168,7 +168,7 @@ class ConstructorItemImage(ConstructorItemTable):
     self.set_size_row = set_size_row
 
   def _get_item_table(self, data_contain):
-    item_img = QtGui.QTableWidgetItem()
+    item_img = QtWidgets.QTableWidgetItem()
     data = self.extract_data(data_contain)
     qimage = ManagerBase().bytes_a_imagen(data)
     if self.width != -1 and self.height != -1:

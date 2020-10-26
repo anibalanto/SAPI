@@ -17,8 +17,8 @@ import sys
 
 def cargar(filename):
   img = ImagenArchivo(filename)
-  print "mode: %s" % img.mode
-  print "size: %s" % str(img.size)
+  print ("mode: %s" % img.mode)
+  print ("size: %s" % str(img.size))
   return img
 
 def mostrar_histo(imagen):
@@ -78,7 +78,7 @@ def generar_csv_imagen(img_original, segman, filename):
   fields = meds.keys()
   fields.sort()
 
-  salida = dict((k,v.get_valor()) for k,v in meds.iteritems())
+  salida = dict((k,v.get_valor()) for k,v in meds.items())
 
   fields.append("cant_segmentos")
   salida["cant_segmentos"] = segman.get_cant_segmentos()
@@ -110,7 +110,7 @@ def generar_csv_segmentos(img_original, segman, filename):
 
     cdw.writerow({fields[0]: "segmento #%s" % (pos,)})
 
-    salida = dict((k,v.get_valor()) for k,v in meds.iteritems())
+    salida = dict((k,v.get_valor()) for k,v in meds.items())
     salida["area"] = medidas.AreaSegmento(segmento).get_valor()
     salida["perimetro"] = medidas.PerimetroSegmento(segmento).get_valor()
 
@@ -123,7 +123,7 @@ def probar_perimetro(img):
   diferencia = transformador.Transformador.aplicar([colors.AlgoritmoResta(img)], erosionada, True)
   segman = runcode.run_codes(diferencia)
   for i in segman.segmentos:
-    print medidas.AreaSegmento(i.elementos).get_valor()
+    print ( medidas.AreaSegmento(i.elementos).get_valor() )
 
 def diferencia(img, imgResta):
     return transformador.Transformador.aplicar([colors.AlgoritmoResta(img)], imgResta, True)
@@ -314,8 +314,8 @@ def calcular_regiones(img_original):
 
 def main():
   if len(sys.argv) <= 1:
-    print "Uso:"
-    print "%s imagen_entrada" % sys.argv[0]
+    print ("Uso:")
+    print ("%s imagen_entrada" % sys.argv[0])
   else:
     original = cargar(sys.argv[1])
     #probar_perimetro(original)

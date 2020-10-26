@@ -3,14 +3,14 @@
 
 import sys
 import traceback
-from PySide import QtGui, QtCore
+from PySide2 import QtWidgets, QtCore, QtGui
 from db import ManagerBase, Fotografo, Zona
 from widget_table import *
 
 sexo = ["Macho", "Hembra", "No determinado"]
 
 
-class WidgetAgregarZona(QtGui.QWidget):
+class WidgetAgregarZona(QtWidgets.QWidget):
 
   def __init__(self, parent, widget_extend = None):
     super(WidgetAgregarZona, self).__init__(parent, QtCore.Qt.Window)
@@ -35,17 +35,17 @@ class WidgetAgregarZona(QtGui.QWidget):
   def iniciar_ui(self):
     #labels, inputs y boton guardar
     self.setWindowTitle("Nueva Zona")
-    self.name_label = QtGui.QLabel("Nombre")
-    self.name_input = QtGui.QLineEdit()
-    self.lat_label = QtGui.QLabel("Latitud")
-    self.lat_input = QtGui.QLineEdit()
-    self.lon_label = QtGui.QLabel("Longitud")
-    self.lon_input = QtGui.QLineEdit()
-    save_button = QtGui.QPushButton("Guardar")
+    self.name_label = QtWidgets.QLabel("Nombre")
+    self.name_input = QtWidgets.QLineEdit()
+    self.lat_label = QtWidgets.QLabel("Latitud")
+    self.lat_input = QtWidgets.QLineEdit()
+    self.lon_label = QtWidgets.QLabel("Longitud")
+    self.lon_input = QtWidgets.QLineEdit()
+    save_button = QtWidgets.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
     #layout
-    lay = QtGui.QGridLayout()
+    lay = QtWidgets.QGridLayout()
     lay.addWidget(self.name_label, 0, 0)
     lay.addWidget(self.name_input, 0, 1)
     lay.addWidget(self.lat_label, 1, 0)
@@ -64,7 +64,7 @@ class WidgetAgregarZonaRefreshTable(WidgetAgregarZona):
     if (super(WidgetAgregarZonaRefreshTable, self).guardar()):
       self.parent.refresh()
 
-class WidgetAgregarFotografo(QtGui.QWidget):
+class WidgetAgregarFotografo(QtWidgets.QWidget):
   def __init__(self, parent, widget_extend = None):
     super(WidgetAgregarFotografo, self).__init__(parent, QtCore.Qt.Window)
     self.parent = parent
@@ -88,17 +88,17 @@ class WidgetAgregarFotografo(QtGui.QWidget):
   def iniciar_ui(self):
     #labels, inputs y boton guardar
     self.setWindowTitle("Nuevo Fotografo")
-    self.name_label = QtGui.QLabel("Nombre")
-    self.name_input = QtGui.QLineEdit()
-    self.lastname_label = QtGui.QLabel("Apellido")
-    self.lastname_input = QtGui.QLineEdit()
-    self.email_label = QtGui.QLabel("e-mail")
-    self.email_input = QtGui.QLineEdit()
-    save_button = QtGui.QPushButton("Guardar")
+    self.name_label = QtWidgets.QLabel("Nombre")
+    self.name_input = QtWidgets.QLineEdit()
+    self.lastname_label = QtWidgets.QLabel("Apellido")
+    self.lastname_input = QtWidgets.QLineEdit()
+    self.email_label = QtWidgets.QLabel("e-mail")
+    self.email_input = QtWidgets.QLineEdit()
+    save_button = QtWidgets.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
     #layout
-    lay = QtGui.QGridLayout()
+    lay = QtWidgets.QGridLayout()
     lay.addWidget(self.name_label, 0, 0)
     lay.addWidget(self.name_input, 0, 1)
     lay.addWidget(self.lastname_label, 1, 0)
@@ -148,38 +148,38 @@ class WidgetIndividuoConCapturas(CalleableWindow):
       self.close()
 
   def borrar(self):
-    reply = QtGui.QMessageBox.question(self, 'Message',
-            "Realmente desea borrar este individuo?", QtGui.QMessageBox.Yes |
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+    reply = QtWidgets.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar este individuo?", QtWidgets.QMessageBox.Yes |
+            QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-    if reply == QtGui.QMessageBox.Yes:
+    if reply == QtWidgets.QMessageBox.Yes:
       ManagerBase().borrar_individuo(self.id_individuo)
       self.close()
       self.parent.refresh()
 
   def iniciar_ui(self, individuo):
     self.setWindowTitle("Individuo")
-    self.id = QtGui.QLabel("id")
-    self.id_input = QtGui.QLabel(str(individuo.id))
-    self.sexo = QtGui.QLabel("sexo")
+    self.id = QtWidgets.QLabel("id")
+    self.id_input = QtWidgets.QLabel(str(individuo.id))
+    self.sexo = QtWidgets.QLabel("sexo")
     self.sexo_input = ComboBoxSexo()
     #self.sexo_input.setDisabled(True)
     self.sexo_input.setCurrentIndex(sexo.index(individuo.sexo))
-    self.observaciones = QtGui.QLabel("Observaciones")
-    self.observaciones_input = QtGui.QTextEdit(individuo.observaciones)
+    self.observaciones = QtWidgets.QLabel("Observaciones")
+    self.observaciones_input = QtWidgets.QTextEdit(individuo.observaciones)
     #self.observaciones_input.setDisabled(True)
 
-    self.boton_borrar = QtGui.QPushButton("Borrar")
+    self.boton_borrar = QtWidgets.QPushButton("Borrar")
     self.boton_borrar.clicked.connect(self.borrar)
 
-    self.boton_guardar = QtGui.QPushButton("Guardar")
+    self.boton_guardar = QtWidgets.QPushButton("Guardar")
     self.boton_guardar.clicked.connect(self.guardar)
 
     self.table = WidgetTableCapturasDeIndividuo(self, individuo.capturas)
-    self.vbox = QtGui.QVBoxLayout()
+    self.vbox = QtWidgets.QVBoxLayout()
 
     #layout
-    lay = QtGui.QGridLayout()
+    lay = QtWidgets.QGridLayout()
     lay.addWidget(self.id, 0, 0)
     lay.addWidget(self.id_input, 0, 1)
     lay.addWidget(self.sexo, 1, 0)
@@ -189,7 +189,7 @@ class WidgetIndividuoConCapturas(CalleableWindow):
     #lay.addWidget(save_button, 3, # 1)
 
     self.vbox.addLayout(lay)
-    hbox = QtGui.QHBoxLayout()
+    hbox = QtWidgets.QHBoxLayout()
     hbox.addWidget(self.boton_borrar)
     hbox.addWidget(self.boton_guardar)
     self.vbox.addLayout(hbox)
@@ -197,7 +197,7 @@ class WidgetIndividuoConCapturas(CalleableWindow):
     return self.vbox
 
 
-class WidgetIndividuo(QtGui.QWidget):
+class WidgetIndividuo(QtWidgets.QWidget):
   """
   Widget compuesto de un WidgetDatos y un WidgetGaleria.
   Sirve para mostrar los datos de un individuo, y las capturas de este individuo.
@@ -219,16 +219,16 @@ class WidgetIndividuo(QtGui.QWidget):
     self.show()
 
   def crear_layout(self, lista_imagenes, datos_individuo):
-    vertical_lay = QtGui.QVBoxLayout()
+    vertical_lay = QtWidgets.QVBoxLayout()
     vertical_lay.addWidget(WidgetDatos(datos_individuo))
 
-    horizontal_lay = QtGui.QHBoxLayout()
+    horizontal_lay = QtWidgets.QHBoxLayout()
     horizontal_lay.addWidget(WidgetGaleria(lista_imagenes))
     horizontal_lay.addLayout(vertical_lay)
 
     self.setLayout(horizontal_lay)
 
-class WidgetBotonesAtrasAdelante(QtGui.QWidget):
+class WidgetBotonesAtrasAdelante(QtWidgets.QWidget):
   """
   Este widget muestra un par de botones tipo adelante/atras
   """
@@ -238,19 +238,19 @@ class WidgetBotonesAtrasAdelante(QtGui.QWidget):
 
   def iniciar_ui(self):
     #Botones
-    self.boton_atras = QtGui.QPushButton('Atras', self)
-    self.boton_adelante = QtGui.QPushButton('Adelante', self)
-    self.boton_adelante.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Minimum)
-    self.boton_atras.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Minimum)
+    self.boton_atras = QtWidgets.QPushButton('Atras', self)
+    self.boton_adelante = QtWidgets.QPushButton('Adelante', self)
+    self.boton_adelante.setSizePolicy(QtWidgets.QSizePolicy.Minimum,QtWidgets.QSizePolicy.Minimum)
+    self.boton_atras.setSizePolicy(QtWidgets.QSizePolicy.Minimum,QtWidgets.QSizePolicy.Minimum)
 
     #Layout
-    horizontal_lay = QtGui.QHBoxLayout()
+    horizontal_lay = QtWidgets.QHBoxLayout()
     horizontal_lay.addWidget(self.boton_atras)
     horizontal_lay.addWidget(self.boton_adelante)
 
     self.setLayout(horizontal_lay)
 
-class WidgetImagen(QtGui.QWidget):
+class WidgetImagen(QtWidgets.QWidget):
   """
   Este widget muestra una galeria de imagenes para un invididuo dado.
   La idea es usar un QLabel para mostrar las imagenes. Los botones van en una subclase.
@@ -265,19 +265,19 @@ class WidgetImagen(QtGui.QWidget):
 
   def iniciar_ui(self):
     #Label
-    self.image_label = QtGui.QLabel()
+    self.image_label = QtWidgets.QLabel()
     self.image_label.setBackgroundRole(QtGui.QPalette.Base)
-    self.image_label.setSizePolicy(QtGui.QSizePolicy.Ignored,QtGui.QSizePolicy.Ignored)
+    self.image_label.setSizePolicy(QtWidgets.QSizePolicy.Ignored,QtWidgets.QSizePolicy.Ignored)
     self.image_label.setScaledContents(True)
 
     #Scroll area
-    self.scroll_area = QtGui.QScrollArea()
+    self.scroll_area = QtWidgets.QScrollArea()
     self.scroll_area.setBackgroundRole(QtGui.QPalette.Dark);
     self.scroll_area.setWidget(self.image_label)
     self.scroll_area.setWidgetResizable(True)
 
     #Layout
-    self.vertical_lay = QtGui.QVBoxLayout()
+    self.vertical_lay = QtWidgets.QVBoxLayout()
     self.vertical_lay.addWidget(self.scroll_area)
 
     #Seteamos el layout para el widget
@@ -322,7 +322,7 @@ class WidgetGaleria(WidgetImagen):
 
     self.vertical_lay.addWidget(botones)
 
-class WidgetDatos(QtGui.QWidget):
+class WidgetDatos(QtWidgets.QWidget):
   """
   La idea de este widget es mostrar un grid con los datos de un individuo,
   con los datos de dicc_datos.
@@ -336,28 +336,28 @@ class WidgetDatos(QtGui.QWidget):
     """
     La ui es un gridlayout con labels tipo key value
     """
-    grid_lay = QtGui.QGridLayout()
+    grid_lay = QtWidgets.QGridLayout()
     idx = 0
-    policy = QtGui.QSizePolicy.Minimum
-    for k,v in self.labels.iteritems():
-      l1 = QtGui.QLabel(k)
+    policy = QtWidgets.QSizePolicy.Minimum
+    for k,v in self.labels.items():
+      l1 = QtWidgets.QLabel(k)
       l1.setSizePolicy(policy, policy)
       grid_lay.addWidget(l1, idx, 0)
 
-      l2 = QtGui.QLabel(v)
+      l2 = QtWidgets.QLabel(v)
       l2.setSizePolicy(policy, policy)
       grid_lay.addWidget(l2, idx, 1)
 
       idx += 1
 
     #Hack horrible para que la ultima fila ocupe el mayor espacio posible
-    l1 = QtGui.QLabel("")
-    l1.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+    l1 = QtWidgets.QLabel("")
+    l1.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
     grid_lay.addWidget(l1, idx, 0)
 
     self.setLayout(grid_lay)
 
-class ComboBoxSexo(QtGui.QComboBox):
+class ComboBoxSexo(QtWidgets.QComboBox):
 
   def __init__(self):
     super(ComboBoxSexo, self).__init__()
@@ -365,7 +365,7 @@ class ComboBoxSexo(QtGui.QComboBox):
       self.addItem(s)
 
 
-class MyRadioButtonSexo(QtGui.QRadioButton):
+class MyRadioButtonSexo(QtWidgets.QRadioButton):
 
   def __init__(self, text, parent):
     self.parent = parent
@@ -375,7 +375,7 @@ class MyRadioButtonSexo(QtGui.QRadioButton):
   def click(self):
     self.parent.sexo = self.text()
 
-class MyRadioButton(QtGui.QRadioButton):
+class MyRadioButton(QtWidgets.QRadioButton):
 
   def __init__(self, parent):
     self.parent = parent
@@ -387,16 +387,16 @@ class MyRadioButton(QtGui.QRadioButton):
     self.parent.widget_botones.botonAgrCaptura.setEnabled(True)
     self.parent.iRadioChecked = self.index
 
-class WidgetScroleable(QtGui.QWidget):
+class WidgetScroleable(QtWidgets.QWidget):
   """
   Agrega una barra de scroll, al widget que se le pasa como parametro.
   """
   def __init__(self, widget, parent=None):
     super(WidgetScroleable, self).__init__(parent)
-    self.scroll_area = QtGui.QScrollArea()
+    self.scroll_area = QtWidgets.QScrollArea()
     self.scroll_area.setWidget(widget)
 
-    self.lay = QtGui.QVBoxLayout()
+    self.lay = QtWidgets.QVBoxLayout()
     self.lay.addWidget(self.scroll_area)
 
     self.setLayout(self.lay)
@@ -404,7 +404,7 @@ class WidgetScroleable(QtGui.QWidget):
 def WidgetListaIndividuosScroleable(similares=None, parent=None):
   return WidgetScroleable(WidgetListaIndividuos(similares, parent))
 
-class WidgetListaIndividuos(QtGui.QWidget):
+class WidgetListaIndividuos(QtWidgets.QWidget):
   """
   Widget que muestra una lista vertical de 1 captura por individuo, con un radiobutton y un boton para mostrar el individuo.
   similares: diccionario de la forma
@@ -420,17 +420,17 @@ class WidgetListaIndividuos(QtGui.QWidget):
     self.setLayout(lay)
 
   def crear_layout(self, similares):
-    vertical_lay = QtGui.QVBoxLayout()
-    for sapo_id, dicc_sapo in similares.iteritems():
-      horizontal_lay = QtGui.QHBoxLayout()
+    vertical_lay = QtWidgets.QVBoxLayout()
+    for sapo_id, dicc_sapo in similares.items():
+      horizontal_lay = QtWidgets.QHBoxLayout()
       #En vez de pasar la imagen sola, pasamos una lista de 1 elemento con la imagen.
       horizontal_lay.addWidget(WidgetImagen([dicc_sapo["imagen"]]))
-      boton_mostrar = QtGui.QPushButton("Mostrar individuo")
+      boton_mostrar = QtWidgets.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
       boton_mostrar.id_individuo = sapo_id
       boton_mostrar.datos_individuo = dicc_sapo["dicc_datos"]
       boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
-      porcentaje_similitud = QtGui.QLabel(dicc_sapo["porcentaje_similitud"])
+      porcentaje_similitud = QtWidgets.QLabel(dicc_sapo["porcentaje_similitud"])
       horizontal_lay.addWidget(boton_mostrar)
       horizontal_lay.addWidget(porcentaje_similitud)
       vertical_lay.addLayout(horizontal_lay)
@@ -466,12 +466,12 @@ class WidgetListaIndividuosRadios(WidgetListaIndividuos):
   """
 
   def crear_layout(self, similares):
-    vertical_lay = QtGui.QVBoxLayout()
+    vertical_lay = QtWidgets.QVBoxLayout()
     self.parent.radios = []
     i = 0
     for dicc_sapo in similares:
       sapo_id = dicc_sapo["id"]
-      horizontal_lay = QtGui.QHBoxLayout()
+      horizontal_lay = QtWidgets.QHBoxLayout()
       radio = MyRadioButton(self.parent)
       radio.id_individuo = sapo_id
       radio.index = i
@@ -480,18 +480,18 @@ class WidgetListaIndividuosRadios(WidgetListaIndividuos):
       i = i + 1
       #En vez de pasar la imagen sola, pasamos una lista de 1 elemento con la imagen.
       horizontal_lay.addWidget(WidgetImagen([dicc_sapo["imagen"]]))
-      boton_mostrar = QtGui.QPushButton("Mostrar individuo")
+      boton_mostrar = QtWidgets.QPushButton("Mostrar individuo")
       boton_mostrar.clicked.connect(self.launch)
       boton_mostrar.id_individuo = sapo_id
       boton_mostrar.datos_individuo = dicc_sapo["dicc_datos"]
       boton_mostrar.lista_imagenes = dicc_sapo["lista_imagenes"]
-      porcentaje_similitud = QtGui.QLabel(str(dicc_sapo["porcentaje_similitud"]))
+      porcentaje_similitud = QtWidgets.QLabel(str(dicc_sapo["porcentaje_similitud"]))
       horizontal_lay.addWidget(boton_mostrar)
       horizontal_lay.addWidget(porcentaje_similitud)
       vertical_lay.addLayout(horizontal_lay)
     return vertical_lay
 
-class WidgetBotonesAgregarCaptura(QtGui.QWidget):
+class WidgetBotonesAgregarCaptura(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetBotonesAgregarCaptura, self).__init__(parent)
@@ -499,9 +499,9 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
     self.iniciar_ui()
 
   def iniciar_ui(self):
-    horizontal_layout = QtGui.QHBoxLayout()
-    self.botonNuevo = QtGui.QPushButton("Nuevo")
-    self.botonAgrCaptura = QtGui.QPushButton("Agregar Captura")
+    horizontal_layout = QtWidgets.QHBoxLayout()
+    self.botonNuevo = QtWidgets.QPushButton("Nuevo")
+    self.botonAgrCaptura = QtWidgets.QPushButton("Agregar Captura")
     self.botonAgrCaptura.setEnabled(False)
     horizontal_layout.addWidget(self.botonNuevo)
     horizontal_layout.addWidget(self.botonAgrCaptura)
@@ -521,7 +521,7 @@ class WidgetBotonesAgregarCaptura(QtGui.QWidget):
 #      self.parent.agregarCaptura(self.parent.radios[self.parent.iRadioChecked].id_individuo, {})
 
 
-class WidgetAgregarCaptura(QtGui.QWidget):
+class WidgetAgregarCaptura(QtWidgets.QWidget):
 
   def __init__(self, parent, posicion_algoritmo=-1):
     super(WidgetAgregarCaptura, self).__init__(parent)
@@ -559,30 +559,30 @@ class WidgetAgregarCaptura(QtGui.QWidget):
 
 
   def iniciar_ui(self):
-    self.fecha = QtGui.QDateTimeEdit()
+    self.fecha = QtWidgets.QDateTimeEdit()
     self.zona = WidgetComboBoxExtensible(Zona, self.parent)
-    self.latitud = QtGui.QLineEdit()
-    self.longitud = QtGui.QLineEdit()
+    self.latitud = QtWidgets.QLineEdit()
+    self.longitud = QtWidgets.QLineEdit()
     self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
-    self.cantidadSapitos = QtGui.QLineEdit()
-    self.observaciones = QtGui.QTextEdit()
+    self.cantidadSapitos = QtWidgets.QLineEdit()
+    self.observaciones = QtWidgets.QTextEdit()
 
-    qgridLayout = QtGui.QGridLayout()
+    qgridLayout = QtWidgets.QGridLayout()
 
-    qgridLayout.addWidget(QtGui.QLabel("CAPTURA"), 0, 0)
-    qgridLayout.addWidget(QtGui.QLabel("fecha: "), 1, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("CAPTURA"), 0, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("fecha: "), 1, 0)
     qgridLayout.addWidget(self.fecha, 1, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 2, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Zona: "), 2, 0)
     qgridLayout.addWidget(self.zona, 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 3, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Latitud: "), 3, 0)
     qgridLayout.addWidget(self.latitud, 3, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 4, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Longitud: "), 4, 0)
     qgridLayout.addWidget(self.longitud, 4, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 5, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Fotografo: "), 5, 0)
     qgridLayout.addWidget(self.fotografos, 5, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 6, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Sapitos acomp: "), 6, 0)
     qgridLayout.addWidget(self.cantidadSapitos, 6, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Observaciones: "), 7, 0)
     qgridLayout.addWidget(self.observaciones, 7, 1)
 
     self.setLayout(qgridLayout)
@@ -616,59 +616,59 @@ class WidgetEditarCaptura(CalleableWindow):
     self.parent.refresh()
 
   def borrar(self):
-    reply = QtGui.QMessageBox.question(self, 'Message',
-            "Realmente desea borrar esta captura?", QtGui.QMessageBox.Yes |
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+    reply = QtWidgets.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar esta captura?", QtWidgets.QMessageBox.Yes |
+            QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-    if reply == QtGui.QMessageBox.Yes:
+    if reply == QtWidgets.QMessageBox.Yes:
       ManagerBase().borrar_captura(self.id_captura)
       self.close()
       self.refresh_table()
 
   def iniciar_ui(self):
     self.setWindowTitle("Captura")
-    self.fecha = QtGui.QDateTimeEdit()
+    self.fecha = QtWidgets.QDateTimeEdit()
     self.zona = WidgetComboBoxExtensible(Zona, self.parent)
-    self.latitud = QtGui.QLineEdit()
-    self.longitud = QtGui.QLineEdit()
+    self.latitud = QtWidgets.QLineEdit()
+    self.longitud = QtWidgets.QLineEdit()
     self.fotografos = WidgetComboBoxExtensible(Fotografo, self.parent)
-    self.cantidadSapitos = QtGui.QLineEdit()
-    self.observaciones = QtGui.QTextEdit()
-    self.imagen_label = QtGui.QLabel()
+    self.cantidadSapitos = QtWidgets.QLineEdit()
+    self.observaciones = QtWidgets.QTextEdit()
+    self.imagen_label = QtWidgets.QLabel()
 
-    qgridLayout = QtGui.QGridLayout()
+    qgridLayout = QtWidgets.QGridLayout()
 
-    qgridLayout.addWidget(QtGui.QLabel("CAPTURA"), 0, 0)
-    qgridLayout.addWidget(QtGui.QLabel("fecha: "), 1, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("CAPTURA"), 0, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("fecha: "), 1, 0)
     qgridLayout.addWidget(self.fecha, 1, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 2, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Zona: "), 2, 0)
     qgridLayout.addWidget(self.zona, 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Latitud: "), 3, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Latitud: "), 3, 0)
     qgridLayout.addWidget(self.latitud, 3, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Longitud: "), 4, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Longitud: "), 4, 0)
     qgridLayout.addWidget(self.longitud, 4, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 5, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Fotografo: "), 5, 0)
     qgridLayout.addWidget(self.fotografos, 5, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp: "), 6, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Sapitos acomp: "), 6, 0)
     qgridLayout.addWidget(self.cantidadSapitos, 6, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 7, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Observaciones: "), 7, 0)
     qgridLayout.addWidget(self.observaciones, 7, 1)
 
-    self.boton_borrar = QtGui.QPushButton("Borrar")
+    self.boton_borrar = QtWidgets.QPushButton("Borrar")
     self.boton_borrar.clicked.connect(self.borrar)
 
-    self.boton_guardar = QtGui.QPushButton("Guardar")
+    self.boton_guardar = QtWidgets.QPushButton("Guardar")
     self.boton_guardar.clicked.connect(self.guardar)
 
-    self.vbox = QtGui.QVBoxLayout()
+    self.vbox = QtWidgets.QVBoxLayout()
 
-    hbox = QtGui.QHBoxLayout()
+    hbox = QtWidgets.QHBoxLayout()
     hbox.addWidget(self.boton_borrar)
     hbox.addWidget(self.boton_guardar)
     self.vbox.addLayout(qgridLayout)
     self.vbox.addLayout(hbox)
 
-    hbox_principal = QtGui.QHBoxLayout()
+    hbox_principal = QtWidgets.QHBoxLayout()
     hbox_principal.addLayout(self.vbox)
     hbox_principal.addWidget(self.imagen_label)
 
@@ -722,11 +722,11 @@ class WidgetEditarFotografo(CalleableWindow):
     self.parent.refresh()
 
   def borrar(self):
-    reply = QtGui.QMessageBox.question(self, 'Message',
-            "Realmente desea borrar este fotografo?", QtGui.QMessageBox.Yes |
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+    reply = QtWidgets.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar este fotografo?", QtWidgets.QMessageBox.Yes |
+            QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-    if reply == QtGui.QMessageBox.Yes:
+    if reply == QtWidgets.QMessageBox.Yes:
       ManagerBase().borrar_fotografo(self.id_fotografo)
       self.close()
       self.refresh_table()
@@ -734,19 +734,19 @@ class WidgetEditarFotografo(CalleableWindow):
   def iniciar_ui(self):
     #labels, inputs y boton guardar
     self.setWindowTitle("Editar Fotografo")
-    self.name_label = QtGui.QLabel("Nombre")
-    self.name_input = QtGui.QLineEdit()
-    self.lastname_label = QtGui.QLabel("Apellido")
-    self.lastname_input = QtGui.QLineEdit()
-    self.email_label = QtGui.QLabel("e-mail")
-    self.email_input = QtGui.QLineEdit()
-    delete_button = QtGui.QPushButton("Borrar")
+    self.name_label = QtWidgets.QLabel("Nombre")
+    self.name_input = QtWidgets.QLineEdit()
+    self.lastname_label = QtWidgets.QLabel("Apellido")
+    self.lastname_input = QtWidgets.QLineEdit()
+    self.email_label = QtWidgets.QLabel("e-mail")
+    self.email_input = QtWidgets.QLineEdit()
+    delete_button = QtWidgets.QPushButton("Borrar")
     delete_button.clicked.connect(self.borrar)
-    save_button = QtGui.QPushButton("Guardar")
+    save_button = QtWidgets.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
     #layout
-    lay = QtGui.QGridLayout()
+    lay = QtWidgets.QGridLayout()
     lay.addWidget(self.name_label, 0, 0)
     lay.addWidget(self.name_input, 0, 1)
     lay.addWidget(self.lastname_label, 1, 0)
@@ -757,9 +757,9 @@ class WidgetEditarFotografo(CalleableWindow):
 
     self.setWindowFlags(QtCore.Qt.Window)
 
-    self.vbox = QtGui.QVBoxLayout()
+    self.vbox = QtWidgets.QVBoxLayout()
     self.vbox.addLayout(lay)
-    hbox = QtGui.QHBoxLayout()
+    hbox = QtWidgets.QHBoxLayout()
     hbox.addWidget(delete_button)
     hbox.addWidget(save_button)
     self.vbox.addLayout(hbox)
@@ -796,11 +796,11 @@ class WidgetEditarZona(CalleableWindow):
     self.parent.refresh()
 
   def borrar(self):
-    reply = QtGui.QMessageBox.question(self, 'Message',
-            "Realmente desea borrar esta zona?", QtGui.QMessageBox.Yes |
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+    reply = QtWidgets.QMessageBox.question(self, 'Message',
+            "Realmente desea borrar esta zona?", QtWidgets.QMessageBox.Yes |
+            QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-    if reply == QtGui.QMessageBox.Yes:
+    if reply == QtWidgets.QMessageBox.Yes:
       ManagerBase().borrar_zona(self.id_zona)
       self.close()
       self.refresh_table()
@@ -808,19 +808,19 @@ class WidgetEditarZona(CalleableWindow):
   def iniciar_ui(self):
         #labels, inputs y boton guardar
     self.setWindowTitle("Editar Zona")
-    self.name_label = QtGui.QLabel("Nombre")
-    self.name_input = QtGui.QLineEdit()
-    self.lat_label = QtGui.QLabel("Latitud")
-    self.lat_input = QtGui.QLineEdit()
-    self.lon_label = QtGui.QLabel("Longitud")
-    self.lon_input = QtGui.QLineEdit()
-    delete_button = QtGui.QPushButton("Borrar")
+    self.name_label = QtWidgets.QLabel("Nombre")
+    self.name_input = QtWidgets.QLineEdit()
+    self.lat_label = QtWidgets.QLabel("Latitud")
+    self.lat_input = QtWidgets.QLineEdit()
+    self.lon_label = QtWidgets.QLabel("Longitud")
+    self.lon_input = QtWidgets.QLineEdit()
+    delete_button = QtWidgets.QPushButton("Borrar")
     delete_button.clicked.connect(self.borrar)
-    save_button = QtGui.QPushButton("Guardar")
+    save_button = QtWidgets.QPushButton("Guardar")
     save_button.clicked.connect(self.guardar)
 
     #layout
-    lay = QtGui.QGridLayout()
+    lay = QtWidgets.QGridLayout()
     lay.addWidget(self.name_label, 0, 0)
     lay.addWidget(self.name_input, 0, 1)
     lay.addWidget(self.lat_label, 1, 0)
@@ -831,9 +831,9 @@ class WidgetEditarZona(CalleableWindow):
     self.setWindowFlags(QtCore.Qt.Window)
 
 
-    self.vbox = QtGui.QVBoxLayout()
+    self.vbox = QtWidgets.QVBoxLayout()
     self.vbox.addLayout(lay)
-    hbox = QtGui.QHBoxLayout()
+    hbox = QtWidgets.QHBoxLayout()
     hbox.addWidget(delete_button)
     hbox.addWidget(save_button)
     self.vbox.addLayout(hbox)
@@ -846,14 +846,14 @@ class WidgetEditarZona(CalleableWindow):
       self.lat_input.setText(str(zona.lat if zona.lat != None else ""))
       self.lon_input.setText(str(zona.lon if zona.lon != None else ""))
 
-class WidgetBuscarCaptura(QtGui.QWidget):
+class WidgetBuscarCaptura(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetBuscarCaptura, self).__init__(parent)
     self.parent = parent
     self.iniciar_ui()
     self.showMaximized()
-    self.default_date_time = QtGui.QDateTimeEdit().dateTime()
+    self.default_date_time = QtWidgets.QDateTimeEdit().dateTime()
 
   def refresh(self):
     self.buscar()
@@ -882,11 +882,11 @@ class WidgetBuscarCaptura(QtGui.QWidget):
     self.table.set_data(capturas_individuos)
 
   def iniciar_ui(self):
-    vbox = QtGui.QVBoxLayout()
-    qgridLayout = QtGui.QGridLayout()
+    vbox = QtWidgets.QVBoxLayout()
+    qgridLayout = QtWidgets.QGridLayout()
     vbox.addLayout(qgridLayout)
 
-    boton_buscar = QtGui.QPushButton("Buscar")
+    boton_buscar = QtWidgets.QPushButton("Buscar")
     boton_buscar.clicked.connect(self.buscar)
     vbox.addWidget(boton_buscar)
 
@@ -896,53 +896,53 @@ class WidgetBuscarCaptura(QtGui.QWidget):
 
     db_man = ManagerBase()
 
-    self.id_individuo = QtGui.QLineEdit()
+    self.id_individuo = QtWidgets.QLineEdit()
     self.id_individuo.setValidator(QtGui.QIntValidator())
-    self.id_captura = QtGui.QLineEdit()
+    self.id_captura = QtWidgets.QLineEdit()
     self.id_captura.setValidator(QtGui.QIntValidator())
     self.sexo = WidgetComboBoxList(sexo, self.parent)
     self.zona = WidgetComboBoxType(Zona, self.parent)
     self.fotografo = WidgetComboBoxType(Fotografo, self.parent)
-    self.cant_sapitos_min = QtGui.QLineEdit()
+    self.cant_sapitos_min = QtWidgets.QLineEdit()
     self.cant_sapitos_min.setValidator(QtGui.QIntValidator())
-    self.cant_sapitos_max = QtGui.QLineEdit()
+    self.cant_sapitos_max = QtWidgets.QLineEdit()
     self.cant_sapitos_max.setValidator(QtGui.QIntValidator())
-    self.observaciones = QtGui.QLineEdit()
-    self.observaciones_individuo = QtGui.QLineEdit()
-    self.archivo = QtGui.QLineEdit()
+    self.observaciones = QtWidgets.QLineEdit()
+    self.observaciones_individuo = QtWidgets.QLineEdit()
+    self.archivo = QtWidgets.QLineEdit()
 
-    self.date_time_inic = QtGui.QDateTimeEdit()
+    self.date_time_inic = QtWidgets.QDateTimeEdit()
     self.date_time_inic.setCalendarPopup(True)
-    self.date_time_inic.setCalendarWidget(QtGui.QCalendarWidget())
+    self.date_time_inic.setCalendarWidget(QtWidgets.QCalendarWidget())
 
-    self.date_time_fin = QtGui.QDateTimeEdit()
+    self.date_time_fin = QtWidgets.QDateTimeEdit()
     self.date_time_fin.setCalendarPopup(True)
-    self.date_time_fin.setCalendarWidget(QtGui.QCalendarWidget())
+    self.date_time_fin.setCalendarWidget(QtWidgets.QCalendarWidget())
 
 
-    qgridLayout.addWidget(QtGui.QLabel("id individuo: "), 0, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("id individuo: "), 0, 0)
     qgridLayout.addWidget(self.id_individuo, 0, 1)
-    qgridLayout.addWidget(QtGui.QLabel("id captura: "), 0, 2)
+    qgridLayout.addWidget(QtWidgets.QLabel("id captura: "), 0, 2)
     qgridLayout.addWidget(self.id_captura, 0, 3)
-    qgridLayout.addWidget(QtGui.QLabel("fecha inicio: "), 0, 4)
+    qgridLayout.addWidget(QtWidgets.QLabel("fecha inicio: "), 0, 4)
     qgridLayout.addWidget(self.date_time_inic, 0, 5)
-    qgridLayout.addWidget(QtGui.QLabel("fecha fin: "), 0, 6)
+    qgridLayout.addWidget(QtWidgets.QLabel("fecha fin: "), 0, 6)
     qgridLayout.addWidget(self.date_time_fin, 0, 7)
-    qgridLayout.addWidget(QtGui.QLabel("Zona: "), 1, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Zona: "), 1, 0)
     qgridLayout.addWidget(self.zona, 1, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Fotografo: "), 1, 2)
+    qgridLayout.addWidget(QtWidgets.QLabel("Fotografo: "), 1, 2)
     qgridLayout.addWidget(self.fotografo, 1, 3)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp min: "), 1, 4)
+    qgridLayout.addWidget(QtWidgets.QLabel("Sapitos acomp min: "), 1, 4)
     qgridLayout.addWidget(self.cant_sapitos_min, 1, 5)
-    qgridLayout.addWidget(QtGui.QLabel("Sapitos acomp max: "), 1, 6)
+    qgridLayout.addWidget(QtWidgets.QLabel("Sapitos acomp max: "), 1, 6)
     qgridLayout.addWidget(self.cant_sapitos_max, 1, 7)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 2, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("Observaciones: "), 2, 0)
     qgridLayout.addWidget(self.observaciones, 2, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones Individuo: "), 2, 2)
+    qgridLayout.addWidget(QtWidgets.QLabel("Observaciones Individuo: "), 2, 2)
     qgridLayout.addWidget(self.observaciones_individuo, 2, 3)
-    qgridLayout.addWidget(QtGui.QLabel("Archivo: "), 2, 4)
+    qgridLayout.addWidget(QtWidgets.QLabel("Archivo: "), 2, 4)
     qgridLayout.addWidget(self.archivo, 2, 5)
-    qgridLayout.addWidget(QtGui.QLabel("Sexo: "), 2, 6)
+    qgridLayout.addWidget(QtWidgets.QLabel("Sexo: "), 2, 6)
     qgridLayout.addWidget(self.sexo, 2, 7)
 
 
@@ -950,7 +950,7 @@ class WidgetBuscarCaptura(QtGui.QWidget):
 
     self.show()
 
-class WidgetBuscarIndividuo(QtGui.QWidget):
+class WidgetBuscarIndividuo(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetBuscarIndividuo, self).__init__(parent)
@@ -972,11 +972,11 @@ class WidgetBuscarIndividuo(QtGui.QWidget):
     self.table.set_data(individuos)
 
   def iniciar_ui(self):
-    vbox = QtGui.QVBoxLayout()
-    qgridLayout = QtGui.QGridLayout()
+    vbox = QtWidgets.QVBoxLayout()
+    qgridLayout = QtWidgets.QGridLayout()
     vbox.addLayout(qgridLayout)
 
-    boton_buscar = QtGui.QPushButton("Buscar")
+    boton_buscar = QtWidgets.QPushButton("Buscar")
     boton_buscar.clicked.connect(self.buscar)
     vbox.addWidget(boton_buscar)
 
@@ -986,16 +986,16 @@ class WidgetBuscarIndividuo(QtGui.QWidget):
 
     db_man = ManagerBase()
 
-    self.id_individuo = QtGui.QLineEdit()
+    self.id_individuo = QtWidgets.QLineEdit()
     self.id_individuo.setValidator(QtGui.QIntValidator())
     self.sexo = WidgetComboBoxList(sexo, self.parent)
-    self.observaciones = QtGui.QLineEdit()
+    self.observaciones = QtWidgets.QLineEdit()
 
-    qgridLayout.addWidget(QtGui.QLabel("id individuo: "), 0, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("id individuo: "), 0, 0)
     qgridLayout.addWidget(self.id_individuo, 0, 1)
-    qgridLayout.addWidget(QtGui.QLabel("Sexo: "), 0, 2)
+    qgridLayout.addWidget(QtWidgets.QLabel("Sexo: "), 0, 2)
     qgridLayout.addWidget(self.sexo, 0, 3)
-    qgridLayout.addWidget(QtGui.QLabel("Observaciones: "), 0, 4)
+    qgridLayout.addWidget(QtWidgets.QLabel("Observaciones: "), 0, 4)
     qgridLayout.addWidget(self.observaciones, 0, 5)
 
     self.setLayout(vbox)
@@ -1004,7 +1004,7 @@ class WidgetBuscarIndividuo(QtGui.QWidget):
 
 
 
-class WidgetFotografos(QtGui.QWidget):
+class WidgetFotografos(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetFotografos, self).__init__(parent)
@@ -1018,10 +1018,10 @@ class WidgetFotografos(QtGui.QWidget):
     self.setWindowTitle("Fotografos")
     self.table = WidgetTableFotografos(self)
     self.table.set_data(ManagerBase().all_fotografos())
-    self.button_nuevo = QtGui.QPushButton("Nuevo")
+    self.button_nuevo = QtWidgets.QPushButton("Nuevo")
     self.button_nuevo.clicked.connect(self.launch_nuevo_fotografo)
 
-    vbox = QtGui.QVBoxLayout()
+    vbox = QtWidgets.QVBoxLayout()
     vbox.addWidget(self.table)
     vbox.addWidget(self.button_nuevo)
     self.setLayout(vbox)
@@ -1031,7 +1031,7 @@ class WidgetFotografos(QtGui.QWidget):
     self.widget.show()
 
 
-class WidgetZonas(QtGui.QWidget):
+class WidgetZonas(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetZonas, self).__init__(parent)
@@ -1045,10 +1045,10 @@ class WidgetZonas(QtGui.QWidget):
     self.setWindowTitle("Zonas")
     self.table = WidgetTableZonas(self)
     self.table.set_data(ManagerBase().all_zonas())
-    self.button_nuevo = QtGui.QPushButton("Nuevo")
+    self.button_nuevo = QtWidgets.QPushButton("Nuevo")
     self.button_nuevo.clicked.connect(self.launch_nueva_zona)
 
-    vbox = QtGui.QVBoxLayout()
+    vbox = QtWidgets.QVBoxLayout()
     vbox.addWidget(self.table)
     vbox.addWidget(self.button_nuevo)
     self.setLayout(vbox)
@@ -1115,7 +1115,7 @@ class WidgetTableImagenCapturas(WidgetTableTemplate):
                       ColumnConstruct(HeaderLabel("id captura"), ConstructorItemString("id"), open_window=True, widget=WidgetEditarCaptura),
                       ColumnConstruct(HeaderLabel("imagen", 650), ConstructorItemImage("imagen_original_thumbnail_mediana", set_size_row=True))]
 
-class WidgetComboBoxList(QtGui.QWidget):
+class WidgetComboBoxList(QtWidgets.QWidget):
 
   def __init__(self, list, parent = None):
     super(WidgetComboBoxList, self).__init__(parent)
@@ -1124,15 +1124,15 @@ class WidgetComboBoxList(QtGui.QWidget):
     self.iniciar_ui()
 
   def iniciar_ui(self):
-    self.items = QtGui.QComboBox()
+    self.items = QtWidgets.QComboBox()
     self.items.addItem("...")
     for item in self.list:
         self.items.addItem(item)
-    layout = QtGui.QHBoxLayout()
+    layout = QtWidgets.QHBoxLayout()
     layout.addWidget(self.items)
     self.setLayout(layout)
 
-class WidgetComboBoxType(QtGui.QWidget):
+class WidgetComboBoxType(QtWidgets.QWidget):
 
   def __init__(self, type, parent = None):
     super(WidgetComboBoxType, self).__init__(parent)
@@ -1141,16 +1141,16 @@ class WidgetComboBoxType(QtGui.QWidget):
     self.iniciar_ui()
 
   def iniciar_ui(self):
-    self.items = QtGui.QComboBox()
+    self.items = QtWidgets.QComboBox()
     self.items.addItem("...", -1)
     for item in ManagerBase().all(self.type):
         self.items.addItem(item.description(), item.id)
-    layout = QtGui.QHBoxLayout()
+    layout = QtWidgets.QHBoxLayout()
     layout.addWidget(self.items)
     self.setLayout(layout)
 
 
-class WidgetComboBoxExtensible(QtGui.QWidget):
+class WidgetComboBoxExtensible(QtWidgets.QWidget):
 
   add_item_widgets = {Fotografo: WidgetAgregarFotografo,
                       Zona: WidgetAgregarZona
@@ -1163,9 +1163,9 @@ class WidgetComboBoxExtensible(QtGui.QWidget):
     self.iniciar_ui()
 
   def iniciar_ui(self):
-    self.hBox = QtGui.QHBoxLayout()
+    self.hBox = QtWidgets.QHBoxLayout()
     self.load_items()
-    self.add_item_button = QtGui.QPushButton("+")
+    self.add_item_button = QtWidgets.QPushButton("+")
     self.add_item_button.clicked.connect(self.add_item)
     self.add_item_button.setMaximumWidth(30)
     self.hBox.addWidget(self.add_item_button)
@@ -1175,7 +1175,7 @@ class WidgetComboBoxExtensible(QtGui.QWidget):
     items = self.hBox.takeAt(0)
     if items != None:
       items.widget().deleteLater()
-    self.items = QtGui.QComboBox()
+    self.items = QtWidgets.QComboBox()
     for item in ManagerBase().all(self.type):
         self.items.addItem(item.description(), item.id)
     self.hBox.insertWidget(0, self.items)
@@ -1189,7 +1189,7 @@ class WidgetComboBoxExtensible(QtGui.QWidget):
     self.add_item_widget.show()
 
 
-class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
+class WidgetAgregarCapturaConBotonGuardar(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetAgregarCapturaConBotonGuardar, self).__init__(parent)
@@ -1198,13 +1198,13 @@ class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
 
 
   def iniciar_ui(self):
-    qHLayout = QtGui.QHBoxLayout()
+    qHLayout = QtWidgets.QHBoxLayout()
 
     self.setLayout(qHLayout)
 
     self.setWindowTitle("Formulario para agregar nueva captura")
 
-    botonGuardar = QtGui.QPushButton("Guardar")
+    botonGuardar = QtWidgets.QPushButton("Guardar")
 
     self.widgetCaptura = WidgetAgregarCaptura(self.parent)
 
@@ -1215,7 +1215,7 @@ class WidgetAgregarCapturaConBotonGuardar(QtGui.QWidget):
 
     self.show()
 
-class WidgetNuevaCaptura(QtGui.QWidget):
+class WidgetNuevaCaptura(QtWidgets.QWidget):
 
   def __init__(self, parent = None, position=-1):
     """
@@ -1238,12 +1238,12 @@ class WidgetNuevaCaptura(QtGui.QWidget):
 
   def iniciar_ui(self):
 
-    qHLayout = QtGui.QHBoxLayout()
+    qHLayout = QtWidgets.QHBoxLayout()
     self.setLayout(qHLayout)
     self.setWindowFlags(QtCore.Qt.Window)
     self.setWindowTitle("Formulario para agregar nueva captura")
 
-    botonGuardar = QtGui.QPushButton("Guardar")
+    botonGuardar = QtWidgets.QPushButton("Guardar")
 
     self.widgetAgregarCaptura = WidgetAgregarCaptura(self.parent, self.position)
     botonGuardar.clicked.connect(self.guardar)
@@ -1255,7 +1255,7 @@ class WidgetNuevaCaptura(QtGui.QWidget):
 
 
 
-class WidgetNuevoIndividuo(QtGui.QWidget):
+class WidgetNuevoIndividuo(QtWidgets.QWidget):
 
   def __init__(self, parent = None):
     super(WidgetNuevoIndividuo, self).__init__(parent)
@@ -1279,20 +1279,20 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
   def iniciar_ui(self):
 
     self.sexo = sexo[2]
-    self.labeln = QtGui.QLabel("Sexo: ")
-    self.labelz = QtGui.QLabel("Observaciones: ")
+    self.labeln = QtWidgets.QLabel("Sexo: ")
+    self.labelz = QtWidgets.QLabel("Observaciones: ")
     self.radioMasculino = MyRadioButtonSexo(sexo[0], self)
     self.radioFemenino = MyRadioButtonSexo(sexo[1], self)
     self.radioNoDeterminado = MyRadioButtonSexo(sexo[2], self)
     self.radioNoDeterminado.setChecked(True)
-    self.texto = QtGui.QTextEdit()
+    self.texto = QtWidgets.QTextEdit()
 
-    qHLayout = QtGui.QHBoxLayout()
-    qgridLayout = QtGui.QGridLayout()
+    qHLayout = QtWidgets.QHBoxLayout()
+    qgridLayout = QtWidgets.QGridLayout()
 
     qHLayout.addLayout(qgridLayout)
 
-    qgridLayout.addWidget(QtGui.QLabel("INDIVIDUO"), 0, 0)
+    qgridLayout.addWidget(QtWidgets.QLabel("INDIVIDUO"), 0, 0)
     qgridLayout.addWidget(self.labeln, 1, 0)
     qgridLayout.addWidget(self.radioMasculino, 1, 1)
     qgridLayout.addWidget(self.radioFemenino, 2, 1)
@@ -1305,7 +1305,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     #self.setGeometry(300, 300, 600, 400)
     self.setWindowTitle("Formulario para agregar nuevo individuo")
 
-    botonGuardar = QtGui.QPushButton("Guardar")
+    botonGuardar = QtWidgets.QPushButton("Guardar")
 
     botonGuardar.clicked.connect(self.guardar)
 
@@ -1317,7 +1317,7 @@ class WidgetNuevoIndividuo(QtGui.QWidget):
     self.show()
 
 
-class WidgetArchivoConMismoNombre(QtGui.QWidget):
+class WidgetArchivoConMismoNombre(QtWidgets.QWidget):
 
   def __init__(self, parent, nombre_imagen, capturas):
     super(WidgetArchivoConMismoNombre, self).__init__(parent, QtCore.Qt.Window)
@@ -1327,17 +1327,17 @@ class WidgetArchivoConMismoNombre(QtGui.QWidget):
   def iniciar_ui(self, nombre_imagen, capturas):
     message = "Ya existe una imagen con el nombre de archivo %s en la base de datos." if capturas.count() == 1 else\
               "Ya existen imagenes con el nombre de archivo %s en la base de datos."
-    message_label = QtGui.QLabel(message % nombre_imagen)
+    message_label = QtWidgets.QLabel(message % nombre_imagen)
     image_widget = WidgetTableImagenCapturas(self, capturas)
 
-    vbox = QtGui.QVBoxLayout()
+    vbox = QtWidgets.QVBoxLayout()
     vbox.addWidget(message_label)
     vbox.addWidget(image_widget)
 
     self.setLayout(vbox)
 
 def main():
-  app = QtGui.QApplication(sys.argv)
+  app = QtWidgets.QApplication(sys.argv)
   #ex = WidgetIndividuo()
   from db import ManagerBase
   ex = WidgetListaIndividuosStandaloneScroleable(ManagerBase().all_individuos())

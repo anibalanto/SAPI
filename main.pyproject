@@ -1,0 +1,3 @@
+{
+    "files": ["README.md","runcode.py","transformador.py","widget_table.py","colores.py","algoritmo.py","histograma.py","widget_individuo.py","opencv_to_qimage.py","aplicar_algoritmos.py","warp_image.py","imagen.py","segmentos.py","filtros.py","pointsbezier.py","transformedWidget.py","adaptationImage.py","db.py","medidas.py","main.py","colors.py","config/config.ini","config/config.ini.back","config/config.ini.backeco","config/config.ini.backsqlite","config/config.ini~"]
+}

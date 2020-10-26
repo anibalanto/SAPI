@@ -4,7 +4,7 @@ import weakref
 import math
 import warp_image as wi
 import numpy as np
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
 
 A01 = -10
 A10 = 10
@@ -81,10 +81,10 @@ class Points(object):
 
     """
 
-class Shape(QtGui.QGraphicsItem):
+class Shape(QtWidgets.QGraphicsItem):
 
     Pi = math.pi
-    Type = QtGui.QGraphicsItem.UserType + 3
+    Type = QtWidgets.QGraphicsItem.UserType + 3
     def __init__(self, graphWidget, nodes, name = None, shapeDest = None):
         self.name = name
         self.nodes = nodes
@@ -93,7 +93,7 @@ class Shape(QtGui.QGraphicsItem):
             self.shapeDest = shapeDest
             self.points_dest = shapeDest.getListPointsNodes()
             self.points_bound_dest = self.transformToListPoints(shapeDest.boundingRect())
-        QtGui.QGraphicsItem.__init__(self)
+        QtWidgets   .QGraphicsItem.__init__(self)
 
         self.scale = 1.0
         self.definePathShape()
@@ -210,7 +210,7 @@ class Shape(QtGui.QGraphicsItem):
         return mylist
 
     def __repr__(self):
-	return "Shape.nodes: <%f>" % (self.getListPointsNodes())
+        return "Shape.nodes: <%f>".format(self.getListPointsNodes())
 
     def toImage(self):
         rect = self.boundingRect()
@@ -257,11 +257,11 @@ class BoundPolygon(QtGui.QPolygonF):
     def close(self):
         self.append(self.toList()[0])
 
-class PointSimple(QtGui.QGraphicsItem):
-    Type = QtGui.QGraphicsItem.UserType + 8
+class PointSimple(QtWidgets.QGraphicsItem):
+    Type = QtWidgets.QGraphicsItem.UserType + 8
 
     def __init__(self, myScene, graphWidget, pos, scale):
-        QtGui.QGraphicsItem.__init__(self)
+        QtWidgets.QGraphicsItem.__init__(self)
         self.scale = 1.0
 
         #self.color = C1
@@ -273,8 +273,8 @@ class PointSimple(QtGui.QGraphicsItem):
         self.scale = scale
         self.newPos = pos
         self.setPos(pos)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-        self.setFlag(QtGui.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setCacheMode(self.DeviceCoordinateCache)
         self.setZValue(-1)
         self.setZValue(10)
@@ -303,7 +303,7 @@ class PointSimple(QtGui.QGraphicsItem):
     def mousePressEvent(self, event):
         self.myScene.notDoAddPoint()
         self.update()
-        QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
+        QtWidgets.QGraphicsItem.mouseReleaseEvent(self, event)
 
     def paint(self, painter, option, widget):
         painter.setPen(QtGui.QPen(self.color, 2 * self.graphWidget.getScale(), QtCore.Qt.SolidLine))
@@ -312,11 +312,11 @@ class PointSimple(QtGui.QGraphicsItem):
         painter.drawEllipse(inic, inic, end, end)
 
 
-class Point(QtGui.QGraphicsItem):
-    Type = QtGui.QGraphicsItem.UserType + 4
+class Point(QtWidgets.QGraphicsItem):
+    Type = QtWidgets.QGraphicsItem.UserType + 4
 
     def __init__(self, graphWidget):
-        QtGui.QGraphicsItem.__init__(self)
+        QtWidgets.QGraphicsItem.__init__(self)
         self.shapeList = []
 
         self.color = C1
@@ -324,8 +324,8 @@ class Point(QtGui.QGraphicsItem):
         self.graphWidget = graphWidget
 
         self.newPos = QtCore.QPointF()
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-        self.setFlag(QtGui.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setCacheMode(self.DeviceCoordinateCache)
         self.setZValue(-1)
         self.setZValue(10)
@@ -371,14 +371,14 @@ class Point(QtGui.QGraphicsItem):
 
     def mousePressEvent(self, event):
         self.update()
-        QtGui.QGraphicsItem.mousePressEvent(self, event)
+        QtWidgets.QGraphicsItem.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         self.update()
-        QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
+        QtWidgets.QGraphicsItem.mouseReleaseEvent(self, event)
 
-	def __repr__(self):
-		return "<%f, %f>" % (self.pos().x()), (self.pos().y())
+    def __repr__(self):
+        return "<%f, %f>".format(self.pos().x(), self.pos().y())
 
     def paint(self, painter, option, widget):
         painter.setPen(QtGui.QPen(self.color, 2 * self.graphWidget.getScale(), QtCore.Qt.SolidLine))
@@ -394,7 +394,7 @@ class BezierCero(object):
       return 0
 
 class Bezier(Point):
-    Type = QtGui.QGraphicsItem.UserType + 5
+    Type = QtWidgets.QGraphicsItem.UserType + 5
 
     Pi = math.pi
     TwoPi = 2 * math.pi
@@ -425,11 +425,11 @@ class Bezier(Point):
 
     def mousePressEvent(self, event):
         self.update()
-        QtGui.QGraphicsItem.mousePressEvent(self, event)
+        QtWidgets.QGraphicsItem.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         self.update()
-        QtGui.QGraphicsItem.mouseReleaseEvent(self, event)
+        QtWidgets.QGraphicsItem.mouseReleaseEvent(self, event)
         self.updateVector(QtGui.QVector2D(self.pos() - self.node.pos()))
         self.rad = self.getRadians()
 
@@ -548,7 +548,7 @@ class PosDefinator(object):
         self.vector = QtGui.QVector2D(self.pos - self.node.pos())
 
 class Node(Point):
-    Type = QtGui.QGraphicsItem.UserType + 6
+    Type = QtWidgets.QGraphicsItem.UserType + 6
 
     def __init__(self, graphWidget, name = None):
         Point.__init__(self, graphWidget)
@@ -594,7 +594,7 @@ class Node(Point):
         return self.edgeList
 
     def itemChange(self, change, value):
-        if change == QtGui.QGraphicsItem.ItemPositionChange:
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for edge in self.edgeList:
                 edge().adjust()
             for shape in self.shapeList:
@@ -609,7 +609,7 @@ class Node(Point):
         #painter.setPen(QtGui.QPen(self.color, 3 * self.scale, QtCore.Qt.DashLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin))
         painter.drawEllipse(-10 * self.graphWidget.getScale(), -10 * self.graphWidget.getScale(), 20 * self.graphWidget.getScale(), 20 * self.graphWidget.getScale())
 
-class MyScene(QtGui.QGraphicsScene):
+class MyScene(QtWidgets.QGraphicsScene):
 
     clicked = QtCore.Signal(int,int)
 
@@ -648,31 +648,31 @@ class MyScene(QtGui.QGraphicsScene):
                 self.grap.points.removeAllPoints(self)
 
 
-class SelectorWidget(QtGui.QGraphicsView):
+class SelectorWidget(QtWidgets.QGraphicsView):
 
     clicked = QtCore.Signal(int,int)
     scaleFactor = 1.0
 
     def __init__(self):
-        self.scroll = QtGui.QWidget()
+        self.scroll = QtWidgets.QWidget()
         self.scroll.setGeometry(QtCore.QRect(0, 0, 1022, 798))
-        QtGui.QGraphicsView.__init__(self, self.scroll)
+        QtWidgets.QGraphicsView.__init__(self, self.scroll)
 
         scene = MyScene(self)
         #scene.setSceneRect(0, 0, 800, 800)
-        scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        scene.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         #self.setSceneRect(0, 0, 0, 0)
 
         #self.addImage(filename)
 
         self.setScene(scene)
-        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
+        self.setCacheMode(QtWidgets.QGraphicsView.CacheBackground)
         self.setRenderHint(QtGui.QPainter.Antialiasing)
-        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
 
         """
-        self.scrollArea = QtGui.QScrollArea()
+        self.scrollArea = QtWidgets.QScrollArea()
         self.scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
         self.scrollArea.setWidget(self.imageLabel)
         self.setCentralWidget(self.scrollArea)
@@ -774,11 +774,11 @@ class SelectorWidget(QtGui.QGraphicsView):
             self.zoomIn()
 
     def zoomIn(self):
-        self.setFactor(self.factor * 1.25)
+        self.setFactor(self.getFactor() * 1.25)
         self.scale(1.25, 1.25)
 
     def zoomOut(self):
-        self.setFactor(self.factor * 0.75)
+        self.setFactor(self.getFactor() * 0.75)
         self.scale(0.75, 0.75)
 
     def resetSizeImage(self):
@@ -849,9 +849,9 @@ class SelectorWidget(QtGui.QGraphicsView):
         self.shapeDest = ShapeDest(self, self.createNodesBase(), "shBase")
         #self.widgetDest = WidgetDest(self.shapeDest)
 
-        self.sceneDest = QtGui.QGraphicsScene()
+        self.sceneDest = QtWidgets.QGraphicsScene()
         self.sceneDest.setSceneRect(0, 0, 0, 0)
-        self.sceneDest.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
+        self.sceneDest.setItemIndexMethod(QtWidgets.QGraphicsScene.NoIndex)
         self.sceneDest.addItem(self.shapeDest)
 
         self.shape = Shape(self, self.createNodesBase(points), "shEdit", self.shapeDest)

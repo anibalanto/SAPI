@@ -1,5 +1,5 @@
-from PySide import QtGui
-#from PySide import QtCore
+from PySide2 import QtGui
+#from PySide2 import QtCore
 import cv2 as cv
 #import cStringIO
 #import Image
