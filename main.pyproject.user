@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.13.2, 2020-10-25T03:00:17. -->
+<!-- Written by QtCreator 4.13.2, 2020-11-09T19:59:14. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -231,7 +231,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">PythonEditor.RunConfiguration.C:/Users/Anibal/Workspace/Python/SAPI2/main.py</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">C:/Users/Anibal/Workspace/Python/SAPI2/main.py</value>
     <value type="bool" key="PythonEditor.RunConfiguation.Buffered">false</value>
-    <value type="QString" key="PythonEditor.RunConfiguation.Interpreter">{ecc70ca8-b7ca-413f-b6ba-2762d940233b}</value>
+    <value type="QString" key="PythonEditor.RunConfiguation.Interpreter">{354d28a7-5852-47b6-974c-8e1b7eb72945}</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">C:\Users\Anibal\Workspace\Python\SAPI2\main.py</value>
     <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>

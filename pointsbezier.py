@@ -774,11 +774,11 @@ class SelectorWidget(QtWidgets.QGraphicsView):
             self.zoomIn()
 
     def zoomIn(self):
-        self.setFactor(self.getFactor() * 1.25)
+        self.setFactor(self.factor * 1.25)
         self.scale(1.25, 1.25)
 
     def zoomOut(self):
-        self.setFactor(self.getFactor() * 0.75)
+        self.setFactor(self.factor * 0.75)
         self.scale(0.75, 0.75)
 
     def resetSizeImage(self):
