@@ -1,4 +1,7 @@
-pdi
-===
+# Software for animal photo idetificator
 
-Trabajos practicos de la catedra Procesamiento Digital de Imágenes 1
+## Generar ejecutable
+
+```bash
+pyinstaller.exe --onefile main.py
+```
