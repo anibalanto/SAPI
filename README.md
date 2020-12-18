@@ -5,5 +5,5 @@
 Utilizamos pyinstaller para generar un archivo ejecutable único
 
 ```bash
-pyinstaller.exe --onefile main.py
+pyinstaller --onefile --icon=icon/sapi2.ico main.py
 ```
