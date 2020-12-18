@@ -1,8 +1,23 @@
 # -*- coding: utf-8 -*-
 #import Image
 #import tempfile
-from PySide2.QtGui import QImage, qRgb, qRed, qGreen, qBlue
+from PySide2.QtGui import QImage, qRgb, qRed, qGreen, qBlue, QPixmap
+from PySide2.QtWidgets import QLabel, QWidget
 import cv2
+
+def showQImage(i):
+    pixMap = QPixmap.fromImage( i )
+
+    window = QWidget()
+    window.setWindowTitle("View Image")
+
+    label = QLabel(window)
+    label.setPixmap( pixMap )
+
+    # embiggen the window to correctly fit the pic
+    window.resize(pixMap.width()+20, pixMap.height()+100)
+    window.show()
+    return window
 
 class MyException(Exception):
   def __init__(self, xy, pix_val):

@@ -6,6 +6,7 @@ import transformador
 import runcode
 import histograma
 import medidas
+from imagen import showQImage
 from imagen import ImagenArchivo
 from filtros import UNOS, Filtro
 from colores import BLUE
@@ -295,7 +296,7 @@ def mostrar_segmentada(img):
   dr.line([(0, int(2*alto/3)), (ancho, int(2*alto/3))], fill=BLUE)
   """
 
-  i.show()
+  showQImage(i)
 
 
 def calcular_regiones(img_original):
@@ -307,7 +308,8 @@ def calcular_regiones(img_original):
   segman = runcode.run_codes(img_segmentada, img_perimetros)
   regiones = medidas.MedidaAreasPorRegiones(segman, img_original).get_valor()
   superficie_ocupada = medidas.SuperficieOcupada(segman, img_original).get_valor()
-  #mostrar_segmentada(img_segmentada)
+
+  mostrar_segmentada(img_segmentada)
 
   return img_segmentada, regiones, superficie_ocupada
 

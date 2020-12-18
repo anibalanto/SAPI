@@ -253,7 +253,7 @@ class ManagerBase(object):
     idx = 0
     while idx < len(mejores) and len(agregados) < 10:
       i = mejores[idx]
-      if not i[1].individuo.id in agregados:
+      if i[1].individuo != None and not i[1].individuo.id in agregados:
         agregados.add(i[1].individuo.id)
         ret.append(
             {

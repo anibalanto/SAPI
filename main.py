@@ -119,7 +119,7 @@ class WindowSapito(QtWidgets.QMainWindow):
   def loadImage(self, filename):
     self.filename = filename
 
-    self.cv_img = cv.imread(self.filename) # Abrimos la imagen con opencv
+    self.cv_img = cv.imread(self.filename, cv.IMREAD_IGNORE_ORIENTATION | cv.IMREAD_COLOR) # Abrimos la imagen con opencv
     self.q_img = QtGui.QImage(self.filename) # Abrimos la imagen con qt
 
     if not (self.cv_img.any() and self.cv_img.size):
