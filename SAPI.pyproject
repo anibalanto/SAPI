@@ -1,0 +1,3 @@
+{
+    "files": ["colors.py","widget_individuo.py","config/config.ini~","README.md","algoritmo.py","filtros.py","transformador.py","config/config.ini.back","config/config.ini","runcode.py","pointsbezier.py","widget_table.py","colores.py","histograma.py","imagen.py","adaptationImage.py","config/config.ini.backsqlite","config/config.ini.backeco","warp_image.py","transformedWidget.py","segmentos.py","medidas.py","SAPI.py","aplicar_algoritmos.py","opencv_to_qimage.py","db.py"]
+}
