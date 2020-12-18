@@ -1,4 +1,9 @@
-pdi
-===
+# Software for animal photo idetificator
 
-Trabajos practicos de la catedra Procesamiento Digital de Imágenes 1
+## Generar ejecutable
+
+Utilizamos pyinstaller para generar un archivo ejecutable único
+
+```bash
+pyinstaller --onefile --icon=icon/sapi2.ico main.py
+```
