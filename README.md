@@ -1,4 +1,5 @@
 # Software for animal photo idetificator
+Ver [informe](https://anibanto.files.wordpress.com/2015/06/sapi-software-for-animal-photo-identification.pdf)
 
 ## Generar ejecutable
 
